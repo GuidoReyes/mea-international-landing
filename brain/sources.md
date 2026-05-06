@@ -12,12 +12,12 @@
 <!-- Agregar una entrada por cada página de Notion relevante al proyecto -->
 <!-- Formato: ID corto en kebab-case, título, URL completa, resumen corto -->
 
-### ejemplo-pagina
-- **Título:** Nombre de la página
-- **URL:** https://www.notion.so/<id-de-la-pagina>
-- **Resumen cache:** Descripción breve del contenido (para decidir si hacer fetch).
+### estrategia-marketing
+- **Título:** Estrategia de marketing 2026
+- **URL:** https://www.notion.so/MEA-international-35883de9b32b80fba23de9193f46a917
+- **Resumen cache:** plan de contenido, campanas y objetivos.
 - **Regla:** Resolver contenido real vía MCP antes de cualquier afirmación.
-- **Última verificación:** YYYY-MM-DD
+- **Última verificación:** 2026-04-30
 
 <!-- Duplicar el bloque anterior para cada fuente Notion -->
 

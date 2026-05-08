@@ -1,0 +1,682 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Initialize Express + TypeScript Backend Structure",
+        "description": "Create backend project with TypeScript, Express, and essential middleware (helmet, cors, dotenv). Set up folder structure and initial configuration files.",
+        "details": "Create `/backend` directory in project root. Initialize with `npm init -y`. Install dependencies: express, typescript, @types/node, @types/express, helmet, cors, dotenv, ts-node, nodemon. Create `tsconfig.json` with target ES2017, strict mode, esModuleInterop. Create folder structure: `src/routes/`, `src/lib/`, `src/middleware/`, `prisma/`. Create `src/index.ts` with Express app, helmet middleware, CORS configured for FRONTEND_URL + localhost:3000, JSON body parser, health check endpoint at GET /health returning {status: 'ok'}, and server listening on PORT env variable (default 4000). Create `.env.example` with all required variables. Create `nodemon.json` for development. Add scripts to package.json: `dev` (nodemon), `build` (tsc), `start` (node dist/index.js).",
+        "testStrategy": "Run `npm run dev`, verify server starts without errors. Test GET http://localhost:4000/health returns 200 with {status: 'ok'}. Verify CORS allows configured origins. Test helmet headers are present in response.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create backend directory structure and initialize npm project",
+            "description": "Create /backend directory in project root, initialize package.json with npm init, and set up the basic folder structure for Express + TypeScript backend.",
+            "dependencies": [],
+            "details": "Create /backend directory at /Users/guidoreyes/Desktop/proyecto/backend. Run npm init -y inside the backend directory to create package.json. Create the following subdirectories: src/routes/, src/lib/, src/middleware/, and prisma/. This establishes the foundational structure for the Express backend application with clear separation of concerns.",
+            "status": "done",
+            "testStrategy": "Verify /backend directory exists. Confirm package.json is created with valid JSON. Verify all subdirectories (src/routes/, src/lib/, src/middleware/, prisma/) are present using ls command.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-08T01:59:49.863Z"
+          },
+          {
+            "id": 2,
+            "title": "Install TypeScript, Express, and essential dependencies",
+            "description": "Install all required npm packages including TypeScript, Express, type definitions, middleware packages, and development tools.",
+            "dependencies": [
+              1
+            ],
+            "details": "Navigate to /backend directory and install production dependencies: express, helmet, cors, dotenv. Install development dependencies: typescript, @types/node, @types/express, @types/cors, ts-node, nodemon. Use npm install --save for production and npm install --save-dev for development dependencies. This ensures all necessary packages are available for building a secure, typed Express server.",
+            "status": "done",
+            "testStrategy": "Check package.json dependencies section contains express, helmet, cors, dotenv. Check devDependencies contains typescript, @types/node, @types/express, @types/cors, ts-node, nodemon. Run npm list to verify all packages installed without errors.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-08T02:00:10.033Z"
+          },
+          {
+            "id": 3,
+            "title": "Configure TypeScript with tsconfig.json",
+            "description": "Create tsconfig.json with ES2017 target, strict mode, and proper module resolution for Express + TypeScript compatibility.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create tsconfig.json in /backend directory with the following configuration: target ES2017, strict mode enabled, esModuleInterop true, module commonjs, moduleResolution node, outDir ./dist, rootDir ./src, resolveJsonModule true, skipLibCheck true. This configuration ensures TypeScript compiles correctly for Node.js environment with strict type checking.",
+            "status": "done",
+            "testStrategy": "Verify tsconfig.json exists in /backend directory. Parse JSON to confirm all required compiler options are present. Run tsc --showConfig to verify configuration loads without errors.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-08T02:00:30.440Z"
+          },
+          {
+            "id": 4,
+            "title": "Create Express server with middleware and health check endpoint",
+            "description": "Implement src/index.ts with Express app initialization, security middleware (helmet, CORS), JSON body parser, and a health check endpoint.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create src/index.ts that imports express, helmet, cors, and dotenv. Initialize dotenv.config(). Create Express app instance. Apply helmet() middleware for security headers. Configure CORS with origin allowing both process.env.FRONTEND_URL and 'http://localhost:3000'. Add express.json() body parser. Implement GET /health endpoint returning { status: 'ok' }. Start server listening on process.env.PORT || 4000. Add console.log for server start confirmation.",
+            "status": "done",
+            "testStrategy": "Compile TypeScript with tsc. Verify dist/index.js is generated. Start server with node dist/index.js. Test GET http://localhost:4000/health returns 200 status with {status: 'ok'} body. Verify CORS headers present in response. Confirm helmet security headers in response.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-08T02:01:12.834Z"
+          },
+          {
+            "id": 5,
+            "title": "Add npm scripts and create .env.example file",
+            "description": "Configure package.json scripts for development, build, and production. Create .env.example with all required environment variables for backend configuration.",
+            "dependencies": [
+              4
+            ],
+            "details": "Update /backend/package.json scripts section with: 'dev': 'nodemon --watch src --exec ts-node src/index.ts', 'build': 'tsc', 'start': 'node dist/index.js'. Create nodemon.json with watch: ['src'], ext: 'ts,json', exec: 'ts-node src/index.ts'. Create .env.example file with: PORT=4000, FRONTEND_URL=http://localhost:3000, DATABASE_URL=, JWT_SECRET=. This provides complete development workflow and deployment-ready configuration template.",
+            "status": "done",
+            "testStrategy": "Run npm run build to verify TypeScript compilation. Run npm run dev to start development server with nodemon. Make change to src/index.ts and verify nodemon auto-restarts. Stop dev server, run npm start, and verify production server starts. Confirm .env.example exists with all required variables.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-08T02:02:13.283Z"
+          }
+        ],
+        "updatedAt": "2026-05-08T02:02:13.283Z"
+      },
+      {
+        "id": "2",
+        "title": "Deploy Backend to Railway and Configure MySQL",
+        "description": "Create Railway project, add MySQL addon, configure environment variables, and establish initial deployment with health check.",
+        "details": "Create new Railway project via dashboard or CLI. Connect GitHub repository to Railway (auto-deploy on main branch push). Add MySQL addon via Railway dashboard - this auto-generates DATABASE_URL. Configure environment variables in Railway: PORT (auto), DATABASE_URL (auto from MySQL addon), FRONTEND_URL=https://meainternational.com, JWT_SECRET (generate with `openssl rand -hex 32`). Set build command to `cd backend && npm install && npm run build`. Set start command to `cd backend && npm start`. Deploy and verify Railway assigns public domain. Test health check at Railway URL.",
+        "testStrategy": "Verify Railway deployment completes successfully. Access https://{railway-domain}/health and confirm 200 response. Check Railway logs show server starting. Verify DATABASE_URL is available in Railway environment.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Railway Project and Connect GitHub Repository",
+            "description": "Initialize a new Railway project, connect the GitHub repository for auto-deployment, and verify Railway assigns a public domain to the backend service.",
+            "dependencies": [],
+            "details": "Access Railway dashboard at https://railway.app and create a new project. Connect the GitHub repository containing this codebase to enable auto-deployment on main branch push. Railway will automatically assign a public domain (e.g., {project-name}.up.railway.app). Configure the service to use the /backend directory as the root path. Verify the project is created and the GitHub integration is active. No deployment will succeed yet since the backend code doesn't exist, but the Railway infrastructure should be ready.",
+            "status": "pending",
+            "testStrategy": "Verify Railway project exists in dashboard. Confirm GitHub repository is connected and shows in Railway project settings. Check that Railway has assigned a public domain URL (visible in project settings even before successful deployment).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add MySQL Database Addon and Configure DATABASE_URL",
+            "description": "Provision MySQL database addon through Railway dashboard and verify the DATABASE_URL environment variable is auto-generated and accessible to the backend service.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the Railway project dashboard, click 'New' and select 'Database' then 'MySQL'. Railway will automatically provision a MySQL instance and generate the DATABASE_URL environment variable. This URL will be in the format: mysql://user:password@host:port/database. Navigate to the backend service settings and verify DATABASE_URL appears in the environment variables section. The database is now ready for Prisma migrations (which will be executed in Task 1's subtasks). Document the MySQL instance details (host, port, database name) for reference.",
+            "status": "pending",
+            "testStrategy": "Check Railway dashboard shows MySQL service running. Verify DATABASE_URL environment variable exists in backend service variables section. The URL should follow the format mysql://user:password@host:port/database. Connection testing will happen when Prisma is configured in Task 1.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Configure Essential Backend Environment Variables",
+            "description": "Set up all required environment variables in Railway for backend operation including PORT, FRONTEND_URL, and JWT_SECRET.",
+            "dependencies": [
+              2
+            ],
+            "details": "In Railway backend service settings, configure the following environment variables: PORT (Railway auto-provides this, verify it exists), FRONTEND_URL=https://meainternational.com (for CORS configuration), JWT_SECRET (generate with command: openssl rand -hex 32 and paste the output). These are the minimal variables needed for initial deployment. Additional variables (META_WHATSAPP_TOKEN, META_PHONE_ID, META_WABA_ID, META_WEBHOOK_VERIFY_TOKEN, META_APP_SECRET, ANTHROPIC_API_KEY, NOTION_TOKEN) will be added in later tasks when those integrations are implemented. DATABASE_URL and REDIS_URL are auto-generated by Railway addons. Document all configured variables in a secure location.",
+            "status": "pending",
+            "testStrategy": "Verify all three environment variables (PORT, FRONTEND_URL, JWT_SECRET) appear in Railway service settings. PORT should be auto-set by Railway. JWT_SECRET should be a 64-character hex string. FRONTEND_URL should exactly match https://meainternational.com. DATABASE_URL from previous subtask should still be present.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Configure Build and Start Commands in Railway",
+            "description": "Set Railway build and start commands to correctly build and run the Express TypeScript backend from the /backend directory.",
+            "dependencies": [
+              3
+            ],
+            "details": "In Railway service settings, configure: Build Command: 'cd backend && npm install && npm run build' (this will install dependencies and compile TypeScript to JavaScript). Start Command: 'cd backend && npm start' (this will run the compiled backend). These commands assume the backend will have a build script in package.json that runs tsc (TypeScript compiler) and a start script that runs the compiled code with node dist/index.js. Note: The backend directory and these scripts don't exist yet (they will be created in Task 1), but configuring Railway now ensures it's ready when the code is pushed. Also configure Root Directory to 'backend' if Railway provides this option, or ensure commands use 'cd backend' prefix.",
+            "status": "pending",
+            "testStrategy": "Verify build command shows 'cd backend && npm install && npm run build' in Railway settings. Verify start command shows 'cd backend && npm start'. Initial deployment will fail until Task 1 is completed (backend code doesn't exist yet), but the configuration should be saved and visible in Railway dashboard.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Verify Railway Infrastructure and Document Deployment URL",
+            "description": "Confirm Railway project is fully configured with all necessary infrastructure (MySQL, environment variables, build/start commands) and document the assigned Railway domain for use in subsequent tasks.",
+            "dependencies": [
+              4
+            ],
+            "details": "Review the complete Railway setup: (1) MySQL database service is running and DATABASE_URL is available, (2) All environment variables are set (PORT, DATABASE_URL, FRONTEND_URL, JWT_SECRET), (3) Build and start commands are configured, (4) GitHub repository is connected for auto-deployment. Document the Railway-assigned public domain URL (e.g., backend-production-abc123.up.railway.app) - this will be needed for Cloudflare DNS configuration in Task 13 and for the NEXT_PUBLIC_API_URL in Vercel (Task 7). Note: Actual deployment won't succeed until the backend code from Task 1 is pushed to the main branch, but all infrastructure should be ready. Take screenshots or export Railway configuration for reference.",
+            "status": "pending",
+            "testStrategy": "Access Railway project dashboard and verify: MySQL service shows 'Active' status, Backend service shows environment variables configured (should see PORT, DATABASE_URL, FRONTEND_URL, JWT_SECRET), Build/start commands are visible in service settings, GitHub integration shows connected. Document the Railway domain URL (found in service settings under 'Domains' or 'Settings'). The health check at {railway-domain}/health will return 404 or error until Task 1 backend code is deployed - this is expected.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-08T04:34:02.024Z"
+      },
+      {
+        "id": "3",
+        "title": "Create Prisma Schema with All Database Models",
+        "description": "Define complete Prisma schema with Lead, Curso, ConversacionWhatsApp, MensajeWhatsApp, and Admin models. Configure relationships and constraints.",
+        "details": "Install Prisma: `npm install prisma @prisma/client`, `npx prisma init`. Create `prisma/schema.prisma` with datasource (mysql, env DATABASE_URL) and generator (prisma-client-js). Define models exactly as specified in PRD REQ-002: Lead (id, telefono UNIQUE, nombre nullable, email nullable, interes nullable, estado default 'nuevo', creadoEn, actualizadoEn, conversaciones relation), Curso (id, nombre, descripcion Text, precio Decimal(10,2), modalidad, duracion, activo default true, creadoEn), ConversacionWhatsApp (id, leadId nullable FK to Lead, telefono, mensajes relation, estado default 'activo', creadoEn), MensajeWhatsApp (id, conversacionId FK to ConversacionWhatsApp, rol enum user/assistant, contenido Text, creadoEn), Admin (id, email UNIQUE, password, nombre, rol default 'ADMIN', activo default true, creadoEn). Create `src/lib/prisma.ts` with PrismaClient singleton export.",
+        "testStrategy": "Run `npx prisma generate` - should complete without errors. Run `npx prisma migrate dev --name init` to create migration. Verify migration files created. Check MySQL database in Railway shows all tables with correct columns and constraints. Test Prisma client import in index.ts.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install Prisma dependencies and initialize Prisma configuration",
+            "description": "Install @prisma/client and prisma as dependencies, then run npx prisma init to create the initial Prisma setup with schema.prisma and .env template.",
+            "dependencies": [],
+            "details": "Run `npm install prisma @prisma/client` to add Prisma packages to package.json. Then execute `npx prisma init` which creates: (1) prisma/schema.prisma file with boilerplate structure, (2) .env file with DATABASE_URL placeholder. Verify that prisma/ directory exists and schema.prisma contains default datasource db and generator client blocks. This establishes the foundation for defining database models. The .env file should be added to .gitignore if not already present.",
+            "status": "pending",
+            "testStrategy": "Verify prisma/ directory exists with schema.prisma file. Check package.json includes both 'prisma' and '@prisma/client' in dependencies. Confirm .env file was created with DATABASE_URL variable. Run `npx prisma --version` to verify Prisma CLI works.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Configure Prisma datasource and generator for MySQL",
+            "description": "Update prisma/schema.prisma to configure MySQL as the database provider and set up the Prisma Client generator with correct settings.",
+            "dependencies": [
+              1
+            ],
+            "details": "Edit prisma/schema.prisma to set: (1) datasource db with provider = 'mysql' and url = env('DATABASE_URL'), (2) generator client with provider = 'prisma-client-js'. The datasource block should reference the DATABASE_URL environment variable which will be populated from Railway MySQL addon. Ensure the file uses proper Prisma schema syntax. This step prepares the schema file to accept model definitions and ensures Prisma knows to generate a MySQL-compatible client.",
+            "status": "pending",
+            "testStrategy": "Read prisma/schema.prisma and verify datasource block has provider='mysql'. Verify generator block has provider='prisma-client-js'. Run `npx prisma format` to validate schema syntax - should complete without errors. Schema should be properly formatted after this command.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Define all five database models with fields, types, and relationships",
+            "description": "Add Lead, Curso, ConversacionWhatsApp, MensajeWhatsApp, and Admin models to schema.prisma with exact field definitions, data types, constraints, and relationships as specified in REQ-002.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add to prisma/schema.prisma: (1) Lead model with id Int @id @default(autoincrement()), telefono String @unique, nombre String?, email String?, interes String?, estado String @default('nuevo'), creadoEn DateTime @default(now()), actualizadoEn DateTime @updatedAt, conversaciones ConversacionWhatsApp[]; (2) Curso model with id, nombre, descripcion String @db.Text, precio Decimal @db.Decimal(10,2), modalidad, duracion, activo Boolean @default(true), creadoEn; (3) ConversacionWhatsApp model with id, leadId Int?, telefono, lead Lead? @relation(fields: [leadId], references: [id]), mensajes MensajeWhatsApp[], estado @default('activo'), creadoEn; (4) MensajeWhatsApp model with id, conversacionId, conversacion ConversacionWhatsApp @relation(fields: [conversacionId], references: [id]), rol enum-like String (user/assistant), contenido @db.Text, creadoEn; (5) Admin model with id, email @unique, password, nombre, rol @default('ADMIN'), activo @default(true), creadoEn. Ensure all foreign key relationships are properly defined with @relation directives.",
+            "status": "pending",
+            "testStrategy": "Run `npx prisma format` to validate all model syntax. Run `npx prisma validate` to check for schema errors. Verify schema contains exactly 5 models: Lead, Curso, ConversacionWhatsApp, MensajeWhatsApp, Admin. Confirm Lead.telefono and Admin.email have @unique constraint. Verify ConversacionWhatsApp.leadId is nullable (Int?). Check all DateTime fields use @default(now()) or @updatedAt appropriately.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create Prisma Client singleton and verify schema is ready for migration",
+            "description": "Create src/lib/prisma.ts with a PrismaClient singleton instance for database access, then run prisma generate to create the Prisma Client based on the schema.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create src/lib/prisma.ts file with: (1) Import PrismaClient from '@prisma/client', (2) Implement singleton pattern to prevent multiple PrismaClient instances in development (check globalThis.prisma), (3) Export a single prisma instance with proper TypeScript types. Pattern should follow Prisma best practices: const prismaClientSingleton = () => new PrismaClient(); declare global { var prisma: undefined | ReturnType<typeof prismaClientSingleton> }; const prisma = globalThis.prisma ?? prismaClientSingleton(); export default prisma; if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma. After creating the file, run `npx prisma generate` which reads schema.prisma and generates the type-safe Prisma Client in node_modules/@prisma/client with all model types and methods. This makes the schema ready for migration once DATABASE_URL is configured in Railway.",
+            "status": "pending",
+            "testStrategy": "Verify src/lib/prisma.ts exists and exports a default prisma instance. Run `npx prisma generate` - should complete successfully and show 'Generated Prisma Client' message. Check node_modules/@prisma/client directory was created/updated. Import prisma in a test file (e.g., src/index.ts) with `import prisma from './lib/prisma'` and verify TypeScript autocomplete shows all 5 models (prisma.lead, prisma.curso, etc.) with proper typing. Schema is now ready for `npx prisma migrate dev --name init` once DATABASE_URL points to Railway MySQL.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-08T04:34:04.048Z"
+      },
+      {
+        "id": "4",
+        "title": "Add Redis to Railway and Create Client Configuration",
+        "description": "Provision Redis addon in Railway, create Redis client wrapper with connection handling and error recovery.",
+        "details": "Add Redis addon via Railway dashboard - this auto-generates REDIS_URL. Install redis client: `npm install redis`. Create `src/lib/redis.ts`: import createClient from 'redis', create client with url from process.env.REDIS_URL, implement connection with error handling and reconnection strategy, add graceful shutdown on SIGTERM/SIGINT, export connected client. Add helper functions: setWithTTL(key, value, seconds), getJSON(key), setJSON(key, value, ttl). Configure Redis to handle chat history with 24h TTL (86400 seconds) and course cache.",
+        "testStrategy": "Run backend locally with REDIS_URL from Railway. Verify Redis connects without errors. Test redis.set() and redis.get() with simple values. Test setJSON/getJSON helpers with complex objects. Test TTL expiration. Check Railway Redis dashboard shows connection.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Provision Redis addon in Railway dashboard",
+            "description": "Add Redis database service to the existing Railway project through the Railway dashboard and verify the REDIS_URL environment variable is auto-generated.",
+            "dependencies": [],
+            "details": "In the Railway project dashboard (created in Task 2), click 'New' and select 'Database', then choose 'Redis'. Railway will automatically provision a Redis instance and generate the REDIS_URL environment variable in the format redis://default:password@host:port. Navigate to the backend service settings and verify REDIS_URL appears in the environment variables section, accessible to the backend service. The Redis instance should be running in the same Railway project as the MySQL database. Document the Redis connection details (host, port) for reference. No code changes needed in this subtask - purely infrastructure provisioning.",
+            "status": "pending",
+            "testStrategy": "Verify Railway dashboard shows Redis service running with 'Active' status. Check backend service environment variables section contains REDIS_URL with format redis://default:password@host:port. Verify Redis and backend services are in the same Railway project for low-latency communication.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Install redis npm package in backend project",
+            "description": "Add the official redis client library to the backend project's dependencies using npm install.",
+            "dependencies": [
+              1
+            ],
+            "details": "Navigate to /backend directory. Run `npm install redis` to install the official Redis client for Node.js (version 4.x or higher). This package provides TypeScript support out of the box and includes connection pooling, automatic reconnection, and error handling. Verify the package appears in backend/package.json under dependencies. The redis package will be used to create a client connection to the Railway Redis instance using the REDIS_URL environment variable. Also install @types/redis if needed: `npm install --save-dev @types/redis` (though redis v4+ includes types).",
+            "status": "pending",
+            "testStrategy": "Check backend/package.json dependencies section includes 'redis' with version ^4.0.0 or higher. Run `npm list redis` in backend directory to confirm successful installation without peer dependency warnings. Verify node_modules/redis directory exists.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create Redis client wrapper with connection handling",
+            "description": "Implement src/lib/redis.ts with Redis client initialization, error handling, reconnection strategy, and graceful shutdown.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create backend/src/lib/redis.ts file. Import { createClient } from 'redis'. Create Redis client using createClient({ url: process.env.REDIS_URL }). Implement connection logic with client.connect() wrapped in try-catch for error handling. Add event listeners: client.on('error', (err) => console.error('Redis Client Error', err)), client.on('connect', () => console.log('Redis Client Connected')), client.on('reconnecting', () => console.log('Redis Client Reconnecting')). Implement graceful shutdown handlers for SIGTERM and SIGINT that call client.quit() to close connections cleanly. Add connection retry strategy with socket options: { reconnectStrategy: (retries) => Math.min(retries * 50, 500) }. Export the connected client as default export. Add type safety with RedisClientType from 'redis' package.",
+            "status": "pending",
+            "testStrategy": "Run backend with REDIS_URL from Railway (set in local .env for testing). Verify console shows 'Redis Client Connected' message on startup. Test error handling by setting invalid REDIS_URL and verify error is caught and logged. Test graceful shutdown by sending SIGTERM signal (Ctrl+C) and verify 'Redis connection closed' message appears before process exits.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add Redis helper functions for JSON caching and TTL management",
+            "description": "Implement utility functions in redis.ts for setting/getting JSON data with TTL, specifically configured for chat history (24h) and course caching.",
+            "dependencies": [
+              3
+            ],
+            "details": "In backend/src/lib/redis.ts, add helper functions: 1) `setWithTTL(key: string, value: string, seconds: number)` - uses client.setEx(key, seconds, value) for basic string caching with expiration. 2) `getJSON<T>(key: string): Promise<T | null>` - fetches value with client.get(key), parses JSON with JSON.parse(), returns null if not found or parse fails. 3) `setJSON(key: string, value: any, ttl?: number)` - serializes value with JSON.stringify(), sets with client.setEx() if ttl provided (default 86400 seconds = 24 hours), otherwise uses client.set(). 4) Add constant CHAT_HISTORY_TTL = 86400 (24 hours in seconds) for chat history expiration. 5) Add constant COURSE_CACHE_TTL = 3600 (1 hour in seconds) for course data caching. Export all helper functions and constants. Add proper TypeScript types for generic JSON handling.",
+            "status": "pending",
+            "testStrategy": "Write test script that calls setJSON('test:user', { id: 1, name: 'Test' }, 60) and verifies getJSON<{id: number, name: string}>('test:user') returns correct object. Test TTL expiration by setting 2-second TTL, waiting 3 seconds, and verifying getJSON returns null. Test setWithTTL with simple string values. Verify helper functions handle errors gracefully (e.g., connection loss). Check Railway Redis dashboard shows stored keys during testing.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "5",
+        "title": "Implement CRUD Routes for Cursos",
+        "description": "Create API endpoints for managing courses: GET (list with cache), POST (create), PATCH (update and invalidate cache), DELETE (soft delete).",
+        "details": "Create `src/routes/cursos.ts` with Express Router. Implement GET /api/cursos: check Redis cache key 'cursos:all', if hit return cached, if miss query Prisma for active courses, cache for 1 hour (3600s), return JSON array with pagination support (query params: page, limit). Implement POST /api/cursos (protected - will add auth later): validate request body (nombre, descripcion, precio, modalidad, duracion required), create with Prisma, invalidate cache, return created course. Implement PATCH /api/cursos/:id: validate id, update fields, invalidate cache. Implement DELETE /api/cursos/:id: soft delete (set activo=false), invalidate cache. Mount router in src/index.ts at `/api/cursos`. Add error handling middleware.",
+        "testStrategy": "Test GET /api/cursos returns empty array initially. Create curso via POST (without auth for now). Verify GET returns cached data on second request (check Redis). Update a curso, verify cache is invalidated. Test pagination params. Verify soft delete sets activo=false.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Implement CRUD Routes for Leads",
+        "description": "Create API endpoints for managing leads: GET (list with filters and pagination), GET by ID (with conversations), PATCH (update status).",
+        "details": "Create `src/routes/leads.ts` with Express Router. Implement GET /api/leads: support query params (estado, page=1, limit=10), query Prisma with where clause, include conversaciones count, order by creadoEn DESC, return paginated results with meta (total, page, limit). Implement GET /api/leads/:id: find by id, include conversaciones with mensajes (limit last 50), return 404 if not found. Implement PATCH /api/leads/:id: allow updating nombre, email, interes, estado fields, validate estado enum (nuevo, contactado, inscrito), update actualizadoEn automatically. Mount router at `/api/leads` in index.ts. These routes will be protected with JWT auth in later task.",
+        "testStrategy": "Test GET /api/leads returns empty array. Create leads via Prisma (or will be created by WhatsApp bot). Test filtering by estado. Test pagination. Test GET by ID includes nested conversaciones. Test PATCH updates lead and actualizadoEn timestamp.",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Implement Meta WhatsApp Webhook with HMAC Validation",
+        "description": "Create webhook endpoint to receive WhatsApp messages with HMAC-SHA256 signature verification and Meta verification endpoint.",
+        "details": "Create `src/middleware/hmac.middleware.ts`: implement verifyMetaHmac function that reads x-hub-signature-256 header, computes HMAC-SHA256 hash of raw request body using META_APP_SECRET, compares with received signature, returns 403 if mismatch. Create `src/routes/whatsapp.webhook.ts` with Router. Implement GET /api/meta/webhook for Meta verification: read hub.mode, hub.verify_token, hub.challenge from query params, if mode='subscribe' and verify_token matches META_WEBHOOK_VERIFY_TOKEN, respond with hub.challenge, else 403. Implement POST /api/meta/webhook: apply verifyMetaHmac middleware, extract messages from body.entry[0].changes[0].value.messages array, for each message extract from (phone), text.body, call placeholder handler function (will integrate Claude AI in next task), respond 200 immediately to Meta. Add to Railway env: META_WEBHOOK_VERIFY_TOKEN, META_APP_SECRET, META_WHATSAPP_TOKEN, META_PHONE_ID, META_WABA_ID.",
+        "testStrategy": "Configure webhook URL in Meta Business Manager (https://api.meainternational.com/api/meta/webhook). Test verification with Meta's validation request. Send test message from WhatsApp, verify POST webhook receives it. Test HMAC validation by sending request with invalid signature (should get 403). Check Railway logs show message received.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create HMAC signature verification middleware for Meta webhooks",
+            "description": "Implement verifyMetaHmac middleware function that validates incoming webhook requests using HMAC-SHA256 signature verification against the x-hub-signature-256 header.",
+            "dependencies": [],
+            "details": "Create file backend/src/middleware/hmac.middleware.ts. Import crypto module from Node.js to compute HMAC-SHA256 hash. Implement Express middleware function verifyMetaHmac(req, res, next) that: (1) Reads x-hub-signature-256 header from request (format: 'sha256=<hash>'), (2) Extracts raw request body as string (requires express.text() or express.raw() middleware before JSON parsing), (3) Computes HMAC-SHA256 hash using crypto.createHmac('sha256', process.env.META_APP_SECRET).update(rawBody).digest('hex'), (4) Compares computed hash with received signature using crypto.timingSafeEqual() to prevent timing attacks, (5) Returns 403 Forbidden with { error: 'Invalid signature' } if mismatch, (6) Calls next() if signature is valid. Add TypeScript types for Express Request, Response, NextFunction. Export verifyMetaHmac function. Note: Meta sends signature as 'sha256=' prefix + hex hash.",
+            "status": "pending",
+            "testStrategy": "Create test script that sends POST request to webhook with valid HMAC signature computed using test META_APP_SECRET and test body. Verify middleware allows request through (200 response). Send request with invalid signature (random hash). Verify middleware rejects with 403. Send request without x-hub-signature-256 header. Verify 403 response. Test with actual Meta webhook simulator if available.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create WhatsApp webhook router with GET endpoint for Meta verification",
+            "description": "Implement GET /api/meta/webhook endpoint that handles Meta's webhook verification challenge during webhook setup in Meta Business Manager.",
+            "dependencies": [],
+            "details": "Create file backend/src/routes/whatsapp.webhook.ts. Import express Router. Create Express Router instance. Implement GET /api/meta/webhook endpoint that: (1) Extracts query parameters hub.mode, hub.verify_token, and hub.challenge using req.query, (2) Checks if hub.mode === 'subscribe' AND hub.verify_token === process.env.META_WEBHOOK_VERIFY_TOKEN, (3) If both conditions are true, responds with plain text hub.challenge value (res.status(200).send(req.query['hub.challenge'])), (4) If verification fails, responds with 403 Forbidden. Add TypeScript interface for query parameters. Export router. This endpoint is called once by Meta when configuring the webhook URL and is required for initial webhook setup.",
+            "status": "pending",
+            "testStrategy": "Start backend server. Test GET http://localhost:4000/api/meta/webhook?hub.mode=subscribe&hub.verify_token={correct_token}&hub.challenge=test123. Verify response is 200 with body 'test123'. Test with incorrect verify_token. Verify 403 response. Test with hub.mode=invalid. Verify 403. Set META_WEBHOOK_VERIFY_TOKEN in .env, configure webhook in Meta Business Manager dashboard, verify Meta accepts webhook URL and shows green checkmark.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement POST webhook endpoint with HMAC middleware to receive WhatsApp messages",
+            "description": "Create POST /api/meta/webhook endpoint that receives incoming WhatsApp messages, validates HMAC signature, and extracts message data from Meta's webhook payload structure.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In backend/src/routes/whatsapp.webhook.ts, implement POST /api/meta/webhook endpoint with: (1) Apply verifyMetaHmac middleware imported from hmac.middleware.ts as first middleware in chain, (2) Use express.json() to parse request body (note: ensure raw body is available for HMAC verification - may need custom middleware to store rawBody before JSON parsing), (3) Extract messages from nested payload: body.entry[0]?.changes[0]?.value?.messages array, (4) For each message in array, extract: from (sender phone number), text.body (message text content), (5) Call placeholder handler function handleWhatsAppMessage(from, text) that logs to console for now (will be replaced with Claude AI integration in Task 10), (6) Respond with 200 OK immediately to Meta within 20 seconds (required by Meta to acknowledge receipt). Add error handling: wrap in try-catch, log errors, always return 200 to Meta even if internal processing fails. Add TypeScript interfaces for Meta webhook payload structure (entry, changes, value, messages).",
+            "status": "pending",
+            "testStrategy": "Send test POST request to http://localhost:4000/api/meta/webhook with valid HMAC signature and Meta webhook payload JSON (structure: {entry: [{changes: [{value: {messages: [{from: '1234567890', text: {body: 'Hello'}}]}}]}]}). Verify 200 response returned immediately. Verify console logs show extracted phone number and message text. Test with invalid HMAC signature - should get 403 before reaching route handler. Send actual test message from WhatsApp number to MEA WhatsApp Business number. Check Railway logs show webhook received and message extracted.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add WhatsApp webhook environment variables to Railway configuration",
+            "description": "Configure all required Meta WhatsApp API credentials and tokens as environment variables in Railway backend service settings.",
+            "dependencies": [],
+            "details": "Access Railway project dashboard (created in Task 2), navigate to backend service settings, and add the following environment variables in the Variables section: (1) META_WEBHOOK_VERIFY_TOKEN - Generate random string (e.g., `openssl rand -hex 16`) for webhook verification, (2) META_APP_SECRET - Copy from Meta App Dashboard > Settings > Basic > App Secret (used for HMAC signature verification), (3) META_WHATSAPP_TOKEN - Copy from Meta App Dashboard > WhatsApp > API Setup > Temporary/Permanent Access Token (Bearer token for WhatsApp Cloud API), (4) META_PHONE_ID - Copy from Meta App Dashboard > WhatsApp > API Setup > Phone Number ID (unique ID for WhatsApp Business phone number), (5) META_WABA_ID - Copy from Meta App Dashboard > WhatsApp Business Account ID. Document all values securely. Update backend/.env.example to include these variables with placeholder values. These credentials are required for webhook verification (META_WEBHOOK_VERIFY_TOKEN, META_APP_SECRET) and sending messages (META_WHATSAPP_TOKEN, META_PHONE_ID, META_WABA_ID).",
+            "status": "pending",
+            "testStrategy": "Verify all 5 environment variables appear in Railway backend service Variables section. Each should have a non-empty value. META_WEBHOOK_VERIFY_TOKEN should be at least 16 characters. META_APP_SECRET should be alphanumeric. META_WHATSAPP_TOKEN should start with 'EAA' (Meta token format). META_PHONE_ID should be numeric. META_WABA_ID should be numeric. Restart Railway backend service to load new variables. Check deployment logs confirm variables are loaded (don't log values, just confirm presence).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Mount WhatsApp webhook router and configure raw body handling in Express",
+            "description": "Integrate the WhatsApp webhook router into the main Express application at /api/meta/webhook path and configure middleware to preserve raw request body for HMAC verification while still parsing JSON.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Update backend/src/index.ts to: (1) Import whatsappWebhookRouter from './routes/whatsapp.webhook', (2) Add custom middleware BEFORE express.json() to capture raw body: app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf.toString('utf8'); } })) - this stores raw body in req.rawBody for HMAC verification, (3) Mount webhook router: app.use('/api/meta/webhook', whatsappWebhookRouter), (4) Ensure CORS middleware allows Meta webhook origin (Meta sends from Facebook IPs, allow all origins for webhook or specific Meta IP ranges), (5) Update TypeScript declaration to extend Express Request interface with rawBody property: create types/express.d.ts with: declare global { namespace Express { interface Request { rawBody?: string; } } }. Test that both GET (verification) and POST (message receiving) endpoints are accessible at http://localhost:4000/api/meta/webhook. Order is critical: rawBody capture must happen before json parsing but HMAC middleware must access rawBody during POST request.",
+            "status": "pending",
+            "testStrategy": "Start backend server. Verify GET http://localhost:4000/api/meta/webhook with verification params returns challenge (tests router mounting). Send POST request with valid JSON body and HMAC signature. Verify HMAC middleware can access req.rawBody and validate signature correctly. Verify req.body is parsed JSON object for route handler. Test end-to-end: configure webhook URL in Meta Business Manager as https://api.meainternational.com/api/meta/webhook (requires Cloudflare DNS from Task 13 or use Railway URL temporarily). Send test WhatsApp message. Verify Railway logs show webhook received, HMAC validated, message extracted, and 200 returned to Meta.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "8",
+        "title": "Implement WhatsApp Message Sending Function",
+        "description": "Create utility function to send text messages via Meta WhatsApp Cloud API using the WhatsApp Business API credentials.",
+        "details": "Create `src/lib/whatsapp-send.ts`. Implement async function sendWhatsAppMessage(to: string, message: string): use fetch or axios to POST to https://graph.facebook.com/v21.0/{META_PHONE_ID}/messages with headers (Authorization: Bearer {META_WHATSAPP_TOKEN}, Content-Type: application/json), body {messaging_product: 'whatsapp', to: to, type: 'text', text: {body: message}}. Handle API errors (rate limits, invalid recipient, token issues). Return success boolean and message_id. Add retry logic (max 3 attempts with exponential backoff). Log all sends for debugging.",
+        "testStrategy": "Test sendWhatsAppMessage with valid phone number. Verify message is received on WhatsApp. Test with invalid number (should handle error gracefully). Test rate limiting scenario. Verify Railway logs show successful sends and any errors.",
+        "priority": "high",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Create Notion RAG Context Retrieval Function",
+        "description": "Implement function to search Notion pages for relevant course information based on user query using Notion API.",
+        "details": "Install @notionhq/client: `npm install @notionhq/client`. Create `src/lib/notion-context.ts`. Initialize Notion client with auth token from NOTION_TOKEN env var. Implement async getNotionContext(userMessage: string): Promise<string> function. Use Notion search API with query extracted from userMessage (simple keyword extraction - look for course names, 'precio', 'modalidad', 'fecha', etc.). Query specific database IDs or pages configured in env (NOTION_DATABASE_IDS comma-separated). Retrieve page content (title, properties, rich_text blocks). Format results as plain text context string (max 1000 chars to fit in Claude prompt). Handle API errors gracefully - return empty string if Notion fails. Cache frequent queries in Redis with 1h TTL to reduce API calls.",
+        "testStrategy": "Add test Notion pages with course info. Test getNotionContext with queries like 'curso de programación', 'precios', 'modalidad online'. Verify returns relevant formatted text. Test with non-existent query (should return empty or generic). Test cache hit on second identical query. Verify works without NOTION_TOKEN (should gracefully skip).",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Implement Claude AI Agent with Conversation Memory",
+        "description": "Create core AI agent function using Claude Sonnet 4 that maintains conversation history in Redis and generates contextual responses.",
+        "details": "Install Anthropic SDK: `npm install @anthropic-ai/sdk`. Create `src/lib/claude.ts`. Define WEB_CONTEXT constant with MEA International information (courses, prices, modalities, contact - to be provided by Guido). Implement async function responderMensaje(telefono: string, mensaje: string): Promise<string>. 1) Get conversation history from Redis key `chat:{telefono}`, parse JSON array or default to []. 2) Add user message to history: {role: 'user', content: mensaje}. 3) Call getNotionContext(mensaje) to get additional context. 4) Create Anthropic client with ANTHROPIC_API_KEY. 5) Call client.messages.create with model 'claude-sonnet-4-6' (note: verify latest model name), max_tokens: 500, system prompt in Spanish: 'Eres el asistente virtual de MEA International. Respondes en español, de forma amable y concisa (máximo 3 párrafos cortos). Si no sabés algo, decí que un asesor se pondrá en contacto. No inventes precios ni fechas que no estén en el contexto. INFORMACIÓN DE MEA INTERNATIONAL: {WEB_CONTEXT} INFORMACIÓN ADICIONAL (Notion): {notionCtx}', messages: history.slice(-10) (last 10 to limit context). 6) Extract text from response.content[0].text. 7) Add assistant message to history. 8) Save history to Redis with 86400s TTL. 9) Return response text.",
+        "testStrategy": "Test responderMensaje with various queries (course info, prices, general questions). Verify responses are in Spanish, concise, and don't hallucinate. Test conversation continuity - second message should reference first. Test history limit (11th message should drop first). Verify Redis stores history with correct TTL. Test graceful handling if Claude API fails.",
+        "priority": "high",
+        "dependencies": [
+          "4",
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install Anthropic SDK and verify API credentials",
+            "description": "Install @anthropic-ai/sdk package and verify ANTHROPIC_API_KEY environment variable is configured correctly for Claude API access.",
+            "dependencies": [],
+            "details": "Navigate to /backend directory (created in Task 1). Run `npm install @anthropic-ai/sdk` to install the official Anthropic SDK for Node.js. Verify package.json includes '@anthropic-ai/sdk' in dependencies. Add ANTHROPIC_API_KEY to Railway environment variables in the backend service settings (obtain from https://console.anthropic.com). Add to backend/.env for local development. Verify the latest Claude Sonnet 4 model identifier - as of 2025, the model name is 'claude-sonnet-4-20250514' or check Anthropic docs for current version. Update backend/.env.example to include ANTHROPIC_API_KEY=your_key_here. The SDK provides TypeScript types and handles streaming, rate limits, and retries automatically.",
+            "status": "pending",
+            "testStrategy": "Verify @anthropic-ai/sdk appears in backend/package.json dependencies. Create test script that imports Anthropic from '@anthropic-ai/sdk', instantiates new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), and calls client.messages.create with a simple test prompt to verify API connectivity. Should return valid response object. Check Railway logs show ANTHROPIC_API_KEY is loaded (don't log the value).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Define WEB_CONTEXT constant with MEA International information",
+            "description": "Create WEB_CONTEXT constant containing comprehensive MEA International business information including courses, prices, modalities, schedules, and contact details to be used in the Claude system prompt.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/lib/claude.ts file. Define a TypeScript constant WEB_CONTEXT as a multi-line string containing MEA International's core information: (1) Company overview and mission, (2) Available courses with names and descriptions (this information needs to be provided by Guido - placeholder: 'Curso de Programación Full Stack, Curso de Marketing Digital, Curso de Diseño UX/UI'), (3) Pricing information (placeholder: 'Consultar precios actualizados'), (4) Modalities offered (presencial, online, híbrido), (5) Course duration details, (6) Contact information (email: info@meainternational.com, phone, WhatsApp number), (7) Enrollment process, (8) Payment methods accepted. Format in clear Spanish text optimized for LLM consumption. Keep under 1500 characters to fit in system prompt. Add TODO comment: '// TODO: Update with actual MEA International course catalog and pricing from Guido'. This will be the primary knowledge base for the AI agent.",
+            "status": "pending",
+            "testStrategy": "Verify backend/src/lib/claude.ts exists and exports WEB_CONTEXT constant. Check WEB_CONTEXT is a string type with length > 500 characters. Verify content is in Spanish. Confirm includes sections for courses, prices, modalities, and contact info. Test by logging WEB_CONTEXT and manually reviewing content is well-formatted for LLM consumption.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement conversation history retrieval from Redis",
+            "description": "Create helper function to fetch and parse existing conversation history from Redis using the chat:{telefono} key pattern, returning an array of message objects.",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/lib/claude.ts, import the Redis client from '../lib/redis' (configured in Task 4). Define TypeScript interface: `interface Message { role: 'user' | 'assistant'; content: string; }`. Implement async function `getConversationHistory(telefono: string): Promise<Message[]>` that: (1) Constructs Redis key as `chat:${telefono}`, (2) Calls redis.get(key) to fetch history JSON string, (3) If result is null or empty, returns empty array [], (4) Parses JSON string to Message[] array using JSON.parse() with try-catch for error handling, (5) Returns parsed array, or [] if parsing fails. Add logging for debug: console.log(`Fetched ${history.length} messages for ${telefono}`). This function isolates Redis interaction and provides clean conversation history retrieval for the main AI agent function.",
+            "status": "pending",
+            "testStrategy": "Create test by manually setting Redis key with `redis.set('chat:test123', JSON.stringify([{role: 'user', content: 'Hola'}, {role: 'assistant', content: 'Hola!'}]))`. Call getConversationHistory('test123') and verify returns array with 2 messages. Test with non-existent phone number, verify returns empty array. Test with corrupted JSON in Redis, verify returns empty array and logs error. Check TypeScript types are enforced (should not allow invalid role values).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement conversation history persistence to Redis with TTL",
+            "description": "Create helper function to save updated conversation history back to Redis with 24-hour TTL using the chat:{telefono} key pattern.",
+            "dependencies": [
+              3
+            ],
+            "details": "In backend/src/lib/claude.ts, implement async function `saveConversationHistory(telefono: string, history: Message[]): Promise<void>` that: (1) Constructs Redis key as `chat:${telefono}`, (2) Serializes history array to JSON string using JSON.stringify(history), (3) Calls redis.setEx(key, 86400, jsonString) to store with 24-hour TTL (86400 seconds), (4) Wraps in try-catch to handle Redis connection errors gracefully - log error but don't throw (persistence failure shouldn't break the bot), (5) Logs success: console.log(`Saved ${history.length} messages for ${telefono} with 24h TTL`). This function ensures conversation context is maintained for up to 24 hours, allowing multi-turn conversations while automatically expiring old conversations to manage Redis memory.",
+            "status": "pending",
+            "testStrategy": "Call saveConversationHistory('test456', [{role: 'user', content: 'Test'}]) and verify no errors. Use redis.get('chat:test456') to fetch raw value and verify it's valid JSON. Use redis.ttl('chat:test456') to verify TTL is approximately 86400 seconds (allow ±10 seconds). Wait 2 seconds, check TTL decreased to ~86398. Test saving empty array - should work. Test saving large history (50 messages) - should succeed. Test Redis connection failure scenario by stopping Redis temporarily - verify function logs error but doesn't crash.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement main responderMensaje function with Claude API integration",
+            "description": "Create the core AI agent function that orchestrates conversation history, calls Claude Sonnet 4 API with proper system prompt, and returns the assistant response.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "In backend/src/lib/claude.ts, import Anthropic from '@anthropic-ai/sdk' and getNotionContext from './notion-context' (will be implemented in Task 9, use mock for now). Implement async function `responderMensaje(telefono: string, mensaje: string): Promise<string>` that: (1) Calls getConversationHistory(telefono) to fetch existing history, (2) Appends user message: history.push({ role: 'user', content: mensaje }), (3) Calls await getNotionContext(mensaje) to get additional context (wrap in try-catch, use empty string if fails), (4) Constructs system prompt in Spanish: `Eres el asistente virtual de MEA International. Respondes en español, de forma amable y concisa (máximo 3 párrafos cortos). Si no sabés algo, decí que un asesor se pondrá en contacto pronto. No inventes precios ni fechas que no estén en el contexto proporcionado. INFORMACIÓN DE MEA INTERNATIONAL: ${WEB_CONTEXT} INFORMACIÓN ADICIONAL (Notion): ${notionCtx}`, (5) Creates Anthropic client with new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), (6) Calls client.messages.create with: model (verify latest name, likely 'claude-sonnet-4-20250514'), max_tokens: 500, system: systemPrompt, messages: history.slice(-10) (limits to last 10 messages to control context window), (7) Extracts response text from response.content[0].text (handle type guards for content array), (8) Appends assistant response to history: history.push({ role: 'assistant', content: responseText }), (9) Calls saveConversationHistory(telefono, history), (10) Returns responseText. Add comprehensive error handling with try-catch, log errors, throw with descriptive message if Claude API fails.",
+            "status": "pending",
+            "testStrategy": "Test responderMensaje('test789', 'Hola, qué cursos tienen?') and verify returns Spanish response mentioning MEA courses. Verify response is concise (<500 chars). Call again with same phone: responderMensaje('test789', 'Cuánto cuestan?') and verify response shows context awareness (references previous question). Check Redis after test - should have chat:test789 with 2 user and 2 assistant messages. Test with 11 messages to verify only last 10 are sent to Claude. Test error handling by using invalid API key - should log error and throw. Verify all responses are in Spanish and don't hallucinate facts not in WEB_CONTEXT.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "11",
+        "title": "Implement Lead and Conversation Persistence Logic",
+        "description": "Create function to upsert leads and persist WhatsApp conversation messages to MySQL when processing each message.",
+        "details": "Create `src/lib/persistence.ts`. Implement async function guardarMensajes(telefono: string, userMessage: string, assistantResponse: string). 1) Upsert Lead: use Prisma upsert with where: {telefono}, create: {telefono}, update: {actualizadoEn: new Date()}. Get lead.id. 2) Find or create ConversacionWhatsApp: findFirst with where: {telefono, estado: 'activo'}, if not found create with {leadId, telefono, estado: 'activo'}. Get conversacion.id. 3) Create two MensajeWhatsApp records: first with {conversacionId, rol: 'user', contenido: userMessage}, second with {conversacionId, rol: 'assistant', contenido: assistantResponse}. Wrap in Prisma transaction for atomicity. Handle errors (log and don't throw - persistence failure shouldn't break bot response). Optionally extract nombre from first message if user introduces themselves.",
+        "testStrategy": "Call guardarMensajes with test phone and messages. Verify Lead is created with telefono. Verify ConversacionWhatsApp is created linked to lead. Verify both user and assistant messages are saved. Test second call with same number - should reuse same Lead and Conversacion. Query database directly to confirm data integrity.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Integrate Claude AI Agent into WhatsApp Webhook",
+        "description": "Connect all components: webhook receives message, calls Claude AI agent, persists conversation, sends response back to user via WhatsApp.",
+        "details": "Update `src/routes/whatsapp.webhook.ts` POST handler. For each incoming message: 1) Extract telefono (from) and mensaje (text.body). 2) Call responderMensaje(telefono, mensaje) to get Claude AI response. 3) Call guardarMensajes(telefono, mensaje, response). 4) Call sendWhatsAppMessage(telefono, response). 5) Always respond 200 to Meta immediately (within 20 seconds) even if internal processing fails. Use try-catch to handle errors: if Claude or WhatsApp send fails, log error, still persist what we can, and send generic error message to user ('Lo siento, hubo un error. Un asesor se pondrá en contacto.'). Implement rate limiting per phone number (max 10 messages per minute) to prevent abuse. Add logging for all steps.",
+        "testStrategy": "Send WhatsApp message to MEA number. Verify receives response within 10 seconds. Check database has Lead, Conversacion, and both messages. Verify Redis has conversation history. Test multi-message conversation - verify context is maintained. Test error scenarios (Claude API down, Redis down) - verify graceful degradation. Monitor Railway logs during test.",
+        "priority": "high",
+        "dependencies": [
+          "7",
+          "8",
+          "10",
+          "11"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement rate limiting middleware for WhatsApp messages",
+            "description": "Create Express middleware that enforces rate limits of 10 messages per minute per phone number to prevent abuse and API quota exhaustion.",
+            "dependencies": [],
+            "details": "Create backend/src/middleware/rate-limit.middleware.ts. Implement in-memory rate limiting using Map<string, {count: number, resetAt: number}> to track message counts per phone number. Create Express middleware function rateLimitWhatsApp(req, res, next) that: (1) Extracts phone number from request body (body.entry[0]?.changes[0]?.value?.messages[0]?.from), (2) Gets current timestamp and checks if phone number exists in rate limit map, (3) If resetAt timestamp has passed, resets count to 0 and updates resetAt to Date.now() + 60000 (1 minute), (4) Increments count for phone number, (5) If count > 10, responds with 200 OK to Meta (required to avoid webhook failures) but logs warning and returns early without processing message, (6) Otherwise calls next() to proceed. Add cleanup logic to remove expired entries from map every 5 minutes to prevent memory leaks. Export rateLimitWhatsApp function. This prevents users from spamming the bot and protects Claude API quota.",
+            "status": "pending",
+            "testStrategy": "Create test script that sends 11 POST requests to webhook with same phone number within 1 minute. Verify first 10 are processed (logged), 11th is rate limited (logged warning but returns 200). Wait 61 seconds, send another request with same number - should be processed (rate limit window reset). Test with different phone numbers simultaneously - each should have independent 10/min limit. Check memory usage doesn't grow unbounded (expired entries cleaned up).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Update webhook POST handler to integrate all components with error handling",
+            "description": "Modify the existing POST /api/meta/webhook handler in whatsapp.webhook.ts to call responderMensaje, guardarMensajes, and sendWhatsAppMessage functions with comprehensive error handling and logging.",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/routes/whatsapp.webhook.ts, update the POST handler implementation: (1) Import rateLimitWhatsApp from '../middleware/rate-limit.middleware', responderMensaje from '../lib/claude', guardarMensajes from '../lib/persistence', sendWhatsAppMessage from '../lib/whatsapp-send'. (2) Apply rateLimitWhatsApp middleware to POST route before existing HMAC middleware. (3) In route handler, wrap entire message processing in try-catch block. (4) For each message extracted from webhook payload: extract telefono from message.from and mensaje from message.text?.body, skip if mensaje is undefined/empty. (5) Call const respuesta = await responderMensaje(telefono, mensaje) to get Claude AI response. (6) Call await guardarMensajes(telefono, mensaje, respuesta) to persist to database (wrap in separate try-catch - don't let persistence failure stop response sending). (7) Call await sendWhatsAppMessage(telefono, respuesta) to send response back to user (wrap in try-catch). (8) Log each step with phone number for debugging. (9) If any critical error occurs (Claude fails, WhatsApp send fails), log error details, attempt to send generic error message to user: 'Lo siento, hubo un error. Un asesor se pondrá en contacto.' (10) Always respond 200 OK to Meta within 20 seconds regardless of internal processing success/failure - use res.status(200).send('OK') at the end. (11) Consider using async processing: respond 200 immediately, then process message in background (optional for v1).",
+            "status": "pending",
+            "testStrategy": "Send test WhatsApp message to MEA number asking 'Hola, qué cursos tienen?'. Verify receives response from Claude within 10 seconds. Check Railway logs show: message received, rate limit passed, Claude called, database persisted, WhatsApp sent, 200 returned to Meta. Verify Lead exists in database with correct telefono. Verify ConversacionWhatsApp and 2 MensajeWhatsApp records exist. Check Redis has chat:{phone} key with conversation history. Test error scenario: temporarily break Claude API key, send message, verify generic error message sent to user and 200 still returned to Meta. Test rate limit: send 11 messages rapidly, verify 11th logs rate limit warning.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add comprehensive logging for all integration steps",
+            "description": "Implement structured logging throughout the webhook handler and all integrated functions to enable debugging and monitoring in production.",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/routes/whatsapp.webhook.ts POST handler and all integrated functions (responderMensaje, guardarMensajes, sendWhatsAppMessage), add console.log statements with consistent format: '[WhatsApp] {timestamp} | {phone} | {step} | {details}'. Log the following key events: (1) 'Message received' with phone number and message preview (first 50 chars), (2) 'Rate limit check' with current count, (3) 'Claude AI called' with phone number, (4) 'Claude AI response' with phone and response length, (5) 'Database persistence started', (6) 'Database persistence completed' or 'Database persistence failed' with error, (7) 'WhatsApp send started', (8) 'WhatsApp send completed' with message_id or 'WhatsApp send failed' with error, (9) '200 response sent to Meta'. For errors, log full error stack trace. Consider using a logging library like winston or pino for structured JSON logs (optional for v1, console.log acceptable). Ensure no sensitive data (API keys, full phone numbers) are logged - mask phone numbers to show only last 4 digits in logs: `XXX-XXX-${telefono.slice(-4)}`. All logs should be visible in Railway logs for real-time monitoring.",
+            "status": "pending",
+            "testStrategy": "Send test WhatsApp message. Check Railway logs show all expected log statements in order: message received, rate limit check, Claude called, response received, persistence started, persistence completed, WhatsApp send started, send completed, 200 sent. Verify phone numbers are masked (only last 4 digits visible). Verify timestamps are present. Test error scenario (invalid Claude key) - verify error logs include stack trace and error message. Verify logs don't contain any API keys or tokens.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add end-to-end integration test and validate Meta webhook compliance",
+            "description": "Create comprehensive test that validates the full integration flow from webhook receipt to response sending, and verify Meta webhook response time requirements are met.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create backend/tests/integration/whatsapp-integration.test.ts (or manual test script). Test full flow: (1) Prepare test environment with valid ANTHROPIC_API_KEY, DATABASE_URL, REDIS_URL, META credentials. (2) Send POST request to /api/meta/webhook with valid HMAC signature and Meta webhook payload containing test message from test phone number (format: {entry: [{changes: [{value: {messages: [{from: '1234567890', text: {body: 'Hola, información sobre cursos por favor'}}]}}]}]}). (3) Measure response time - MUST return 200 within 20 seconds (Meta requirement). (4) Wait 5 seconds for async processing to complete. (5) Query MySQL database to verify: Lead exists with telefono='1234567890', ConversacionWhatsApp exists linked to Lead, two MensajeWhatsApp records exist (one user role, one assistant role). (6) Check Redis key 'chat:1234567890' exists and contains conversation history array. (7) Verify test phone number received WhatsApp message (manual verification or use Meta test API). (8) Test multi-turn conversation: send second message referencing first ('¿Cuánto cuesta?'), verify Claude response shows context awareness. (9) Test rate limiting: send 11 messages rapidly, verify 11th is rate limited. (10) Document test results and any issues. Add test to Railway deployment pipeline (optional - can be manual test for v1).",
+            "status": "pending",
+            "testStrategy": "Execute integration test script. Verify all 9 test steps pass. Key success criteria: (1) 200 response within 20 seconds, (2) Database has Lead + Conversacion + 2 Messages, (3) Redis has conversation history, (4) WhatsApp message received on test phone, (5) Second message shows context, (6) Rate limiting works after 10 messages. If any step fails, check Railway logs for errors, fix issue, and retest. Once all steps pass, Task 12 is complete and system is ready for production use.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "13",
+        "title": "Configure Cloudflare DNS, CDN, and WAF",
+        "description": "Set up Cloudflare account, configure DNS records for frontend and backend, enable WAF, Bot Fight Mode, and rate limiting.",
+        "details": "1) Create Cloudflare account, add domain meainternational.com. 2) Update nameservers at domain registrar to Cloudflare's (provided in Cloudflare dashboard). Wait for DNS propagation. 3) Add DNS records: CNAME @ pointing to cname.vercel-dns.com (proxy enabled/orange), CNAME www pointing to cname.vercel-dns.com (proxy enabled), CNAME api pointing to Railway backend domain {project}.up.railway.app (proxy enabled). 4) In Cloudflare Security > WAF, enable OWASP Core Ruleset (Managed Rules). 5) Enable Bot Fight Mode in Security > Bots. 6) Create Rate Limiting rule in Security > WAF > Rate limiting: 100 requests per minute per IP address for all paths. 7) SSL/TLS mode: Full (strict). 8) In Vercel project settings, add custom domain meainternational.com and www.meainternational.com. 9) Update Railway env FRONTEND_URL=https://meainternational.com.",
+        "testStrategy": "Verify DNS resolves: dig meainternational.com should show Cloudflare IPs. Access https://meainternational.com - should load Next.js frontend via Cloudflare (check for cf-ray header). Access https://api.meainternational.com/health - should return from Railway via Cloudflare. Test WAF by triggering SQL injection pattern (should block). Verify rate limiting by sending 101+ requests in 1 minute.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Implement JWT Authentication System",
+        "description": "Create authentication endpoints for admin login and JWT middleware to protect admin routes.",
+        "details": "Install bcrypt and jsonwebtoken: `npm install bcrypt jsonwebtoken @types/bcrypt @types/jsonwebtoken`. Create `src/routes/auth.ts`. Implement POST /api/auth/login: accept {email, password}, find Admin by email, compare password with bcrypt.compare, if valid generate JWT with payload {adminId, email, rol} using JWT_SECRET with 24h expiration, return {token, admin: {id, email, nombre, rol}}. Create `src/middleware/auth.middleware.ts`: implement verifyJWT function that reads Authorization header (Bearer token), verifies with jwt.verify and JWT_SECRET, attaches decoded payload to req.user, returns 401 if invalid/missing/expired. Apply auth middleware to protected routes: POST/PATCH/DELETE /api/cursos, GET/PATCH /api/leads. Create seed script to create initial admin: use bcrypt.hash to hash password, insert into Admin table.",
+        "testStrategy": "Run seed script to create admin with email 'admin@mea.com' and password 'admin123'. Test POST /api/auth/login with correct credentials - should return token. Test with wrong password - should return 401. Test protected route without token - should return 401. Test with valid token - should allow access. Test with expired token (manually create with past exp) - should return 401.",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Create Admin Panel Pages in Next.js",
+        "description": "Build admin dashboard pages in Next.js frontend to view leads and their WhatsApp conversations with authentication guard.",
+        "details": "Create /app/admin directory. Create login page at /app/admin/login/page.tsx: form with email/password, call POST /api/auth/login, store JWT in localStorage, redirect to /app/admin. Create auth context provider to manage auth state. Create /app/admin/page.tsx: check JWT (redirect to login if missing), fetch GET /api/leads with pagination, display table with columns (teléfono, nombre, estado, fecha), pagination controls, click row to navigate to /app/admin/leads/[id]. Create /app/admin/leads/[id]/page.tsx: fetch GET /api/leads/{id}, display lead details (all fields), display conversation thread (mensajes sorted by creadoEn, user messages on left, assistant on right, WhatsApp-style UI). Create layout with navigation and logout button. Style with Tailwind CSS (already in project).",
+        "testStrategy": "Navigate to /admin without token - should redirect to /admin/login. Login with admin credentials. Verify redirects to /admin and shows leads list. Click a lead, verify shows conversation history. Test pagination on leads list. Test logout clears token and redirects to login. Verify API calls include Authorization header with JWT.",
+        "priority": "low",
+        "dependencies": [
+          "6",
+          "14"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "16",
+        "title": "Configure CI/CD and Environment Variables",
+        "description": "Configure all environment variables in Railway and Vercel, document deployment strategy, and verify auto-deployment on git push to main.",
+        "details": "1) In Railway backend project variables, verify all are set: DATABASE_URL (auto), REDIS_URL (auto), PORT (auto), JWT_SECRET, META_WHATSAPP_TOKEN, META_PHONE_ID, META_WABA_ID, META_WEBHOOK_VERIFY_TOKEN, META_APP_SECRET, ANTHROPIC_API_KEY, NOTION_TOKEN, NOTION_DATABASE_IDS, FRONTEND_URL=https://meainternational.com. 2) In Vercel project settings, add NEXT_PUBLIC_API_URL=https://api.meainternational.com. 3) Configure Railway to deploy on push to main branch (should be default). 4) Configure Vercel to deploy on push to main (should be default). 5) Document branch strategy in README: daily work in branches named `sesion-YYYYMMDD`, merge to main at end of day triggers deployment. 6) Create .env.example in backend with all variables (with placeholder values). 7) Update root README.md with deployment info, environment setup instructions, and branch strategy.",
+        "testStrategy": "Create test branch `sesion-20260507`. Make minor change (add comment). Push to branch - verify Railway and Vercel DO NOT deploy. Merge to main - verify both Railway and Vercel trigger builds and deploy successfully. Check Railway logs show new deployment. Check Vercel deployment log. Access https://meainternational.com and https://api.meainternational.com/health to verify both are updated.",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "13"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "17",
+        "title": "End-to-End Testing and Production Validation",
+        "description": "Perform comprehensive end-to-end testing of the complete system from WhatsApp message to database persistence to admin panel visibility.",
+        "details": "Execute full system test: 1) Send WhatsApp message to MEA number asking about courses. 2) Verify receive response within 10 seconds. 3) Send follow-up question to test conversation memory. 4) Query Railway MySQL database directly - verify Lead exists with correct phone. 5) Verify ConversacionWhatsApp and MensajeWhatsApp records exist. 6) Check Redis for conversation history key. 7) Login to admin panel at https://meainternational.com/admin. 8) Verify lead appears in list. 9) Click lead, verify conversation is visible. 10) Test Cloudflare WAF by attempting SQL injection in webhook (should block). 11) Test rate limiting by sending 101 requests in 1 minute (should throttle). 12) Monitor Railway logs and Cloudflare Analytics during test. 13) Verify all environment variables are set correctly. Document any issues found and create follow-up tasks if needed.",
+        "testStrategy": "Complete all 12 validation steps above. Create checklist and mark each item. All steps must pass. Success criteria: WhatsApp bot responds correctly with context, conversation is persisted, admin can view data, Cloudflare protections are active, no errors in logs. Performance: response time < 10s, API endpoints < 300ms p95. If any step fails, investigate logs, fix issue, and re-test.",
+        "priority": "high",
+        "dependencies": [
+          "12",
+          "13",
+          "15",
+          "16"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "18",
+        "title": "USER-TEST-1: Validar Backend, MySQL, Redis y rutas base",
+        "description": "Checkpoint manual: verificar que el backend Express corre en Railway, MySQL tiene las tablas, Redis conecta, y los endpoints GET /health, /api/cursos, /api/leads responden correctamente.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "5"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": "19",
+        "title": "USER-TEST-1: Validar Backend, MySQL, Redis y rutas base",
+        "description": "Checkpoint manual: verificar que el backend Express corre en Railway, MySQL tiene las tablas, Redis conecta, y los endpoints GET /health, /api/cursos, /api/leads responden correctamente.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "5"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": "20",
+        "title": "USER-TEST-2: Validar Webhook WhatsApp y Agente Claude",
+        "description": "Checkpoint manual: enviar mensaje real desde WhatsApp, verificar respuesta del bot en español, confirmar que Lead y conversacion se crearon en MySQL, y que Redis tiene el historial.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "10"
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": "21",
+        "title": "USER-TEST-3: Validar Cloudflare, Auth JWT y Panel Admin",
+        "description": "Checkpoint manual: verificar dominio meainternational.com con proxy Cloudflare, login admin con JWT, ver leads y conversaciones en /admin, y test de rate limiting.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "15"
+        ],
+        "priority": "high",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-05-08T04:34:04.048Z",
+      "taskCount": 21,
+      "completedCount": 2,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

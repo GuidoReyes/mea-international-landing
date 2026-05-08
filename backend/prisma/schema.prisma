@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Lead {
+  id             Int                    @id @default(autoincrement())
+  telefono       String                 @unique
+  nombre         String?
+  email          String?
+  interes        String?
+  estado         String                 @default("nuevo")
+  creadoEn       DateTime               @default(now())
+  actualizadoEn  DateTime               @updatedAt
+  conversaciones ConversacionWhatsApp[]
+}
+
+model Curso {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String   @db.Text
+  precio      Decimal  @db.Decimal(10, 2)
+  modalidad   String
+  duracion    String
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+}
+
+model ConversacionWhatsApp {
+  id       Int               @id @default(autoincrement())
+  leadId   Int?
+  telefono String
+  lead     Lead?             @relation(fields: [leadId], references: [id])
+  mensajes MensajeWhatsApp[]
+  estado   String            @default("activo")
+  creadoEn DateTime          @default(now())
+}
+
+model MensajeWhatsApp {
+  id             Int                  @id @default(autoincrement())
+  conversacionId Int
+  conversacion   ConversacionWhatsApp @relation(fields: [conversacionId], references: [id])
+  rol            String
+  contenido      String               @db.Text
+  creadoEn       DateTime             @default(now())
+}
+
+model Admin {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  nombre   String
+  rol      String   @default("ADMIN")
+  activo   Boolean  @default(true)
+  creadoEn DateTime @default(now())
+}

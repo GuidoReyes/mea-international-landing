@@ -22,13 +22,14 @@ app.get("/health", (_req, res) => {
 });
 
 app.get("/tables", async (_req, res) => {
-  const tables = await prisma.$queryRaw<{ table_name: string }[]>`
-    SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema = DATABASE()
-    ORDER BY table_name
-  `;
-  res.json({ tables: tables.map((r) => r.table_name) });
+  try {
+    const tables = await prisma.$queryRawUnsafe<{ table_name: string }[]>(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name"
+    );
+    res.json({ tables: tables.map((r) => r.table_name) });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 app.listen(PORT, () => {

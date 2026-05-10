@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import dotenv from "dotenv";
+import prisma from "./lib/prisma";
 
 dotenv.config();
 
@@ -18,6 +19,16 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/tables", async (_req, res) => {
+  const tables = await prisma.$queryRaw<{ table_name: string }[]>`
+    SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+    ORDER BY table_name
+  `;
+  res.json({ tables: tables.map((r) => r.table_name) });
 });
 
 app.listen(PORT, () => {

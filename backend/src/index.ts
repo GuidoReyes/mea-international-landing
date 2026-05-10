@@ -3,6 +3,7 @@ import helmet from "helmet";
 import cors from "cors";
 import dotenv from "dotenv";
 import cursosRouter from "./routes/cursos";
+import leadsRouter from "./routes/leads";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/cursos", cursosRouter);
+app.use("/api/leads", leadsRouter);
 
 app.listen(PORT, () => {
   console.log(`MEA Backend corriendo en puerto ${PORT}`);

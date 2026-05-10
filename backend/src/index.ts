@@ -2,6 +2,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import dotenv from "dotenv";
+import cursosRouter from "./routes/cursos";
+
 dotenv.config();
 
 const app = express();
@@ -19,6 +21,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/api/cursos", cursosRouter);
 
 app.listen(PORT, () => {
   console.log(`MEA Backend corriendo en puerto ${PORT}`);

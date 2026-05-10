@@ -24,9 +24,9 @@ app.get("/health", (_req, res) => {
 app.get("/tables", async (_req, res) => {
   try {
     const tables = (await prisma.$queryRawUnsafe(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name"
-    )) as { table_name: string }[];
-    res.json({ tables: tables.map((r) => r.table_name) });
+      "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY TABLE_NAME"
+    )) as { TABLE_NAME: string }[];
+    res.json({ tables: tables.map((r) => r.TABLE_NAME) });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

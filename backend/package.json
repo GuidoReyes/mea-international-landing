@@ -17,6 +17,7 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
     "@notionhq/client": "^5.20.0",
     "@prisma/client": "^5.22.0",
     "cors": "^2.8.6",

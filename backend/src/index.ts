@@ -51,7 +51,7 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT ==
       const respuesta = await responderMensaje(telefono, mensaje);
       await guardarMensajes(telefono, mensaje, respuesta);
       const sent = await sendWhatsAppMessage(telefono, respuesta);
-      res.json({ respuesta, enviado: sent.success, messageId: sent.messageId });
+      res.json({ respuesta, enviado: sent.success, messageId: sent.messageId, error: sent.error });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }

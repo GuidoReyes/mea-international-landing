@@ -6,15 +6,14 @@ const router = Router();
 const CACHE_KEY = "cursos:all";
 
 async function invalidateCache() {
-  await redisClient.del(CACHE_KEY);
+  try { await redisClient.del(CACHE_KEY); } catch { /* Redis unavailable, skip */ }
 }
 
 router.get("/", async (req: Request, res: Response) => {
-  const cached = await getJSON<unknown[]>(CACHE_KEY);
-  if (cached) {
-    res.json(cached);
-    return;
-  }
+  try {
+    const cached = await getJSON<unknown[]>(CACHE_KEY);
+    if (cached) { res.json(cached); return; }
+  } catch { /* Redis unavailable, fall through to DB */ }
 
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
@@ -27,7 +26,7 @@ router.get("/", async (req: Request, res: Response) => {
     orderBy: { creadoEn: "desc" },
   });
 
-  await setJSON(CACHE_KEY, cursos, COURSE_CACHE_TTL);
+  try { await setJSON(CACHE_KEY, cursos, COURSE_CACHE_TTL); } catch { /* Redis unavailable, skip */ }
   res.json(cursos);
 });
 

@@ -32,10 +32,12 @@ process.on("SIGINT", async () => {
 });
 
 async function setWithTTL(key: string, value: string, seconds: number) {
+  if (!client.isReady) return;
   await client.setEx(key, seconds, value);
 }
 
 async function getJSON<T>(key: string): Promise<T | null> {
+  if (!client.isReady) return null;
   const value = await client.get(key);
   if (!value) return null;
   try {
@@ -46,6 +48,7 @@ async function getJSON<T>(key: string): Promise<T | null> {
 }
 
 async function setJSON(key: string, value: unknown, ttl = CHAT_HISTORY_TTL) {
+  if (!client.isReady) return;
   await client.setEx(key, ttl, JSON.stringify(value));
 }
 

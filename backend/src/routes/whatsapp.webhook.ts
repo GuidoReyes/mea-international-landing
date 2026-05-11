@@ -1,7 +1,13 @@
 import { Router, Request, Response } from "express";
 import { verifyMetaHmac } from "../middleware/hmac.middleware";
+import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
+import { responderMensaje } from "../lib/claude";
+import { guardarMensajes } from "../lib/persistence";
+import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 
 const router = Router();
+
+const MENSAJE_ERROR = "Lo siento, hubo un error. Un asesor se pondrá en contacto pronto.";
 
 interface MetaMessage {
   from: string;
@@ -12,16 +18,13 @@ interface MetaMessage {
 interface MetaWebhookBody {
   entry?: Array<{
     changes?: Array<{
-      value?: {
-        messages?: MetaMessage[];
-      };
+      value?: { messages?: MetaMessage[] };
     }>;
   }>;
 }
 
-async function handleWhatsAppMessage(phone: string, text: string) {
-  console.log(`[WhatsApp] Mensaje de ${phone}: ${text}`);
-  // Placeholder — se integrará con Claude AI en Task 10
+function maskPhone(telefono: string) {
+  return `XXX-${telefono.slice(-4)}`;
 }
 
 // GET — verificación de webhook por Meta
@@ -39,24 +42,46 @@ router.get("/", (req: Request, res: Response) => {
   res.status(403).json({ error: "Verificación fallida" });
 });
 
-// POST — recibir mensajes de WhatsApp
-router.post("/", verifyMetaHmac, async (req: Request, res: Response) => {
-  // Siempre responder 200 a Meta inmediatamente
+// POST — recibir y procesar mensajes de WhatsApp
+router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Response) => {
+  // Responder 200 a Meta inmediatamente (requerido en <20s)
   res.status(200).send("OK");
 
-  try {
-    const body = req.body as MetaWebhookBody;
-    const messages = body.entry?.[0]?.changes?.[0]?.value?.messages;
+  const body = req.body as MetaWebhookBody;
+  const messages = body.entry?.[0]?.changes?.[0]?.value?.messages;
+  if (!messages?.length) return;
 
-    if (!messages?.length) return;
+  for (const msg of messages) {
+    if (msg.type !== "text" || !msg.text?.body) continue;
 
-    for (const msg of messages) {
-      if (msg.type === "text" && msg.text?.body) {
-        await handleWhatsAppMessage(msg.from, msg.text.body);
-      }
+    const telefono = msg.from;
+    const mensaje = msg.text.body;
+    const mask = maskPhone(telefono);
+
+    console.log(`[WhatsApp] ${mask} | mensaje recibido: "${mensaje.slice(0, 60)}"`);
+
+    let respuesta: string;
+
+    try {
+      respuesta = await responderMensaje(telefono, mensaje);
+      console.log(`[WhatsApp] ${mask} | Claude respondió (${respuesta.length} chars)`);
+    } catch (err) {
+      console.error(`[WhatsApp] ${mask} | Error en Claude:`, err);
+      respuesta = MENSAJE_ERROR;
     }
-  } catch (err) {
-    console.error("[WhatsApp] Error procesando webhook:", err);
+
+    // Persistir (falla silenciosa)
+    await guardarMensajes(telefono, mensaje, respuesta).catch((err) =>
+      console.error(`[WhatsApp] ${mask} | Error persistiendo:`, err)
+    );
+
+    // Enviar respuesta por WhatsApp
+    const sent = await sendWhatsAppMessage(telefono, respuesta);
+    if (sent.success) {
+      console.log(`[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
+    } else {
+      console.error(`[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
+    }
   }
 });
 

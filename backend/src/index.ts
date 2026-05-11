@@ -35,6 +35,29 @@ app.use("/api/cursos", cursosRouter);
 app.use("/api/leads", leadsRouter);
 app.use("/api/meta/webhook", whatsappWebhookRouter);
 
+// Endpoint temporal de prueba — remover antes de producción real
+if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
+  const { responderMensaje } = require("./lib/claude");
+  const { guardarMensajes } = require("./lib/persistence");
+  const { sendWhatsAppMessage } = require("./lib/whatsapp-send");
+
+  app.post("/api/test-bot", async (req: Request, res: Response) => {
+    const { telefono, mensaje } = req.body as { telefono?: string; mensaje?: string };
+    if (!telefono || !mensaje) {
+      res.status(400).json({ error: "Se requiere telefono y mensaje" });
+      return;
+    }
+    try {
+      const respuesta = await responderMensaje(telefono, mensaje);
+      await guardarMensajes(telefono, mensaje, respuesta);
+      const sent = await sendWhatsAppMessage(telefono, respuesta);
+      res.json({ respuesta, enviado: sent.success, messageId: sent.messageId });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`MEA Backend corriendo en puerto ${PORT}`);
 });

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
+import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = Router();
 
 const ESTADOS_VALIDOS = ["nuevo", "contactado", "inscrito"] as const;
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", verifyJWT, async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, parseInt(req.query.limit as string) || 10);
   const skip = (page - 1) * limit;
@@ -27,7 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
   res.json({ data: leads, meta: { total, page, limit } });
 });
 
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });
@@ -54,7 +55,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   res.json(lead);
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });

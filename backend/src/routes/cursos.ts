@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import redisClient, { getJSON, setJSON, COURSE_CACHE_TTL } from "../lib/redis";
+import { verifyJWT } from "../middleware/auth.middleware";
 
 const router = Router();
 const CACHE_KEY = "cursos:all";
@@ -30,7 +31,7 @@ router.get("/", async (req: Request, res: Response) => {
   res.json(cursos);
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", verifyJWT, async (req: Request, res: Response) => {
   const { nombre, descripcion, precio, modalidad, duracion } = req.body as {
     nombre?: string;
     descripcion?: string;
@@ -52,7 +53,7 @@ router.post("/", async (req: Request, res: Response) => {
   res.status(201).json(curso);
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });
@@ -77,7 +78,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
   res.json(curso);
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });

@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import cursosRouter from "./routes/cursos";
 import leadsRouter from "./routes/leads";
 import whatsappWebhookRouter from "./routes/whatsapp.webhook";
+import authRouter from "./routes/auth";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/api/auth", authRouter);
 app.use("/api/cursos", cursosRouter);
 app.use("/api/leads", leadsRouter);
 app.use("/api/meta/webhook", whatsappWebhookRouter);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, type Lead, type LeadsResponse } from "@/lib/api";
+import { Users, MessageSquare, UserCheck, UserPlus } from "lucide-react";
 
 const ESTADO_LABELS: Record<string, string> = {
   nuevo: "Nuevo",
@@ -10,11 +11,53 @@ const ESTADO_LABELS: Record<string, string> = {
   inscrito: "Inscrito",
 };
 
-const ESTADO_COLORS: Record<string, string> = {
-  nuevo: "bg-blue-100 text-blue-700",
-  contactado: "bg-yellow-100 text-yellow-700",
-  inscrito: "bg-green-100 text-green-700",
+const ESTADO_STYLES: Record<string, string> = {
+  nuevo: "bg-blue-50 text-blue-600 border-blue-100",
+  contactado: "bg-amber-50 text-amber-600 border-amber-100",
+  inscrito: "bg-emerald-50 text-emerald-600 border-emerald-100",
 };
+
+const ESTADO_DOT: Record<string, string> = {
+  nuevo: "bg-blue-400",
+  contactado: "bg-amber-400",
+  inscrito: "bg-emerald-400",
+};
+
+function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  loading,
+}: {
+  label: string;
+  value: number;
+  icon: React.ElementType;
+  color: string;
+  loading: boolean;
+}) {
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-5 flex items-center gap-4">
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div>
+        <p className="text-xs text-slate-400 font-medium">{label}</p>
+        {loading ? (
+          <Skeleton className="h-7 w-10 mt-1" />
+        ) : (
+          <p className="text-2xl font-bold text-[#0A2540] leading-none mt-0.5">{value}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -32,91 +75,162 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   }, [page, estadoFilter]);
 
+  const total = data?.meta.total ?? 0;
   const totalPages = data ? Math.ceil(data.meta.total / data.meta.limit) : 1;
 
+  const counts = {
+    nuevo: data?.data.filter((l) => l.estado === "nuevo").length ?? 0,
+    contactado: data?.data.filter((l) => l.estado === "contactado").length ?? 0,
+    inscrito: data?.data.filter((l) => l.estado === "inscrito").length ?? 0,
+  };
+
+  const filters = [
+    { value: "", label: "Todos" },
+    { value: "nuevo", label: "Nuevo" },
+    { value: "contactado", label: "Contactado" },
+    { value: "inscrito", label: "Inscrito" },
+  ];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#0A2540]">Leads</h1>
-        <select
-          value={estadoFilter}
-          onChange={(e) => { setEstadoFilter(e.target.value); setPage(1); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C4B4]"
-        >
-          <option value="">Todos los estados</option>
-          <option value="nuevo">Nuevo</option>
-          <option value="contactado">Contactado</option>
-          <option value="inscrito">Inscrito</option>
-        </select>
+    <div className="px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-[#0A2540] tracking-tight">Leads</h1>
+        <p className="text-slate-400 text-sm mt-1">Gestión de prospectos y conversaciones</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Total leads" value={total} icon={Users} color="bg-[#0A2540]/8 text-[#0A2540]" loading={loading} />
+        <StatCard label="Nuevos" value={counts.nuevo} icon={UserPlus} color="bg-blue-50 text-blue-500" loading={loading} />
+        <StatCard label="Contactados" value={counts.contactado} icon={MessageSquare} color="bg-amber-50 text-amber-500" loading={loading} />
+        <StatCard label="Inscritos" value={counts.inscrito} icon={UserCheck} color="bg-emerald-50 text-emerald-500" loading={loading} />
+      </div>
+
+      {/* Table card */}
+      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+        {/* Toolbar */}
+        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            {filters.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => { setEstadoFilter(f.value); setPage(1); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  estadoFilter === f.value
+                    ? "bg-[#0A2540] text-white"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          {!loading && (
+            <span className="text-xs text-slate-400">
+              {total} resultado{total !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {/* Table */}
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Teléfono</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Nombre</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Conversaciones</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Fecha</th>
+          <thead>
+            <tr className="text-left border-b border-slate-50">
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Teléfono</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Nombre</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Estado</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Conversaciones</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Registrado</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-50">
             {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Cargando...</td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+                  <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
+                  <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                  <td className="px-6 py-4"><Skeleton className="h-4 w-6" /></td>
+                  <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                </tr>
+              ))
             ) : data?.data.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">Sin leads</td>
+                <td colSpan={5} className="px-6 py-16 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center">
+                      <Users className="w-5 h-5 text-slate-300" />
+                    </div>
+                    <p className="text-slate-400 text-sm">No hay leads{estadoFilter ? ` con estado "${estadoFilter}"` : ""}</p>
+                  </div>
+                </td>
               </tr>
             ) : (
               data?.data.map((lead: Lead) => (
                 <tr
                   key={lead.id}
                   onClick={() => router.push(`/admin/leads/${lead.id}`)}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-slate-50/60 cursor-pointer transition-colors group"
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-gray-700">+{lead.telefono}</td>
-                  <td className="px-4 py-3 text-gray-700">{lead.nombre ?? <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLORS[lead.estado] ?? "bg-gray-100 text-gray-600"}`}>
+                  <td className="px-6 py-4">
+                    <span className="font-mono text-xs text-slate-500 group-hover:text-[#0A2540] transition-colors">
+                      +{lead.telefono}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-medium text-[#0A2540]">
+                    {lead.nombre ?? <span className="text-slate-300 font-normal">Sin nombre</span>}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${ESTADO_STYLES[lead.estado] ?? "bg-slate-50 text-slate-500 border-slate-100"}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${ESTADO_DOT[lead.estado] ?? "bg-slate-300"}`} />
                       {ESTADO_LABELS[lead.estado] ?? lead.estado}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{lead._count?.conversaciones ?? 0}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">
-                    {new Date(lead.creadoEn).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-300" />
+                      <span className="text-slate-500">{lead._count?.conversaciones ?? 0}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-slate-400 text-xs">
+                    {new Date(lead.creadoEn).toLocaleDateString("es-GT", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-      </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
-          <span>{data?.meta.total} leads en total</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              Anterior
-            </button>
-            <span className="px-3 py-1.5">{page} / {totalPages}</span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-            >
-              Siguiente
-            </button>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-slate-50 flex items-center justify-between">
+            <span className="text-xs text-slate-400">
+              Página {page} de {totalPages}
+            </span>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -20,56 +20,97 @@ export default function LoginPage() {
       setToken(token);
       router.push("/admin");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      setError(err instanceof Error ? err.message : "Credenciales inválidas");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-[#0A2540]">MEA International</h1>
-          <p className="text-sm text-gray-500 mt-1">Panel de administración</p>
+    <div className="min-h-screen bg-[#0A2540] flex items-center justify-center px-4">
+      {/* Background grid */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#00C4B418,_transparent_55%)]" />
+
+      <div className="relative w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#00C4B4]/10 border border-[#00C4B4]/20 rounded-2xl mb-5">
+            <svg viewBox="0 0 24 24" className="w-7 h-7 fill-[#00C4B4]">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">MEA International</h1>
+          <p className="text-slate-400 text-sm mt-1.5">Panel de administración</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C4B4]"
-              placeholder="admin@mea.edu.gt"
-            />
-          </div>
+        {/* Card */}
+        <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Correo electrónico
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#00C4B4]/50 focus:bg-white/[0.07] transition-all"
+                placeholder="admin@mea.edu.gt"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C4B4]"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#00C4B4]/50 focus:bg-white/[0.07] transition-all"
+                placeholder="••••••••"
+              />
+            </div>
 
-          {error && (
-            <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
-          )}
+            {error && (
+              <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                <div className="w-1.5 h-1.5 bg-red-400 rounded-full shrink-0" />
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#0A2540] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#0d3060] disabled:opacity-50 transition-colors"
-          >
-            {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#00C4B4] hover:bg-[#00b3a4] disabled:opacity-50 text-white rounded-xl py-3.5 text-sm font-bold tracking-wide transition-all mt-2"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Verificando...
+                </span>
+              ) : (
+                "Iniciar sesión"
+              )}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-slate-600 text-xs mt-6">
+          mea.edu.gt · Sistema de gestión interno
+        </p>
       </div>
     </div>
   );

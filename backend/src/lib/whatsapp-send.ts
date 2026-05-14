@@ -1,3 +1,5 @@
+import { log } from "./logger";
+
 const GRAPH_API_VERSION = "v21.0";
 const MAX_RETRIES = 3;
 
@@ -21,7 +23,7 @@ export async function sendWhatsAppMessage(to: string, message: string): Promise<
   const token = process.env.META_WHATSAPP_TOKEN;
 
   if (!phoneId || !token) {
-    console.error("[WhatsApp] META_PHONE_ID o META_WHATSAPP_TOKEN no configurados");
+    log("error", "[WhatsApp] META_PHONE_ID o META_WHATSAPP_TOKEN no configurados");
     return { success: false, error: "Missing credentials" };
   }
 
@@ -48,12 +50,12 @@ export async function sendWhatsAppMessage(to: string, message: string): Promise<
 
       if (response.ok && data.messages?.[0]?.id) {
         const messageId = data.messages[0].id;
-        console.log(`[WhatsApp] Mensaje enviado a ${to} — ID: ${messageId}`);
+        log("info", `[WhatsApp] Mensaje enviado a ${to} — ID: ${messageId}`);
         return { success: true, messageId };
       }
 
       const errorMsg = data.error?.message ?? `HTTP ${response.status}`;
-      console.error(`[WhatsApp] Error en intento ${attempt}/${MAX_RETRIES}: ${errorMsg}`);
+      log("error", `[WhatsApp] Error en intento ${attempt}/${MAX_RETRIES}: ${errorMsg}`);
 
       // No reintentar si el error es del cliente (número inválido, token vencido, etc.)
       if (response.status === 400 || response.status === 401 || response.status === 404) {
@@ -64,7 +66,7 @@ export async function sendWhatsAppMessage(to: string, message: string): Promise<
         await sleep(2 ** attempt * 500); // 1s, 2s entre reintentos
       }
     } catch (err) {
-      console.error(`[WhatsApp] Error de red en intento ${attempt}/${MAX_RETRIES}:`, err);
+      log("error", `[WhatsApp] Error de red en intento ${attempt}/${MAX_RETRIES}:`, err);
       if (attempt < MAX_RETRIES) {
         await sleep(2 ** attempt * 500);
       }

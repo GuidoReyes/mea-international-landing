@@ -4,6 +4,7 @@ import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
 import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { log } from "../lib/logger";
 
 const router = Router();
 
@@ -34,7 +35,7 @@ router.get("/", (req: Request, res: Response) => {
   const challenge = req.query["hub.challenge"];
 
   if (mode === "subscribe" && token === process.env.META_WEBHOOK_VERIFY_TOKEN) {
-    console.log("[WhatsApp] Webhook verificado por Meta");
+    log("info", "[WhatsApp] Webhook verificado por Meta");
     res.status(200).send(challenge);
     return;
   }
@@ -58,29 +59,29 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
     const mensaje = msg.text.body;
     const mask = maskPhone(telefono);
 
-    console.log(`[WhatsApp] ${mask} | mensaje recibido: "${mensaje.slice(0, 60)}"`);
+    log("info", `[WhatsApp] ${mask} | mensaje recibido: "${mensaje.slice(0, 60)}"`);
 
     let respuesta: string;
 
     try {
       respuesta = await responderMensaje(telefono, mensaje);
-      console.log(`[WhatsApp] ${mask} | Claude respondió (${respuesta.length} chars)`);
+      log("info", `[WhatsApp] ${mask} | Claude respondió (${respuesta.length} chars)`);
     } catch (err) {
-      console.error(`[WhatsApp] ${mask} | Error en Claude:`, err);
+      log("error", `[WhatsApp] ${mask} | Error en Claude:`, err);
       respuesta = MENSAJE_ERROR;
     }
 
     // Persistir (falla silenciosa)
     await guardarMensajes(telefono, mensaje, respuesta).catch((err) =>
-      console.error(`[WhatsApp] ${mask} | Error persistiendo:`, err)
+      log("error", `[WhatsApp] ${mask} | Error persistiendo:`, err)
     );
 
     // Enviar respuesta por WhatsApp
     const sent = await sendWhatsAppMessage(telefono, respuesta);
     if (sent.success) {
-      console.log(`[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
+      log("info", `[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
     } else {
-      console.error(`[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
+      log("error", `[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
     }
   }
 });

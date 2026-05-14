@@ -1,4 +1,5 @@
 import { createClient } from "redis";
+import { log } from "./logger";
 
 const CHAT_HISTORY_TTL = 86400; // 24 horas
 const COURSE_CACHE_TTL = 3600;  // 1 hora
@@ -10,9 +11,9 @@ const client = createClient({
   },
 });
 
-client.on("error", (err) => console.error("Redis Client Error:", err));
-client.on("connect", () => console.log("Redis Client Connected"));
-client.on("reconnecting", () => console.log("Redis Client Reconnecting"));
+client.on("error", (err) => log("error", "Redis Client Error:", err));
+client.on("connect", () => log("info", "Redis Client Connected"));
+client.on("reconnecting", () => log("info", "Redis Client Reconnecting"));
 
 async function connect() {
   if (!client.isOpen) {
@@ -20,15 +21,15 @@ async function connect() {
   }
 }
 
-connect().catch((err) => console.error("Redis connection failed:", err));
+connect().catch((err) => log("error", "Redis connection failed:", err));
 
 process.on("SIGTERM", async () => {
   await client.quit();
-  console.log("Redis connection closed");
+  log("info", "Redis connection closed");
 });
 process.on("SIGINT", async () => {
   await client.quit();
-  console.log("Redis connection closed");
+  log("info", "Redis connection closed");
 });
 
 async function setWithTTL(key: string, value: string, seconds: number) {

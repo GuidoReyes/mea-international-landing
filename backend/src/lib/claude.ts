@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getJSON, setJSON, CHAT_HISTORY_TTL } from "./redis";
 import { getNotionContext } from "./notion-context";
+import { log } from "./logger";
 
 interface Message {
   role: "user" | "assistant";
@@ -46,7 +47,7 @@ async function saveHistory(telefono: string, history: Message[]): Promise<void> 
   try {
     await setJSON(`chat:${telefono}`, history, CHAT_HISTORY_TTL);
   } catch (err) {
-    console.error("[Claude] Error guardando historial:", err);
+    log("error", "[Claude] Error guardando historial:", err);
   }
 }
 

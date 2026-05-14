@@ -65,7 +65,7 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT ==
 }
 
 app.listen(PORT, () => {
-  console.log(`MEA Backend corriendo en puerto ${PORT}`);
+  if (process.env.NODE_ENV !== "production") console.log(`MEA Backend corriendo en puerto ${PORT}`);
 });
 
 export default app;

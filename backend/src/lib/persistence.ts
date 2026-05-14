@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import prisma from "./prisma";
+import { log } from "./logger";
 
 type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
@@ -38,6 +39,6 @@ export async function guardarMensajes(
     });
   } catch (err) {
     // Falla silenciosa — la persistencia no debe interrumpir la respuesta del bot
-    console.error("[Persistence] Error guardando mensajes:", err);
+    log("error", "[Persistence] Error guardando mensajes:", err);
   }
 }

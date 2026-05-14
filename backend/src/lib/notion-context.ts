@@ -1,5 +1,6 @@
 import { Client, isFullBlock } from "@notionhq/client";
 import { getJSON, setJSON } from "./redis";
+import { log } from "./logger";
 
 // IDs de páginas clave de MEA International en Notion
 const MEA_PRICING_PAGE_ID = "35d83de9-b32b-8001-bec4-edb3e3e4665c";
@@ -88,7 +89,7 @@ export async function getNotionContext(userMessage: string): Promise<string> {
       }
     }
   } catch (err) {
-    console.error("[Notion] Error obteniendo contexto:", err);
+    log("error", "[Notion] Error obteniendo contexto:", err);
     return "";
   }
 

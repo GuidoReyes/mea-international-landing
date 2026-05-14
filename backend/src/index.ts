@@ -6,6 +6,7 @@ import cursosRouter from "./routes/cursos";
 import leadsRouter from "./routes/leads";
 import whatsappWebhookRouter from "./routes/whatsapp.webhook";
 import authRouter from "./routes/auth";
+import alumnosRouter from "./routes/alumnos";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/cursos", cursosRouter);
 app.use("/api/leads", leadsRouter);
 app.use("/api/meta/webhook", whatsappWebhookRouter);
+app.use("/api/alumnos", alumnosRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {

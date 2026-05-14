@@ -160,7 +160,7 @@
         "dependencies": [
           "2"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -209,7 +209,7 @@
             "parentId": "undefined"
           }
         ],
-        "updatedAt": "2026-05-08T04:34:04.048Z"
+        "updatedAt": "2026-05-08T06:52:31.571Z"
       },
       {
         "id": "4",
@@ -221,7 +221,7 @@
         "dependencies": [
           "2"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -269,7 +269,8 @@
             "testStrategy": "Write test script that calls setJSON('test:user', { id: 1, name: 'Test' }, 60) and verifies getJSON<{id: number, name: string}>('test:user') returns correct object. Test TTL expiration by setting 2-second TTL, waiting 3 seconds, and verifying getJSON returns null. Test setWithTTL with simple string values. Verify helper functions handle errors gracefully (e.g., connection loss). Check Railway Redis dashboard shows stored keys during testing.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-10T23:46:33.075Z"
       },
       {
         "id": "5",
@@ -282,8 +283,9 @@
           "3",
           "4"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-11T00:16:21.726Z"
       },
       {
         "id": "6",
@@ -295,8 +297,9 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-11T00:16:21.729Z"
       },
       {
         "id": "7",
@@ -308,7 +311,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -366,7 +369,8 @@
             "testStrategy": "Start backend server. Verify GET http://localhost:4000/api/meta/webhook with verification params returns challenge (tests router mounting). Send POST request with valid JSON body and HMAC signature. Verify HMAC middleware can access req.rawBody and validate signature correctly. Verify req.body is parsed JSON object for route handler. Test end-to-end: configure webhook URL in Meta Business Manager as https://api.meainternational.com/api/meta/webhook (requires Cloudflare DNS from Task 13 or use Railway URL temporarily). Send test WhatsApp message. Verify Railway logs show webhook received, HMAC validated, message extracted, and 200 returned to Meta.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-11T01:51:26.015Z"
       },
       {
         "id": "8",
@@ -378,8 +382,9 @@
         "dependencies": [
           "7"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-11T01:54:26.896Z"
       },
       {
         "id": "9",
@@ -391,8 +396,9 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-11T03:49:48.584Z"
       },
       {
         "id": "10",
@@ -405,7 +411,7 @@
           "4",
           "9"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -468,7 +474,8 @@
             "testStrategy": "Test responderMensaje('test789', 'Hola, qué cursos tienen?') and verify returns Spanish response mentioning MEA courses. Verify response is concise (<500 chars). Call again with same phone: responderMensaje('test789', 'Cuánto cuestan?') and verify response shows context awareness (references previous question). Check Redis after test - should have chat:test789 with 2 user and 2 assistant messages. Test with 11 messages to verify only last 10 are sent to Claude. Test error handling by using invalid API key - should log error and throw. Verify all responses are in Spanish and don't hallucinate facts not in WEB_CONTEXT.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-11T03:53:48.769Z"
       },
       {
         "id": "11",
@@ -480,8 +487,9 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-11T03:46:52.822Z"
       },
       {
         "id": "12",
@@ -496,7 +504,7 @@
           "10",
           "11"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -544,7 +552,8 @@
             "testStrategy": "Execute integration test script. Verify all 9 test steps pass. Key success criteria: (1) 200 response within 20 seconds, (2) Database has Lead + Conversacion + 2 Messages, (3) Redis has conversation history, (4) WhatsApp message received on test phone, (5) Second message shows context, (6) Rate limiting works after 10 messages. If any step fails, check Railway logs for errors, fix issue, and retest. Once all steps pass, Task 12 is complete and system is ready for production use.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-11T04:00:55.098Z"
       },
       {
         "id": "13",
@@ -556,8 +565,9 @@
         "dependencies": [
           "2"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-12T04:53:48.925Z"
       },
       {
         "id": "14",
@@ -569,8 +579,9 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-13T01:29:11.390Z"
       },
       {
         "id": "15",
@@ -583,8 +594,9 @@
           "6",
           "14"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-13T03:26:54.620Z"
       },
       {
         "id": "16",
@@ -597,8 +609,9 @@
           "2",
           "13"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-13T05:30:25.989Z"
       },
       {
         "id": "17",
@@ -613,8 +626,9 @@
           "15",
           "16"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-13T05:30:25.992Z"
       },
       {
         "id": "18",
@@ -622,12 +636,13 @@
         "description": "Checkpoint manual: verificar que el backend Express corre en Railway, MySQL tiene las tablas, Redis conecta, y los endpoints GET /health, /api/cursos, /api/leads responden correctamente.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-05-12T04:12:48.613Z"
       },
       {
         "id": "19",
@@ -635,12 +650,13 @@
         "description": "Checkpoint manual: verificar que el backend Express corre en Railway, MySQL tiene las tablas, Redis conecta, y los endpoints GET /health, /api/cursos, /api/leads responden correctamente.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-05-12T04:13:46.281Z"
       },
       {
         "id": "20",
@@ -648,12 +664,13 @@
         "description": "Checkpoint manual: enviar mensaje real desde WhatsApp, verificar respuesta del bot en español, confirmar que Lead y conversacion se crearon en MySQL, y que Redis tiene el historial.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "10"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-05-12T04:13:46.286Z"
       },
       {
         "id": "21",
@@ -661,19 +678,1094 @@
         "description": "Checkpoint manual: verificar dominio meainternational.com con proxy Cloudflare, login admin con JWT, ver leads y conversaciones en /admin, y test de rate limiting.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "15"
         ],
         "priority": "high",
+        "subtasks": [],
+        "updatedAt": "2026-05-13T05:30:25.994Z"
+      },
+      {
+        "id": "22",
+        "title": "Obtener credenciales Meta WhatsApp Business API",
+        "description": "Conseguir las 5 credenciales necesarias para integrar WhatsApp Cloud API y configurarlas en Railway.",
+        "details": "Seguir estos pasos en orden:\n1. META_WEBHOOK_VERIFY_TOKEN: Generar con 'openssl rand -hex 16'. Es un token propio que vos elegís.\n2. META_APP_SECRET: Ir a developers.facebook.com → tu App → Settings → Basic → App Secret → Show.\n3. META_WHATSAPP_TOKEN: En tu App → WhatsApp → API Setup → copiar el Temporary Access Token (o crear uno permanente en System Users).\n4. META_PHONE_ID: En tu App → WhatsApp → API Setup → bajo 'From' aparece el Phone Number ID (número largo).\n5. META_WABA_ID: En tu App → WhatsApp → API Setup → WhatsApp Business Account ID.\nLuego ir a Railway → servicio backend → Variables → agregar las 5 variables con sus valores.",
+        "testStrategy": "",
+        "status": "done",
+        "dependencies": [
+          "7"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Generate META_WEBHOOK_VERIFY_TOKEN using openssl",
+            "description": "Generate a secure random token for webhook verification using openssl command. This is a self-generated token that you control and will be used by Meta to verify your webhook endpoint.",
+            "dependencies": [],
+            "details": "Run the command `openssl rand -hex 16` in terminal to generate a 32-character hexadecimal token. This token is used during Meta's webhook verification process (GET request to /api/meta/webhook) where Meta sends hub.verify_token and expects it to match this value. Copy the generated token value - you will need it for both Meta Business Manager configuration and Railway environment variables. This token is already referenced in backend/src/routes/whatsapp.webhook.ts:33 where it's compared against process.env.META_WEBHOOK_VERIFY_TOKEN.",
+            "status": "done",
+            "testStrategy": "Verify the generated token is exactly 32 characters long and contains only hexadecimal characters (0-9, a-f). Confirm you have copied the value for use in subsequent subtasks.",
+            "updatedAt": "2026-05-11T00:28:40.276Z",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Obtain META_APP_SECRET from Meta App Dashboard",
+            "description": "Retrieve the App Secret from Meta Business Manager which is used for HMAC-SHA256 signature verification of incoming webhook requests.",
+            "dependencies": [],
+            "details": "Navigate to developers.facebook.com and log in. Select your WhatsApp Business App from the app dashboard. Go to Settings → Basic in the left sidebar. Locate the 'App Secret' field and click 'Show' button. Copy the displayed secret value. This secret is critical for security - it's used in backend/src/middleware/hmac.middleware.ts:12 to verify that incoming webhook POST requests are genuinely from Meta by validating the x-hub-signature-256 header using HMAC-SHA256 cryptographic hashing.",
+            "status": "done",
+            "testStrategy": "Verify you have copied the App Secret value. Confirm it's a non-empty string. Do not share this value publicly as it's a security credential.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-11T01:48:09.020Z"
+          },
+          {
+            "id": 3,
+            "title": "Obtain META_WHATSAPP_TOKEN from Meta App Dashboard",
+            "description": "Get the WhatsApp API access token (temporary or permanent) required for sending messages via the WhatsApp Cloud API.",
+            "dependencies": [],
+            "details": "In your Meta App dashboard at developers.facebook.com, navigate to WhatsApp → API Setup section. Locate the 'Temporary Access Token' field and copy the token value. Note: Temporary tokens expire after 24 hours. For production use, consider creating a permanent System User token: go to Business Settings → System Users → Add → assign WhatsApp permissions → Generate Token. This token will be used in Task 8 (backend/src/lib/whatsapp-send.ts) as the Authorization Bearer token when making POST requests to https://graph.facebook.com/v21.0/{META_PHONE_ID}/messages to send WhatsApp messages.",
+            "status": "done",
+            "testStrategy": "Verify the token starts with a prefix like 'EAA' or similar Meta token format. Confirm you have copied the full token value. If using temporary token, note the expiration time and plan to replace with permanent token before production deployment.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-11T01:48:09.023Z"
+          },
+          {
+            "id": 4,
+            "title": "Obtain META_PHONE_ID from Meta App Dashboard",
+            "description": "Retrieve the Phone Number ID which identifies the WhatsApp Business phone number associated with your app.",
+            "dependencies": [],
+            "details": "In Meta App dashboard at developers.facebook.com, go to WhatsApp → API Setup. In the 'From' section, you will see a 'Phone Number ID' displayed - this is typically a long numeric string (15+ digits). Copy this Phone Number ID value. This ID is used to identify which WhatsApp Business phone number will send messages. It's required as part of the API endpoint URL in Task 8: https://graph.facebook.com/v21.0/{META_PHONE_ID}/messages. The Phone Number ID is different from the actual phone number displayed to users.",
+            "status": "done",
+            "testStrategy": "Verify the Phone Number ID is a long numeric string. Confirm you have copied the complete value. This should not be confused with the display phone number (e.g., +1234567890).",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-11T01:48:09.026Z"
+          },
+          {
+            "id": 5,
+            "title": "Obtain META_WABA_ID and configure all credentials in Railway",
+            "description": "Retrieve the WhatsApp Business Account ID from Meta dashboard and add all 5 environment variables to Railway backend service configuration.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "In Meta App dashboard at developers.facebook.com, navigate to WhatsApp → API Setup. Locate the 'WhatsApp Business Account ID' field and copy its value (typically a 15+ digit number). Then go to Railway dashboard at railway.app, select your backend service (mea-international-landing-production), navigate to the Variables tab. Add the following 5 environment variables with their respective values obtained from previous subtasks: META_WEBHOOK_VERIFY_TOKEN (from subtask 1), META_APP_SECRET (from subtask 2), META_WHATSAPP_TOKEN (from subtask 3), META_PHONE_ID (from subtask 4), META_WABA_ID (value just obtained). Click 'Add' or 'Deploy' to save changes. Railway will automatically redeploy the backend service with the new environment variables.",
+            "status": "done",
+            "testStrategy": "After adding variables in Railway, verify all 5 Meta credentials appear in the Variables tab. Check Railway deployment logs to confirm the backend service restarted successfully. Verify no 'Server misconfiguration' errors appear when testing webhook endpoints (this would indicate missing META_APP_SECRET as seen in backend/src/middleware/hmac.middleware.ts:14).",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-11T01:48:09.028Z"
+          }
+        ],
+        "updatedAt": "2026-05-11T01:48:09.028Z"
+      },
+      {
+        "id": "23",
+        "title": "Add HTTP security headers to Next.js config",
+        "description": "Configure security headers in next.config.ts including CSP, HSTS, X-Frame-Options, and other protective headers",
+        "details": "Extend next.config.ts with headers() async function returning array of header objects. Add X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Strict-Transport-Security with 2-year max-age and includeSubDomains, Content-Security-Policy allowing self + Cloudflare Turnstile + API domain, Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy restricting camera/microphone/geolocation. Apply to all routes using source: '/:path*'. Verify helmet() remains active in backend Express (already configured in backend/src/index.ts:15).",
+        "testStrategy": "Deploy to Vercel preview, verify headers with curl -I or browser DevTools Network tab. Test CSP doesn't break existing functionality. Confirm helmet() active by checking backend /health endpoint headers.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add headers() async function to next.config.ts with basic security headers",
+            "description": "Extend next.config.ts with headers() async function returning array of header objects for all routes. Add X-Frame-Options, X-Content-Type-Options, and Referrer-Policy headers.",
+            "dependencies": [],
+            "details": "Open next.config.ts (currently 11 lines with only typescript.ignoreBuildErrors config). Add async headers() function to the NextConfig object. Return array with one object: source: '/:path*' matching all routes. Add key: value pairs for headers: 'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin'. Follow Next.js headers() API format from node_modules/next/dist/docs/. Preserve existing typescript.ignoreBuildErrors: true config.",
+            "status": "pending",
+            "testStrategy": "Run npm run dev locally, verify server starts. Use curl -I http://localhost:3000 to check response headers include X-Frame-Options: DENY, X-Content-Type-Options: nosniff, and Referrer-Policy: strict-origin-when-cross-origin. Test with browser DevTools Network tab.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add HSTS (Strict-Transport-Security) header with 2-year max-age",
+            "description": "Add Strict-Transport-Security header to headers() function with max-age=63072000 (2 years) and includeSubDomains directive.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the headers array object created in subtask 1, add 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload'. max-age=63072000 equals 2 years in seconds (365 days * 2 * 24 * 60 * 60). includeSubDomains applies HSTS to all subdomains. preload makes it eligible for browser HSTS preload lists. This header forces HTTPS connections for 2 years after first visit.",
+            "status": "pending",
+            "testStrategy": "Deploy to Vercel preview environment (production requires HTTPS). Use curl -I https://[preview-url].vercel.app to verify Strict-Transport-Security header present with correct max-age=63072000 and includeSubDomains. Test browser enforces HTTPS redirect.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add Content-Security-Policy header allowing self, Turnstile, and API domain",
+            "description": "Add CSP header to headers() function allowing self, Cloudflare Turnstile domains, and the backend API domain (mea.edu.gt).",
+            "dependencies": [
+              1
+            ],
+            "details": "In the headers array object, add 'Content-Security-Policy' with directives: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.mea.edu.gt https://www.mea.edu.gt; frame-src https://challenges.cloudflare.com. This allows: scripts from same origin + Turnstile, styles from same origin with inline, images from same origin + data URIs + any HTTPS, API calls to backend, iframes for Turnstile challenges. Use template literal or string concatenation for readability.",
+            "status": "pending",
+            "testStrategy": "Deploy to Vercel preview. Check CSP header in curl -I output or DevTools. Test app functionality: navigation, forms, images all load correctly. Test CSP doesn't block legitimate resources. Try loading external script in DevTools console (should be blocked). Verify no CSP violations in browser console.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add Permissions-Policy header and verify backend helmet() configuration",
+            "description": "Add Permissions-Policy header restricting camera, microphone, and geolocation. Verify backend helmet() middleware is active at /health endpoint.",
+            "dependencies": [
+              1
+            ],
+            "details": "In next.config.ts headers array, add 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' to restrict sensitive browser features. Then verify backend helmet() is active: check backend/src/index.ts:15 shows app.use(helmet()) before routes. Test backend /health endpoint returns helmet headers. Backend helmet() and frontend Next.js headers() work independently - backend protects API routes, frontend protects app routes. No changes needed to backend (helmet already configured).",
+            "status": "pending",
+            "testStrategy": "Deploy to Vercel preview, verify Permissions-Policy header present with curl -I. Test camera/microphone permissions blocked in browser. For backend verification: curl -I https://api.mea.edu.gt/health (or Railway domain) - should show helmet headers like X-DNS-Prefetch-Control, X-Download-Options. Check Railway logs confirm helmet() active. Verify both frontend and backend have security headers independently.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T02:49:55.109Z"
+      },
+      {
+        "id": "24",
+        "title": "Create conditional logger to replace console.log in production",
+        "description": "Build centralized logging utility that suppresses console.log in production except for errors/warnings",
+        "details": "Create backend/src/lib/logger.ts with log(level: 'info'|'warn'|'error', message: string, meta?: object) function. Only write to stdout if NODE_ENV !== 'production' OR level is 'error'/'warn'. Use console.error for error level, console.warn for warn, console.log for info. Search backend/src/routes/ and backend/src/lib/ for all console.log statements (found in: index.ts, seed-admin.ts, whatsapp.webhook.ts, whatsapp-send.ts, redis.ts per Grep results). Replace with logger.log('info', ...) or appropriate level. Import logger in each affected file.",
+        "testStrategy": "Set NODE_ENV=production locally, run server, verify info logs don't appear but errors still show. Test in Railway after deploy. Use grep to confirm no direct console.log remains in routes/ and lib/.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T02:53:13.260Z"
+      },
+      {
+        "id": "25",
+        "title": "Create AuditoriaAdmin model and audit logging middleware",
+        "description": "Add audit trail table and middleware to track all admin actions on sensitive resources",
+        "details": "Add to schema.prisma: model AuditoriaAdmin { id Int @id @default(autoincrement()), adminId Int, accion String, recurso String, detalle String?, ip String?, creadoEn DateTime @default(now()) }. Run npx prisma migrate dev --name add-auditoria-admin. Create backend/src/middleware/audit.middleware.ts exporting auditLog(accion: string, recurso: string) middleware. Extract adminId from req.admin (set by verifyJWT), ip from req.ip, detalle from JSON.stringify(req.body). Insert AuditoriaAdmin record using prisma. Apply middleware to existing POST/PATCH/DELETE routes in leads.ts, cursos.ts, auth.ts after verifyJWT.",
+        "testStrategy": "Create/update/delete a lead via admin panel, query AuditoriaAdmin table to verify records created with correct adminId, accion, recurso, ip. Test that audit still works if detalle is large JSON.",
+        "priority": "high",
+        "dependencies": [
+          "24"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add AuditoriaAdmin model to Prisma schema and run migration",
+            "description": "Create the AuditoriaAdmin table in the database schema to store audit trail records for all admin actions",
+            "dependencies": [],
+            "details": "Add the following model to backend/prisma/schema.prisma after the Admin model:\n\nmodel AuditoriaAdmin {\n  id        Int      @id @default(autoincrement())\n  adminId   Int\n  accion    String\n  recurso   String\n  detalle   String?  @db.Text\n  ip        String?\n  creadoEn  DateTime @default(now())\n}\n\nNote: Use @db.Text for detalle field to handle large JSON payloads. After adding the model, run: cd backend && npx prisma migrate dev --name add-auditoria-admin. This will create the migration file and apply it to the database. Verify the migration was successful by checking the generated migration file in backend/prisma/migrations/.",
+            "status": "pending",
+            "testStrategy": "After migration, verify table exists in MySQL: DESCRIBE AuditoriaAdmin; Check that all columns match schema definition including TEXT type for detalle and correct indexes",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create audit logging middleware in backend/src/middleware/audit.middleware.ts",
+            "description": "Implement reusable middleware function that logs admin actions to the AuditoriaAdmin table",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/middleware/audit.middleware.ts with the following implementation:\n\nimport { Request, Response, NextFunction } from 'express';\nimport prisma from '../lib/prisma';\n\nexport function auditLog(accion: string, recurso: string) {\n  return async (req: Request, res: Response, next: NextFunction) => {\n    try {\n      const adminId = req.admin?.adminId;\n      const ip = req.ip || req.socket.remoteAddress || null;\n      const detalle = Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : null;\n      \n      if (adminId) {\n        await prisma.auditoriaAdmin.create({\n          data: { adminId, accion, recurso, detalle, ip }\n        });\n      }\n    } catch (error) {\n      console.error('Error logging audit:', error);\n      // Don't block request if audit fails\n    }\n    next();\n  };\n}\n\nThe middleware extracts adminId from req.admin (set by verifyJWT), IP from req.ip/socket, and body as JSON string. Errors are logged but don't block requests. Must be applied AFTER verifyJWT middleware.",
+            "status": "pending",
+            "testStrategy": "Unit test: mock req with admin, body, ip; verify prisma.auditoriaAdmin.create called with correct data. Test error handling: if prisma throws, verify next() is still called",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Apply audit middleware to all POST/PATCH/DELETE routes in leads.ts",
+            "description": "Add auditLog middleware to sensitive lead management endpoints to track create/update operations",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/routes/leads.ts, import auditLog middleware:\nimport { auditLog } from '../middleware/audit.middleware';\n\nApply middleware to these routes AFTER verifyJWT:\n\n- PATCH /leads/:id → auditLog('ACTUALIZAR_LEAD', 'leads')\n  Route signature: router.patch('/:id', verifyJWT, auditLog('ACTUALIZAR_LEAD', 'leads'), async (req, res) => {...}\n\nNote: There is no POST or DELETE route in leads.ts currently (leads are created via webhook), so only PATCH route needs middleware. The middleware should be placed between verifyJWT and the route handler function to ensure req.admin is populated before audit logging occurs.",
+            "status": "pending",
+            "testStrategy": "Update a lead via PATCH /api/leads/:id with valid JWT. Query AuditoriaAdmin table: SELECT * FROM AuditoriaAdmin WHERE recurso='leads' ORDER BY creadoEn DESC LIMIT 1. Verify record has correct adminId, accion='ACTUALIZAR_LEAD', ip is populated, detalle contains JSON of request body",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Apply audit middleware to all POST/PATCH/DELETE routes in cursos.ts and auth.ts",
+            "description": "Add auditLog middleware to course management and authentication endpoints to complete audit coverage",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/routes/cursos.ts, import auditLog:\nimport { auditLog } from '../middleware/audit.middleware';\n\nApply middleware AFTER verifyJWT:\n- POST /cursos → auditLog('CREAR_CURSO', 'cursos')\n- PATCH /cursos/:id → auditLog('ACTUALIZAR_CURSO', 'cursos')\n- DELETE /cursos/:id → auditLog('ELIMINAR_CURSO', 'cursos')\n\nIn backend/src/routes/auth.ts, auth.ts doesn't have verifyJWT on /login (it's the login endpoint), so audit logging here would need a different approach. For now, skip auth.ts since the user can't be authenticated during login. If needed later, add a post-login audit entry manually in the login handler after successful authentication using prisma.auditoriaAdmin.create directly.\n\nRoute signatures should be:\nrouter.post('/', verifyJWT, auditLog('CREAR_CURSO', 'cursos'), async (req, res) => {...}\nrouter.patch('/:id', verifyJWT, auditLog('ACTUALIZAR_CURSO', 'cursos'), async (req, res) => {...}\nrouter.delete('/:id', verifyJWT, auditLog('ELIMINAR_CURSO', 'cursos'), async (req, res) => {...}",
+            "status": "pending",
+            "testStrategy": "Create a curso via POST /api/cursos, update via PATCH, soft-delete via DELETE. Query AuditoriaAdmin: SELECT * FROM AuditoriaAdmin WHERE recurso='cursos' ORDER BY creadoEn DESC LIMIT 3. Verify 3 records exist with correct acciones (CREAR_CURSO, ACTUALIZAR_CURSO, ELIMINAR_CURSO), all have same adminId, IP populated, detalle contains request body JSON. Test with large JSON body (>5KB) to verify TEXT column handles it",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-14T03:05:44.677Z"
+      },
+      {
+        "id": "26",
+        "title": "Change Railway pre-deploy command to prisma migrate deploy",
+        "description": "Update Railway deployment configuration to use safe migration command instead of db push",
+        "details": "In Railway dashboard → backend service → Settings → Deploy → Pre-deploy command: change from 'npx prisma db push' to 'npx prisma migrate deploy'. Document in backend/README.md or root README.md the reason: 'prisma migrate deploy' applies committed migrations without schema drift, safer for production. 'db push' bypasses migration history and can cause data loss. Add note that all schema changes must go through 'prisma migrate dev' locally first, then commit migration files.",
+        "testStrategy": "Trigger Railway deploy, check build logs to confirm 'prisma migrate deploy' runs. Verify existing migrations apply successfully. Test that new migration created locally with 'migrate dev' deploys correctly on next push.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Configure Cloudflare 301 redirect from apex to www",
+        "description": "Set up redirect rule in Cloudflare to force www subdomain for consistency",
+        "details": "In Cloudflare dashboard → Rules → Redirect Rules → Create rule. Name: 'Apex to WWW'. If: Hostname equals 'mea.edu.gt', Then: Dynamic redirect with Expression 'concat(\"https://www.mea.edu.gt\", http.request.uri.path)' and Status code 301 Permanent. Verify DNS: A/AAAA record for @ (apex) points to Vercel IPs with Cloudflare proxy (orange cloud) enabled. Test both mea.edu.gt and www.mea.edu.gt resolve and redirect properly.",
+        "testStrategy": "Use curl -I http://mea.edu.gt to verify 301 redirect to https://www.mea.edu.gt. Test with and without paths (/cursos, /admin). Verify SSL works on both. Check Vercel domain settings show both domains.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "28",
+        "title": "Create Prisma models for CRM Phase 1: Alumno, Edicion, Inscripcion, Pago, CuotaPago, CRMEtapa",
+        "description": "Add all core CRM database models with proper relations, soft delete, and decimal precision for money fields",
+        "details": "Add to backend/prisma/schema.prisma: Alumno (id, carnet unique auto-generated MEA-YYYY-####, nombre, apellido, email unique, whatsapp?, fechaNacimiento?, pais default 'GT', activo default true, creadoEn, password?, primerLogin default true, relations: inscripciones, certificados), Edicion (id, cursoId FK, nombre, fechaInicio, fechaFin, precio DECIMAL(10,2), precioUSD DECIMAL(10,2)?, cupo default 20, activo default true, instructor?, inscripciones relation), Inscripcion (id, alumnoId FK, edicionId FK, estado default 'ACTIVA' enum, creadoEn, pagos relation, certificado relation), Pago (id, inscripcionId FK, monto DECIMAL(10,2), montoUSD DECIMAL(10,2)?, moneda default 'GTQ', metodo enum, estado default 'PENDIENTE' enum, referencia?, creadoEn, cuotas relation), CuotaPago (id, pagoId FK, numeroCuota Int, monto DECIMAL(10,2), fechaVence DateTime, estado default 'PENDIENTE' enum, pagadoEn?). CRMEtapa (id, nombre, orden Int, color default '#00b4d8'). Extend Lead model: add etapaId Int? FK, valorEstimado DECIMAL(10,2)?, fechaCierreEstimada DateTime?, notasCRM String? @db.Text, asignadoAdminId Int?. Run npx prisma migrate dev --name fase1-crm-models.",
+        "testStrategy": "Run migration successfully. Create seed script to insert 6 CRMEtapa records (Nuevo #3B82F6, Contactado #F59E0B, Interesado #8B5CF6, Propuesta #EC4899, Negociación #F97316, Cerrado #10B981). Use Prisma Studio to verify all models and relations work.",
+        "priority": "high",
+        "dependencies": [
+          "25"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create enums for CRM status and payment fields in Prisma schema",
+            "description": "Add all required enum types for InscripcionEstado, PagoEstado, MetodoPago, and Moneda to support the CRM models with proper type safety",
+            "dependencies": [],
+            "details": "Add to backend/prisma/schema.prisma after existing models:\n\nenum InscripcionEstado {\n  ACTIVA\n  COMPLETADA\n  CANCELADA\n  SUSPENDIDA\n}\n\nenum PagoEstado {\n  PENDIENTE\n  COMPLETADO\n  RECHAZADO\n  REEMBOLSADO\n}\n\nenum MetodoPago {\n  EFECTIVO\n  TRANSFERENCIA\n  TARJETA\n  DEPOSITO\n  OTRO\n}\n\nenum Moneda {\n  GTQ\n  USD\n}\n\nThese enums will provide type safety and ensure consistent status values across the application. Follow Prisma convention of UPPER_CASE for enum values.",
+            "status": "pending",
+            "testStrategy": "Run npx prisma format to validate syntax. Check that enums are properly defined without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create CRMEtapa, Alumno, and extend Lead models in Prisma schema",
+            "description": "Add CRMEtapa model for pipeline stages, complete Alumno model with auto-generated carnet, and extend existing Lead model with CRM fields",
+            "dependencies": [
+              1
+            ],
+            "details": "Add to backend/prisma/schema.prisma:\n\nmodel CRMEtapa {\n  id     Int    @id @default(autoincrement())\n  nombre String\n  orden  Int\n  color  String @default(\"#00b4d8\")\n  leads  Lead[]\n}\n\nmodel Alumno {\n  id               Int            @id @default(autoincrement())\n  carnet           String         @unique\n  nombre           String\n  apellido         String\n  email            String         @unique\n  whatsapp         String?\n  fechaNacimiento  DateTime?\n  pais             String         @default(\"GT\")\n  activo           Boolean        @default(true)\n  password         String?\n  primerLogin      Boolean        @default(true)\n  creadoEn         DateTime       @default(now())\n  inscripciones    Inscripcion[]\n  certificados     Certificado[]\n}\n\nExtend existing Lead model by adding these fields:\n  etapaId              Int?\n  etapa                CRMEtapa?    @relation(fields: [etapaId], references: [id])\n  valorEstimado        Decimal?     @db.Decimal(10, 2)\n  fechaCierreEstimada  DateTime?\n  notasCRM             String?      @db.Text\n  asignadoAdminId      Int?\n  asignadoAdmin        Admin?       @relation(fields: [asignadoAdminId], references: [id])\n\nNote: carnet generation logic (MEA-YYYY-####) will be handled in application code, not in database. Also add Admin relation array: leads Lead[] to Admin model.",
+            "status": "pending",
+            "testStrategy": "Run npx prisma format. Verify all relations are properly defined and no syntax errors exist. Check that Lead model extensions don't conflict with existing fields.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create Edicion, Inscripcion, and Certificado models with proper relations",
+            "description": "Add Edicion model linked to Curso, Inscripcion linking Alumno and Edicion, and Certificado model for course completion certificates",
+            "dependencies": [
+              2
+            ],
+            "details": "Add to backend/prisma/schema.prisma:\n\nmodel Edicion {\n  id            Int            @id @default(autoincrement())\n  cursoId       Int\n  curso         Curso          @relation(fields: [cursoId], references: [id])\n  nombre        String\n  fechaInicio   DateTime\n  fechaFin      DateTime\n  precio        Decimal        @db.Decimal(10, 2)\n  precioUSD     Decimal?       @db.Decimal(10, 2)\n  cupo          Int            @default(20)\n  activo        Boolean        @default(true)\n  instructor    String?\n  inscripciones Inscripcion[]\n}\n\nmodel Inscripcion {\n  id         Int               @id @default(autoincrement())\n  alumnoId   Int\n  alumno     Alumno            @relation(fields: [alumnoId], references: [id])\n  edicionId  Int\n  edicion    Edicion           @relation(fields: [edicionId], references: [id])\n  estado     InscripcionEstado @default(ACTIVA)\n  creadoEn   DateTime          @default(now())\n  pagos      Pago[]\n  certificado Certificado?\n}\n\nmodel Certificado {\n  id            Int          @id @default(autoincrement())\n  inscripcionId Int          @unique\n  inscripcion   Inscripcion  @relation(fields: [inscripcionId], references: [id])\n  alumnoId      Int\n  alumno        Alumno       @relation(fields: [alumnoId], references: [id])\n  codigo        String       @unique\n  fechaEmision  DateTime     @default(now())\n  revocado      Boolean      @default(false)\n}\n\nAlso extend Curso model with: ediciones Edicion[]",
+            "status": "pending",
+            "testStrategy": "Run npx prisma format. Verify cascade relations are correct. Check that Inscripcion properly links Alumno and Edicion, and Certificado has proper unique constraints.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create Pago and CuotaPago models with payment tracking and installments",
+            "description": "Add payment tracking models supporting multiple currencies, payment methods, and installment plans with proper financial precision",
+            "dependencies": [
+              3
+            ],
+            "details": "Add to backend/prisma/schema.prisma:\n\nmodel Pago {\n  id             Int          @id @default(autoincrement())\n  inscripcionId  Int\n  inscripcion    Inscripcion  @relation(fields: [inscripcionId], references: [id])\n  monto          Decimal      @db.Decimal(10, 2)\n  montoUSD       Decimal?     @db.Decimal(10, 2)\n  moneda         Moneda       @default(GTQ)\n  metodo         MetodoPago\n  estado         PagoEstado   @default(PENDIENTE)\n  referencia     String?\n  creadoEn       DateTime     @default(now())\n  cuotas         CuotaPago[]\n}\n\nmodel CuotaPago {\n  id           Int         @id @default(autoincrement())\n  pagoId       Int\n  pago         Pago        @relation(fields: [pagoId], references: [id])\n  numeroCuota  Int\n  monto        Decimal     @db.Decimal(10, 2)\n  fechaVence   DateTime\n  estado       PagoEstado  @default(PENDIENTE)\n  pagadoEn     DateTime?\n}\n\nUse DECIMAL(10, 2) for all monetary fields to ensure precision. This supports amounts up to 99,999,999.99 in any currency. The CuotaPago model enables payment plans with multiple installments tracked independently.",
+            "status": "pending",
+            "testStrategy": "Run npx prisma format. Verify decimal precision is correctly set. Check that payment relations cascade properly from Inscripcion -> Pago -> CuotaPago.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Run Prisma migration and create seed script for CRMEtapa default stages",
+            "description": "Generate and apply database migration, then create seed script to populate 6 default CRM pipeline stages with proper colors and ordering",
+            "dependencies": [
+              4
+            ],
+            "details": "1. Run migration: npx prisma migrate dev --name fase1-crm-models\n\n2. Create backend/src/scripts/seed-crm-etapas.ts:\n\nimport prisma from '../lib/prisma';\n\nasync function main() {\n  const etapas = [\n    { nombre: 'Nuevo', orden: 1, color: '#3B82F6' },\n    { nombre: 'Contactado', orden: 2, color: '#F59E0B' },\n    { nombre: 'Interesado', orden: 3, color: '#8B5CF6' },\n    { nombre: 'Propuesta', orden: 4, color: '#EC4899' },\n    { nombre: 'Negociación', orden: 5, color: '#F97316' },\n    { nombre: 'Cerrado', orden: 6, color: '#10B981' }\n  ];\n\n  for (const etapa of etapas) {\n    await prisma.cRMEtapa.upsert({\n      where: { orden: etapa.orden },\n      create: etapa,\n      update: etapa\n    });\n  }\n\n  console.log('CRM Etapas seeded successfully');\n}\n\nmain()\n  .catch(console.error)\n  .finally(() => prisma.$disconnect());\n\n3. Add to package.json scripts: \"seed:crm\": \"ts-node src/scripts/seed-crm-etapas.ts\"\n\n4. Run: npm run seed:crm",
+            "status": "pending",
+            "testStrategy": "Verify migration runs without errors and creates all tables. Run seed script and check database with Prisma Studio: npx prisma studio. Verify 6 CRMEtapa records exist with correct colors. Test creating a Lead with etapaId reference. Test creating full flow: Alumno -> Inscripcion -> Pago -> CuotaPago to verify all relations work.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "29",
+        "title": "Implement /api/alumnos CRUD routes with carnet auto-generation",
+        "description": "Create Express router for alumnos with pagination, search, and automatic MEA-YYYY-#### carnet generation",
+        "details": "Install zod: npm install zod in backend. Create backend/src/routes/alumnos.ts with Express Router. All routes use verifyJWT middleware. GET /api/alumnos: query params page, limit, search (nombre/email/carnet LIKE), activo filter. Return paginated list with _count.inscripciones. GET /api/alumnos/:id: include inscripciones (nested: edicion, pagos), last 5 conversaciones. POST /api/alumnos: Zod schema validates {nombre, apellido, email, whatsapp?, pais?, fechaNacimiento?}. Generate carnet: const year=new Date().getFullYear(); const count=await prisma.alumno.count({where:{carnet:{startsWith:`MEA-${year}-`}}}}); const carnet=`MEA-${year}-${String(count+1).padStart(4,'0')}`; Hash random temp password with bcrypt. PATCH /api/alumnos/:id: update allowed fields (not carnet). DELETE: soft-delete (activo=false). Apply auditLog middleware to POST/PATCH/DELETE. Mount in src/index.ts: app.use('/api/alumnos', alumnosRouter).",
+        "testStrategy": "Create alumnos via POST, verify carnet format MEA-2026-0001, 0002 etc. Test pagination and search filters. Verify soft-delete doesn't remove from DB. Test include relations return correct nested data.",
+        "priority": "high",
+        "dependencies": [
+          "28"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install zod validation library in backend",
+            "description": "Add zod npm package to backend project for runtime type validation and schema definitions",
+            "dependencies": [],
+            "details": "Navigate to /Users/guidoreyes/Desktop/proyecto/backend and run 'npm install zod' to add the zod validation library. This will be used for validating request body schemas in the alumnos routes, particularly for POST and PATCH operations. Zod provides runtime type checking and works well with TypeScript inference. Verify installation by checking package.json includes zod in dependencies.",
+            "status": "pending",
+            "testStrategy": "Check backend/package.json contains zod in dependencies. Run npm list zod to verify successful installation without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create alumnos router file with basic Express Router setup",
+            "description": "Create backend/src/routes/alumnos.ts with Express Router import and verifyJWT middleware configuration following existing route patterns",
+            "dependencies": [
+              1
+            ],
+            "details": "Create new file at /Users/guidoreyes/Desktop/proyecto/backend/src/routes/alumnos.ts. Import Router, Request, Response from express. Import prisma from '../lib/prisma'. Import verifyJWT from '../middleware/auth.middleware'. Import z from 'zod'. Initialize Express Router with const router = Router(). Export default router at end of file. Follow same patterns as backend/src/routes/cursos.ts:1-6 and backend/src/routes/leads.ts:1-5 for consistent structure.",
+            "status": "pending",
+            "testStrategy": "Verify file exists at backend/src/routes/alumnos.ts. Check all imports are present and correctly typed. File should compile without TypeScript errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement GET /api/alumnos with pagination, search, and activo filter",
+            "description": "Create paginated list endpoint with query params for page, limit, search (LIKE on nombre/email/carnet), activo filter, and include _count.inscripciones",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/routes/alumnos.ts, implement router.get('/', verifyJWT, async (req, res) => {}). Parse query params: page (default 1, Math.max 1), limit (default 10, Math.min 100), search (string), activo (boolean parse). Build Prisma where clause: if activo provided, add to where. If search provided, use OR array with nombre, apellido, email, carnet containing search (case insensitive with mode: 'insensitive'). Use Promise.all to fetch alumnos with skip/take pagination, orderBy creadoEn desc, include _count.inscripciones, and total count. Return {data: alumnos, meta: {total, page, limit}} following pattern in backend/src/routes/leads.ts:9-28. Handle errors with try-catch.",
+            "status": "pending",
+            "testStrategy": "Test GET /api/alumnos returns paginated empty array initially. Test search param filters correctly. Test activo=true filters. Verify _count.inscripciones is included. Test pagination with page=2.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement GET /api/alumnos/:id with inscripciones and last 5 conversaciones",
+            "description": "Create detail endpoint that returns single alumno with nested inscripciones (including edicion and pagos) and last 5 conversaciones ordered by date",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/routes/alumnos.ts, implement router.get('/:id', verifyJWT, async (req, res) => {}). Parse id with parseInt(req.params.id), validate with isNaN check returning 400 'ID inválido' if invalid (follow backend/src/routes/leads.ts:32-36 pattern). Use prisma.alumno.findUnique with include: {inscripciones: {include: {edicion: true, pagos: true}}, conversaciones: {orderBy: {creadoEn: 'desc'}, take: 5}}. If not found, return 404 {error: 'Alumno no encontrado'}. Otherwise return alumno object. Wrap in try-catch for error handling.",
+            "status": "pending",
+            "testStrategy": "Test GET /api/alumnos/999 returns 404 for non-existent alumno. Test with valid ID returns alumno with nested inscripciones including edicion and pagos. Verify only last 5 conversaciones are returned.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement POST, PATCH, DELETE routes with carnet generation and mount router in index.ts",
+            "description": "Create POST endpoint with zod validation and MEA-YYYY-#### carnet auto-generation, PATCH for updates, soft-delete DELETE, and mount router in main app",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "In backend/src/routes/alumnos.ts, define Zod schema: const alumnoSchema = z.object({nombre: z.string().min(1), apellido: z.string().min(1), email: z.string().email(), whatsapp: z.string().optional(), pais: z.string().optional(), fechaNacimiento: z.string().datetime().optional()}). POST /api/alumnos with verifyJWT: validate body with alumnoSchema.parse() in try-catch returning 400 on validation error. Generate carnet: const year = new Date().getFullYear(); const count = await prisma.alumno.count({where: {carnet: {startsWith: `MEA-${year}-`}}}); const carnet = `MEA-${year}-${String(count + 1).padStart(4, '0')}`; Import bcrypt, generate temp password, hash it. Create alumno with prisma.alumno.create(). PATCH /:id: similar validation but partial schema, update allowed fields excluding carnet. DELETE /:id: soft delete with prisma.alumno.update({where: {id}, data: {activo: false}}), return 204 (follow backend/src/routes/cursos.ts:81-91). In backend/src/index.ts, add after line 42: app.use('/api/alumnos', alumnosRouter); with proper import at top.",
+            "status": "pending",
+            "testStrategy": "Create alumno via POST, verify carnet format MEA-2026-0001. Create second alumno, verify carnet MEA-2026-0002. Test PATCH updates fields but not carnet. Test DELETE soft-deletes (activo=false). Verify all routes require JWT token.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "30",
+        "title": "Implement /api/ediciones routes with inscripcion creation endpoint",
+        "description": "Create ediciones CRUD and POST /api/ediciones/:id/inscribir endpoint that creates Inscripcion + Pago with optional cuotas",
+        "details": "Create backend/src/routes/ediciones.ts. GET /api/ediciones: filter cursoId, activo. Include curso, _count.inscripciones. GET /api/ediciones/:id: include inscripciones (nested: alumno, pagos with cuotas). POST /api/ediciones: Zod validate {cursoId, nombre, fechaInicio, fechaFin, precio, precioUSD?, cupo, instructor?}. Verify curso exists. PATCH /api/ediciones/:id: update fields. DELETE: soft-delete. POST /api/ediciones/:id/inscribir: Zod validate {alumnoId, monto, moneda, metodo, numeroCuotas?}. Use Prisma transaction: create Inscripcion, create Pago, if numeroCuotas>1 create CuotaPago records (distribute monto/numeroCuotas evenly, fechaVence = today + N months using date-fns or native Date). Apply auditLog to all mutating routes. Mount in index.ts.",
+        "testStrategy": "Create edicion, inscribe alumno with numeroCuotas=3, verify 3 CuotaPago records created with correct monto split and fechaVence monthly intervals. Test transaction rollback if alumno doesn't exist.",
+        "priority": "high",
+        "dependencies": [
+          "28",
+          "29"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ediciones router file with basic CRUD structure and Zod schemas",
+            "description": "Set up backend/src/routes/ediciones.ts with Express router, import dependencies (Prisma, Zod, auth middleware), and define Zod validation schemas for edicion creation and update",
+            "dependencies": [],
+            "details": "Create file backend/src/routes/ediciones.ts. Import Router, Request, Response from express, import prisma from '../lib/prisma', import verifyJWT from '../middleware/auth.middleware', import { z } from 'zod'. Define Zod schemas: createEdicionSchema with z.object({cursoId: z.number(), nombre: z.string().min(1), fechaInicio: z.string().or(z.date()), fechaFin: z.string().or(z.date()), precio: z.number().positive(), precioUSD: z.number().positive().optional(), cupo: z.number().int().positive(), instructor: z.string().optional()}), updateEdicionSchema as createEdicionSchema.partial(). Create router instance with const router = Router(). Export router as default. This establishes the foundation following the patterns used in cursos.ts and leads.ts.",
+            "status": "pending",
+            "testStrategy": "Verify file exists at backend/src/routes/ediciones.ts. Check all imports resolve without TypeScript errors. Run tsc to verify Zod schemas are properly typed. Verify router is exported as default export.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement GET /api/ediciones list and GET /api/ediciones/:id detail endpoints",
+            "description": "Create paginated list endpoint with filters (cursoId, activo) that includes curso relation and inscription count, plus detail endpoint with full nested relations",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/routes/ediciones.ts, implement router.get('/', async (req, res) => {...}). Extract query params: page (default 1, max 100), limit (default 20), cursoId (optional filter as number), activo (optional boolean filter). Build Prisma where clause dynamically based on filters. Query prisma.edicion.findMany with where, pagination (skip, take), orderBy: {fechaInicio: 'desc'}, include: {curso: true, _count: {select: {inscripciones: true}}}. Return json with {data: ediciones, meta: {total, page, limit}} similar to leads.ts:9-28. Implement router.get('/:id', async (req, res) => {...}). Parse id from params, validate with isNaN check. Query prisma.edicion.findUnique with include: {inscripciones: {include: {alumno: true, pagos: {include: {cuotas: true}}}}}. Return 404 if not found, else return json. Follow error handling patterns from existing routes.",
+            "status": "pending",
+            "testStrategy": "Test GET /api/ediciones returns empty array initially. Test with page=2&limit=5 query params work correctly. Test filter by cursoId returns only matching ediciones. Test filter by activo=false. Test GET /api/ediciones/:id with non-existent ID returns 404. Test with valid ID returns full nested data including curso, inscripciones with alumnos, pagos with cuotas. Verify _count.inscripciones appears in list response.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement POST /api/ediciones creation and PATCH /api/ediciones/:id update endpoints with curso validation",
+            "description": "Create protected endpoints for creating and updating ediciones with Zod validation, curso existence check, and proper error handling",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In backend/src/routes/ediciones.ts, implement router.post('/', verifyJWT, async (req, res) => {...}). Validate req.body with createEdicionSchema.safeParse(), return 400 with validation errors if invalid. Extract validated data. Query prisma.curso.findUnique({where: {id: cursoId}}) to verify curso exists, return 404 {error: 'Curso no encontrado'} if not found. Create edicion with prisma.edicion.create({data: validatedData}). Return 201 with created edicion. Implement router.patch('/:id', verifyJWT, async (req, res) => {...}). Parse and validate id from params. Validate req.body with updateEdicionSchema.safeParse(). If cursoId in update, verify curso exists. Update with prisma.edicion.update({where: {id}, data: validatedData}). Handle Prisma P2025 error (record not found) and return 404. Return updated edicion json. Follow patterns from cursos.ts:34-79.",
+            "status": "pending",
+            "testStrategy": "Test POST /api/ediciones without auth returns 401. Test with valid auth and missing required fields returns 400 with Zod error details. Test with non-existent cursoId returns 404 'Curso no encontrado'. Test with valid data creates edicion and returns 201. Test PATCH with invalid ID returns 404. Test PATCH with invalid cursoId returns 404. Test successful update returns updated data. Verify activo field can be toggled.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement DELETE soft-delete endpoint and POST inscripcion creation with Prisma transaction",
+            "description": "Create soft-delete endpoint and complex inscripcion creation endpoint that handles Inscripcion + Pago + optional CuotaPago records in a single atomic transaction",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Implement router.delete('/:id', verifyJWT, async (req, res) => {...}). Parse id, update prisma.edicion.update({where: {id}, data: {activo: false}}), return 204. Define inscribirSchema = z.object({alumnoId: z.number(), monto: z.number().positive(), moneda: z.enum(['ARS', 'USD']), metodo: z.enum(['efectivo', 'transferencia', 'tarjeta']), numeroCuotas: z.number().int().min(1).optional()}). Implement router.post('/:id/inscribir', verifyJWT, async (req, res) => {...}). Parse edicionId from params. Validate body with inscribirSchema. Use prisma.$transaction(async (tx) => {...}) following pattern from persistence.ts:12-38. Inside transaction: (1) Verify edicion exists with tx.edicion.findUnique, throw if not found. (2) Verify alumno exists with tx.alumno.findUnique, throw if not found. (3) Create inscripcion: tx.inscripcion.create({data: {alumnoId, edicionId, estado: 'activo'}}). (4) Create pago: tx.pago.create({data: {inscripcionId: inscripcion.id, monto, moneda, metodo, estado: 'pendiente'}}). (5) If numeroCuotas > 1, calculate montoPorCuota = monto / numeroCuotas, create array of cuotas with tx.cuotaPago.createMany({data: Array.from({length: numeroCuotas}, (_, i) => ({pagoId: pago.id, numero: i+1, monto: montoPorCuota, fechaVence: new Date(new Date().setMonth(new Date().getMonth() + i)), estado: 'pendiente'}))}). Return created inscripcion with includes. Wrap in try-catch, return 400 on transaction error.",
+            "status": "pending",
+            "testStrategy": "Test DELETE /api/ediciones/:id sets activo=false without removing record. Test POST /api/ediciones/:id/inscribir without auth returns 401. Test with non-existent alumnoId causes transaction rollback and returns error. Test with numeroCuotas=1 creates only Inscripcion + Pago, no CuotaPago. Test with numeroCuotas=3 creates 3 CuotaPago records with monto split evenly (e.g., 3000 total = 1000 each), fechaVence at monthly intervals (month 0, month 1, month 2), all with estado='pendiente'. Verify transaction atomicity: if any step fails, nothing is committed. Test response includes created inscripcion with nested pago and cuotas.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Mount ediciones router in main app and add audit logging to mutating endpoints",
+            "description": "Integrate the ediciones router into the Express app index.ts and implement audit logging for all POST, PATCH, DELETE operations following existing patterns",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Update backend/src/index.ts to import edicionesRouter from './routes/ediciones' and mount with app.use('/api/ediciones', edicionesRouter). Verify order: mount after auth routes but before catch-all 404 handler. In ediciones.ts, create auditLog helper function following task details pattern (if auditLog implementation doesn't exist yet, stub it with console.log for now): async function auditLog(action: string, adminId: number, resourceType: string, resourceId: number, details?: any) { console.log(`[AUDIT] ${action} ${resourceType}:${resourceId} by admin:${adminId}`, details); }. Add auditLog calls to POST /api/ediciones after creation: await auditLog('CREATE', req.admin!.adminId, 'edicion', edicion.id), to PATCH after update: await auditLog('UPDATE', req.admin!.adminId, 'edicion', id), to DELETE after soft-delete: await auditLog('DELETE', req.admin!.adminId, 'edicion', id), to POST inscribir after transaction: await auditLog('INSCRIBIR', req.admin!.adminId, 'inscripcion', inscripcion.id, {alumnoId, edicionId, numeroCuotas}). Ensure req.admin is typed correctly from auth middleware (AdminPayload interface from auth.middleware.ts:4-8).",
+            "status": "pending",
+            "testStrategy": "Restart backend server. Test GET http://localhost:4000/api/ediciones returns 200 (verifies router is mounted). Test all CRUD operations end-to-end: create edicion, list ediciones, get detail, update, inscribe alumno, soft-delete. Verify audit logs appear in console for all mutating operations (POST, PATCH, DELETE, inscribir). Check logs include correct admin ID from JWT token. Test Railway deployment: push to main branch, verify deployment succeeds, test production API endpoints work correctly. Verify TypeScript compilation succeeds with no errors.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "31",
+        "title": "Implement /api/inscripciones routes including CSV import",
+        "description": "Create inscripciones list/update routes and bulk CSV import endpoint with error handling",
+        "details": "Create backend/src/routes/inscripciones.ts. Install multer: npm install multer @types/multer in backend. GET /api/inscripciones: paginated list with filters (estado, alumnoId, edicionId). Include alumno, edicion. GET /api/inscripciones/:id: full detail with pagos and cuotas. PATCH /api/inscripciones/:id: change estado (validate enum). POST /api/inscripciones/importar-csv: use multer.single('file'), parse CSV with headers: carnet_o_email, edicion_id, monto, metodo. For each row: find alumno by carnet OR email, verify edicion exists, create inscripcion + pago in transaction. Collect {exitosos: number, errores: Array<{row, error}>}. Return JSON summary. Validate CSV structure with Zod. Apply auditLog.",
+        "testStrategy": "Upload CSV with 10 rows (5 valid, 5 invalid alumno refs), verify response shows 5 exitosos, 5 errores with details. Check DB has 5 new inscripciones. Test malformed CSV returns 400.",
+        "priority": "medium",
+        "dependencies": [
+          "30"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "32",
+        "title": "Implement /api/pagos and /api/cuotas routes with abono tracking",
+        "description": "Create payment management routes including partial payment (abono) registration and cuota consolidation",
+        "details": "Create backend/src/routes/pagos.ts. GET /api/pagos: paginated list with filters (estado, moneda, metodo, fechaDesde, fechaHasta as ISO strings). Include inscripcion. GET /api/pagos/:id: include abonos array (will be added later in F2-1) and cuotas. POST /api/pagos/:id/abonos: Zod validate {monto, nota?}. Create Abono record (note: Abono model added in Phase 2, for now just prepare structure). Calculate sum of all abonos for pago, if sum >= pago.monto, update pago.estado='PAGADO'. PATCH /api/pagos/:id: update estado, referencia. Create backend/src/routes/cuotas.ts. GET /api/cuotas/consolidado: query params edicionId?, vencidaSolo?. Group CuotaPago by edicionId where estado PENDIENTE or VENCIDO. Return array {edicionId, edicion.nombre, totalCuotas, montoPendiente}. GET /api/cuotas/pago/:pagoId: list cuotas. PATCH /api/cuotas/:id: set estado=PAGADO, pagadoEn=now(). Mount both routers in index.ts.",
+        "testStrategy": "Create pago with 3 cuotas, register partial abono, verify pago still PENDIENTE. Register final abono crossing monto threshold, verify pago becomes PAGADO. Test consolidado returns grouped stats. Mark cuota PAGADO, verify pagadoEn timestamp set.",
+        "priority": "high",
+        "dependencies": [
+          "28"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "33",
+        "title": "Implement /api/crm Kanban pipeline routes",
+        "description": "Create CRM stage management and lead stage transition endpoints for Kanban board",
+        "details": "Create backend/src/routes/crm.ts. GET /api/crm/pipeline: return all CRMEtapa ordered by orden ASC, include leads for each stage. Lead includes: id, nombre, telefono, valorEstimado, asignadoAdminId, asignadoAdmin relation (select: id, nombre). Structure: [{etapa: CRMEtapa, leads: Lead[]}]. GET /api/crm/etapas: simple list of stages. PATCH /api/crm/leads/:id/etapa: Zod validate {etapaId}. Update lead.etapaId. Register auditLog with detalle showing old→new stage. PATCH /api/crm/leads/:id: Zod validate {valorEstimado?, fechaCierreEstimada?, notasCRM?, asignadoAdminId?}. Update fields. GET /api/crm/stats: return per-stage stats: {etapaId, nombre, color, countLeads, sumValorEstimado}. Use aggregate queries. Mount in index.ts.",
+        "testStrategy": "Seed leads in different stages. Call GET /api/crm/pipeline, verify grouped by stage. Move lead between stages via PATCH, verify etapaId updated and audit log created. Check stats endpoint returns correct sums.",
+        "priority": "high",
+        "dependencies": [
+          "28"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "34",
+        "title": "Create notification service with WhatsApp and Microsoft Graph email",
+        "description": "Build notification utilities for admin alerts on new leads via WhatsApp and transactional emails via MS Graph API",
+        "details": "Create backend/src/services/notifications.ts. Function notifyAdminNewLead(lead): call sendWhatsAppMessage(process.env.ADMIN_WA_NUMBER, `🆕 Nuevo lead\\n📱 +${lead.telefono}\\n💬 ${lead.interes || 'Sin mensaje'}`). Function sendTransactionalEmail(to, subject, html): implement OAuth2 client_credentials flow with MS Graph. POST to https://login.microsoftonline.com/{MS_TENANT_ID}/oauth2/v2.0/token with client_id, client_secret, scope=https://graph.microsoft.com/.default. Cache token in memory (expires 3600s). POST to https://graph.microsoft.com/v1.0/users/{ADMIN_EMAIL}/sendMail with body: {message:{subject, body:{contentType:'HTML',content:html}, toRecipients:[{emailAddress:{address:to}}]}}. Add env vars: ADMIN_WA_NUMBER, ADMIN_EMAIL, MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET. Update backend/src/routes/whatsapp.webhook.ts: after guardarMensajes(), check if lead just created (track this with boolean or check conversaciones.length === 1), call notifyAdminNewLead(lead) without await (fire and forget).",
+        "testStrategy": "Create new lead via WhatsApp webhook, verify admin receives WhatsApp notification. Test sendTransactionalEmail separately with test email, verify email arrives (check spam). Mock MS Graph in tests to avoid real API calls.",
+        "priority": "medium",
+        "dependencies": [
+          "24"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create notifications service with WhatsApp admin alert function",
+            "description": "Create backend/src/services/notifications.ts with notifyAdminNewLead function that sends formatted WhatsApp messages to admin",
+            "dependencies": [],
+            "details": "Create backend/src/services/notifications.ts file. Import sendWhatsAppMessage from '../lib/whatsapp-send'. Define Lead type with properties: telefono (string), interes (string | null). Export async function notifyAdminNewLead(lead: Lead): Promise<void>. Inside function: get adminNumber from process.env.ADMIN_WA_NUMBER, construct message template: `🆕 Nuevo lead\\n📱 +${lead.telefono}\\n💬 ${lead.interes || 'Sin mensaje'}`. Call sendWhatsAppMessage(adminNumber, message) but don't await (fire and forget). Wrap in try-catch to log errors without throwing. Follow existing code patterns from whatsapp-send.ts (error handling, logging format).",
+            "status": "pending",
+            "testStrategy": "Unit test: mock sendWhatsAppMessage, call notifyAdminNewLead with test lead data, verify sendWhatsAppMessage called with correct admin number and formatted message. Test both with and without interes field.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Microsoft Graph OAuth2 token management with in-memory caching",
+            "description": "Add MS Graph OAuth2 client_credentials flow with token caching to notifications.ts",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/services/notifications.ts, add interface MSGraphToken { access_token: string; expires_at: number }. Create module-level variable: let cachedToken: MSGraphToken | null = null. Export async function getMSGraphToken(): Promise<string>. Check if cachedToken exists and expires_at > Date.now(), return cached token if valid. Otherwise, fetch new token: POST to https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/token with body (URL-encoded): grant_type=client_credentials, client_id=MS_CLIENT_ID, client_secret=MS_CLIENT_SECRET, scope=https://graph.microsoft.com/.default. Parse response, cache token with expires_at = Date.now() + (expires_in * 1000) - 60000 (subtract 60s buffer). Return access_token. Add error handling for missing env vars and failed requests.",
+            "status": "pending",
+            "testStrategy": "Unit test: mock fetch, verify correct OAuth2 request format. Test token caching: call twice, verify fetch only called once. Test expiry: mock expired token, verify refetch. Mock MS Graph API response structure.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement sendTransactionalEmail function with MS Graph API",
+            "description": "Create sendTransactionalEmail function that uses MS Graph /sendMail endpoint with OAuth2 token",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/services/notifications.ts, export async function sendTransactionalEmail(to: string, subject: string, html: string): Promise<void>. Call getMSGraphToken() to get access token. Construct request body: { message: { subject, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: to }}], from: null }}. POST to https://graph.microsoft.com/v1.0/users/${process.env.ADMIN_EMAIL}/sendMail with headers: Authorization: 'Bearer ' + token, Content-Type: 'application/json'. Check response.ok, throw error if failed. Add console.log for success: '[Email] Sent to ${to} - ${subject}'. Handle errors with try-catch, log but don't throw (fire and forget pattern). Add env vars validation at function start.",
+            "status": "pending",
+            "testStrategy": "Integration test with real MS Graph (dev environment): send test email, verify arrives in inbox (check spam). Unit test: mock getMSGraphToken and fetch, verify correct API call structure. Test error handling for invalid recipients.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Integrate admin notification into WhatsApp webhook for new leads",
+            "description": "Update whatsapp.webhook.ts to call notifyAdminNewLead when a new lead is created",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/routes/whatsapp.webhook.ts, import notifyAdminNewLead from '../services/notifications'. In POST route after guardarMensajes() call (line 74), detect if this is a new lead: query conversaciones count before guardarMensajes or track if lead was just created. Add logic: after guardarMensajes succeeds, check if this was first conversation for lead. If yes, call notifyAdminNewLead({ telefono, interes: null }) without await (fire and forget). Wrap in try-catch to prevent notification failure from affecting webhook. Add environment variables to .env.example: ADMIN_WA_NUMBER, ADMIN_EMAIL, MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET. Update backend/.env.example with these new variables and descriptions.",
+            "status": "pending",
+            "testStrategy": "End-to-end test: send WhatsApp message from new phone number, verify guardarMensajes creates new lead, verify admin receives WhatsApp notification with correct format. Test that notification failure doesn't break webhook (mock sendWhatsAppMessage to throw error). Verify existing leads don't trigger notification.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "35",
+        "title": "Add CSV export endpoint to leads API",
+        "description": "Implement GET /api/leads/export/csv with proper escaping and audit logging",
+        "details": "In backend/src/routes/leads.ts, add GET /api/leads/export/csv route. Use verifyJWT. Accept same query params as GET /api/leads but no pagination (fetch all matching). Query leads with filters. Build CSV string: headers 'id,nombre,email,telefono,estado,interes,etapa,creadoEn'. For each lead, escape fields containing commas/quotes by wrapping in double quotes and escaping internal quotes. Use .map(lead => [lead.id, escapeCsv(lead.nombre), ...].join(',')).join('\\n'). Set headers: Content-Type: text/csv; charset=utf-8, Content-Disposition: attachment; filename=leads-YYYY-MM-DD.csv (use current date). Register auditLog with accion='EXPORT_CSV', recurso='leads'. Return CSV string.",
+        "testStrategy": "Export leads with special chars in nombre (commas, quotes), verify CSV parses correctly in Excel/Google Sheets. Verify audit log created. Test that query filters apply correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "25"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "36",
+        "title": "Add CSV export button to admin leads page",
+        "description": "Add UI button in frontend that triggers CSV download with active filters",
+        "details": "In app/admin/page.tsx, add a button next to the result count (around line 129-133). Import Download icon from lucide-react. Button text 'Exportar CSV', icon Download. onClick handler: construct URL /api/leads/export/csv with current query params (estadoFilter if set). Use window.open(url, '_blank') to trigger download. Include JWT token in URL as query param ?token=... (read from localStorage) OR better: use fetch() with Authorization header, convert response to blob, create object URL, trigger download with temporary <a> element. Second approach more secure.",
+        "testStrategy": "Filter leads by estado, click Export CSV, verify file downloads with correct filtered data. Test with no filters exports all. Verify filename has current date.",
+        "priority": "low",
+        "dependencies": [
+          "35"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "37",
+        "title": "Create /api/reportes endpoints for dashboard metrics",
+        "description": "Build reporting API for leads funnel, conversion rates, and time-to-close statistics",
+        "details": "Create backend/src/routes/reportes.ts. Install date-fns: npm install date-fns in backend. GET /api/reportes/leads: query param periodo (7d|30d|90d default 30d). Calculate: porEstado object {nuevo: count, contactado: count, ...}, porEtapa array [{etapaId, nombre, count, valorTotal}], evolucion array [{fecha: 'YYYY-MM-DD', total: count}] for last N days (use date-fns subDays, format), tasaConversion: (count leads estado=inscrito / total leads) * 100, tiempoPromedioCierre: avg days between creadoEn and when etapa reached 'Cerrado' (filter leads with etapa.nombre='Cerrado', calculate diff, average). Use Prisma aggregations and raw SQL if needed for complex date math. Mount in index.ts.",
+        "testStrategy": "Seed leads across 30 days with various estados and etapas. Call /api/reportes/leads?periodo=30d, verify evolucion has 30 entries. Check tasaConversion calculation. Verify tiempoPromedioCierre excludes leads not in Cerrado stage.",
+        "priority": "medium",
+        "dependencies": [
+          "28"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "38",
+        "title": "Install Recharts and create /admin/metricas dashboard page",
+        "description": "Build interactive metrics dashboard with KPIs, charts, and funnel visualization using Recharts",
+        "details": "Run npm install recharts in root project. Create app/admin/metricas/page.tsx as 'use client'. Fetch from /api/reportes/leads on mount. Display 4 KPI cards: Total leads, Tasa conversión %, Tiempo promedio cierre (días), Valor pipeline total (sum valorEstimado from all leads). Use recharts BarChart for leads por estado (X: estado, Y: count, colors from design system: blue, amber, emerald). Use LineChart for evolucion (X: fecha, Y: total, area under curve filled). Create funnel visual: 6 divs (one per stage) with width proportional to % of leads in that stage, background color from CRMEtapa.color. Add period selector: buttons 7d/30d/90d that refetch data. Import necessary recharts components: BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, Area, ResponsiveContainer. Style cards consistent with admin/page.tsx design.",
+        "testStrategy": "Navigate to /admin/metricas, verify charts render. Change period selector, verify data updates. Test responsive layout on mobile. Check colors match design system.",
+        "priority": "medium",
+        "dependencies": [
+          "37"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "39",
+        "title": "Add Métricas link to admin sidebar",
+        "description": "Update admin layout navigation to include link to metrics dashboard",
+        "details": "In app/admin/layout.tsx, add navigation link to /admin/metricas. Import BarChart2 icon from lucide-react. Add to sidebar nav array (if using array structure) or directly in JSX. Label: 'Métricas', icon: BarChart2, href: '/admin/metricas'. Ensure active state styling works (check current pathname matches /admin/metricas).",
+        "testStrategy": "Verify link appears in sidebar, click navigates to /admin/metricas, active state highlights correctly. Test mobile menu if collapsible sidebar exists.",
+        "priority": "low",
+        "dependencies": [
+          "38"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "40",
+        "title": "Create /admin/alumnos page with search and new alumno modal",
+        "description": "Build alumnos list page with table, search/filter, pagination, and creation modal",
+        "details": "Create app/admin/alumnos/page.tsx as 'use client'. Fetch /api/alumnos with pagination. Table columns: Carnet (mono font), Nombre (apellido + nombre), Email, WhatsApp, Inscripciones (_count), Registrado (date format). Add search input (debounced 300ms) that queries nombre/email/carnet. Add activo toggle filter. Skeleton loading (similar to leads page). Empty state with Users icon. Click row navigates to /admin/alumnos/[id]. Add 'Nuevo alumno' button (top right) opens modal. Modal has form fields: nombre, apellido, email, whatsapp (optional, validate +502 format). On submit, POST /api/alumnos, close modal, refresh list. Use shadcn dialog component if available, or custom modal. Add to lib/api.ts: getAlumnos(page, search?, activo?), createAlumno(data).",
+        "testStrategy": "Create alumno via modal, verify appears in table with generated carnet. Test search by carnet/email. Toggle activo filter. Verify pagination. Test validation (email format, required fields).",
+        "priority": "high",
+        "dependencies": [
+          "29"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "41",
+        "title": "Create /admin/alumnos/[id] detail page with tabs",
+        "description": "Build alumno detail view with inscripciones, pagos, and conversaciones tabs",
+        "details": "Create app/admin/alumnos/[id]/page.tsx. Fetch /api/alumnos/:id. Header: avatar with initials (first letter nombre + apellido), carnet badge, nombre completo, email, whatsapp. Use Radix Tabs (already installed). 3 tabs: 'Inscripciones', 'Pagos', 'Conversaciones'. Inscripciones tab: table with columns: Curso (edicion.nombre), Estado (badge), Monto, Fecha. Button 'Nueva inscripción' opens modal with edicion selector, monto input. Pagos tab: list all pagos from all inscripciones, columns: Curso, Estado (color badge), Monto GTQ/USD, Método, Fecha. Button 'Registrar abono' opens modal with pago selector, monto input. Conversaciones tab: list last 3 conversaciones with snippet, link to /admin/leads/[leadId] (join via telefono or create leadId relation in Alumno if needed, or show ConversacionWhatsApp.telefono). Loading skeletons, error states.",
+        "testStrategy": "Navigate to alumno detail, verify all tabs render correctly. Create nueva inscripcion, verify appears in tab. Register abono, verify pago updates. Test with alumno with no data (empty states).",
+        "priority": "high",
+        "dependencies": [
+          "40"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "42",
+        "title": "Create /admin/ediciones page with grouping by curso",
+        "description": "Build ediciones list page with curso grouping, filters, and creation modal",
+        "details": "Create app/admin/ediciones/page.tsx. Fetch /api/ediciones with include curso. Group ediciones by curso.id (use Map or Object.groupBy). Render sections: each curso as header, ediciones as table rows below. Columns: Nombre, Fechas (start - end formatted), Precio (GTQ with USD if available), Inscritos/Cupo (e.g., '12/20'), Estado (activo badge). Filter dropdown: select curso (populate from /api/cursos). Button 'Nueva edición' opens modal: select curso, inputs: nombre, fechaInicio (date), fechaFin, precio, precioUSD?, cupo, instructor?. POST /api/ediciones. Skeleton + empty state.",
+        "testStrategy": "Create edicion, verify appears under correct curso. Test curso filter. Verify precio displays both currencies. Check inscritos count matches. Test date formatting.",
+        "priority": "medium",
+        "dependencies": [
+          "30"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "43",
+        "title": "Install dnd-kit and create /admin/crm Kanban board",
+        "description": "Build drag-and-drop CRM pipeline board with stage columns and lead cards",
+        "details": "Run npm install @dnd-kit/core @dnd-kit/sortable. Create app/admin/crm/page.tsx. Fetch /api/crm/pipeline. Render 6 columns (one per CRMEtapa). Each column: header with etapa.nombre, background etapa.color (light tint), count of leads, sum of valorEstimado. Lead cards: nombre, telefono (masked last 4 digits), valorEstimado formatted Q#,###, días en etapa (calculate from audit log or creadoEn). Implement DndContext, SortableContext per column. onDragEnd: extract leadId and new etapaId, PATCH /api/crm/leads/:id/etapa, optimistically update local state. Click card opens drawer (shadcn Sheet or custom) on right side: full lead detail, form for notasCRM (textarea), asignadoAdminId (select), valorEstimado, fechaCierreEstimada inputs. Save updates with PATCH /api/crm/leads/:id. Button '+' in column header opens modal to assign existing lead to that stage (search by telefono/nombre).",
+        "testStrategy": "Drag lead between stages, verify PATCH request succeeds, card moves. Open drawer, edit notasCRM, save, verify persists. Test with many leads (20+ per column) for performance. Verify colors from CRMEtapa apply correctly.",
+        "priority": "high",
+        "dependencies": [
+          "33"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install dnd-kit dependencies",
+            "description": "Install @dnd-kit/core and @dnd-kit/sortable packages required for drag-and-drop functionality in the Kanban board",
+            "dependencies": [],
+            "details": "Run `npm install @dnd-kit/core @dnd-kit/sortable` in the project root. These packages provide the core drag-and-drop primitives and sortable list utilities needed for the Kanban board. Verify installation by checking package.json dependencies. The @dnd-kit library is modern, lightweight, and works well with React 19 unlike react-beautiful-dnd which has compatibility issues.",
+            "status": "pending",
+            "testStrategy": "Verify packages appear in package.json and node_modules. Run `npm list @dnd-kit/core @dnd-kit/sortable` to confirm versions are installed.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create API client methods for CRM pipeline",
+            "description": "Extend lib/api.ts with TypeScript interfaces and API methods for fetching pipeline data, updating lead stages, and managing lead details",
+            "dependencies": [
+              1
+            ],
+            "details": "Add TypeScript interfaces: CRMEtapa (id, nombre, orden, color), CRMLead (id, nombre, telefono, etapaId, valorEstimado, fechaCierreEstimada, notasCRM, asignadoAdminId, creadoEn, _count?), PipelineResponse (etapas: Array<CRMEtapa & {leads: CRMLead[]}>). Add api methods: getPipeline() => GET /api/crm/pipeline, patchLeadEtapa(leadId: number, etapaId: number) => PATCH /api/crm/leads/:id/etapa with body {etapaId}, patchCRMLead(leadId: number, data: {notasCRM?, asignadoAdminId?, valorEstimado?, fechaCierreEstimada?}) => PATCH /api/crm/leads/:id. Follow existing api.ts patterns using apiFetch helper.",
+            "status": "pending",
+            "testStrategy": "TypeScript compilation should succeed. Test API methods by temporarily calling them in a component and verifying network requests are formed correctly (can mock responses initially).",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Build Kanban board layout with column headers and statistics",
+            "description": "Create app/admin/crm/page.tsx with horizontal scrolling layout, render 6 stage columns with headers showing etapa name, color-coded backgrounds, lead count, and total estimated value",
+            "dependencies": [
+              2
+            ],
+            "details": "Create 'use client' component at app/admin/crm/page.tsx. Use useState for pipeline data and loading state. useEffect to fetch api.getPipeline() on mount. Render horizontal flex container (overflow-x-auto) with 6 columns (one per CRMEtapa, sorted by orden). Each column: min-width 320px, border-r, padding. Column header: display etapa.nombre, background with etapa.color at 10% opacity (use style={{backgroundColor: `${etapa.color}10`}}), show count of leads (etapa.leads.length), sum of valorEstimado (use reduce, format as Q#,### with Intl.NumberFormat). Add '+' button in header for future assign-lead modal. Use design system colors from existing admin pages: text-[#0A2540], bg-white, border-slate-100, rounded-2xl for cards. Include loading skeletons matching the style in app/admin/page.tsx.",
+            "status": "pending",
+            "testStrategy": "Navigate to /admin/crm, verify 6 columns render. Check network request to /api/crm/pipeline succeeds. Verify column colors match CRMEtapa.color values. Verify counts and sums are calculated correctly. Test horizontal scroll on narrow viewports.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement draggable lead cards with masked phone and formatted values",
+            "description": "Create lead card components within columns showing nombre, masked telefono, formatted valorEstimado, and días en etapa calculation, with drag-and-drop functionality using dnd-kit",
+            "dependencies": [
+              3
+            ],
+            "details": "Import DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors from @dnd-kit/core. Import SortableContext, verticalListSortingStrategy, useSortable from @dnd-kit/sortable. Wrap entire board in <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>. Each column wrapped in <SortableContext items={etapa.leads.map(l => String(l.id))} strategy={verticalListSortingStrategy}>. Create LeadCard component using useSortable(id: String(lead.id)). Card displays: lead.nombre (or 'Sin nombre' if null), telefono masked showing only last 4 digits (e.g., '•••• 1234' using '••••' + telefono.slice(-4)), valorEstimado formatted as Q#,### using new Intl.NumberFormat('es-GT', {style: 'currency', currency: 'GTQ', minimumFractionDigits: 0}).format(valorEstimado), días en etapa calculated as Math.floor((Date.now() - new Date(lead.creadoEn).getTime()) / (1000*60*60*24)). Card styling: bg-white, border border-slate-100, rounded-xl, p-4, mb-2, hover:shadow-md, cursor-grab. Apply transform and transition from useSortable's setNodeRef, transform, transition.",
+            "status": "pending",
+            "testStrategy": "Verify lead cards render in correct columns. Test drag-and-drop works smoothly (grab card, move between columns). Verify phone masking shows only last 4 digits. Verify currency formatting displays Q prefix and comma separators. Verify días en etapa shows correct day count from creadoEn.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement drag handler, optimistic updates, and lead detail drawer",
+            "description": "Handle onDragEnd to update lead stage via API, implement optimistic UI updates, and create a right-side drawer for viewing and editing full lead details",
+            "dependencies": [
+              4
+            ],
+            "details": "In handleDragEnd: extract leadId from active.id and new etapaId from over?.id (column id). If no change, return. Optimistically update local state by moving lead to new etapa in pipeline data. Call api.patchLeadEtapa(leadId, etapaId). On error, revert optimistic update and show error message. For drawer: create state [selectedLead, setSelectedLead] and [isDrawerOpen, setIsDrawerOpen]. On card click, setSelectedLead and setIsDrawerOpen(true). Render drawer as fixed right-side panel (or use custom Sheet component): w-96, fixed right-0, h-full, bg-white, shadow-2xl, z-50, transform transition (slide from right). Drawer content: lead.nombre, telefono (full), email if exists, creadoEn. Form with: textarea for notasCRM (controlled input), select for asignadoAdminId (fetch admins list or hardcode options), input type=\"number\" for valorEstimado, input type=\"date\" for fechaCierreEstimada. Save button calls api.patchCRMLead with form data, updates local state on success. Close button and backdrop click handler. Style form inputs matching existing admin panel aesthetic (border-slate-200, rounded-lg, focus:ring-[#0A2540]). For '+' button in column header: open modal/dialog to search existing leads by telefono/nombre and assign to that etapa (can be basic input + search button initially, or defer to separate subtask if needed - for this task, create placeholder button with console.log).",
+            "status": "pending",
+            "testStrategy": "Drag lead between stages, verify PATCH /api/crm/leads/:id/etapa request fires with correct etapaId. Verify card moves to new column immediately (optimistic update). Click card, verify drawer opens on right side. Edit notasCRM in drawer, click save, verify PATCH /api/crm/leads/:id request succeeds and data persists. Test with 20+ leads per column to check performance and scroll behavior. Verify etapa.color backgrounds render correctly with light tint.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "44",
+        "title": "Add CRM link to admin sidebar with Kanban icon",
+        "description": "Update admin navigation to include CRM board link",
+        "details": "In app/admin/layout.tsx, add link to /admin/crm. Import Kanban icon from lucide-react (use KanbanSquare if Kanban not available). Label: 'CRM', icon: Kanban, href: '/admin/crm'. Add to navigation list.",
+        "testStrategy": "Verify link appears, navigates correctly, active state works.",
+        "priority": "low",
+        "dependencies": [
+          "43"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "45",
+        "title": "Add Phase 2 models: Abono, Certificado, AuditoriaAlumno, Egreso, Campana",
+        "description": "Extend Prisma schema with finance, certification, and marketing campaign models",
+        "details": "Add to schema.prisma: Abono (id, pagoId FK, monto DECIMAL(10,2), fecha default now(), nota? String), Certificado (id, inscripcionId unique FK, alumnoId FK, codigo unique String (8 hex), urlPdf?, urlQr?, emitidoEn default now(), activo default true), AuditoriaAlumno (id, alumnoId FK, accion, detalle?, adminId?, ip?, creadoEn), Egreso (id, concepto String, monto DECIMAL(10,2), moneda default 'GTQ', categoria enum SALARIO|COMISION|OPERATIVO|MARKETING, fecha DateTime, activo default true), CampanaWhatsApp (id, nombre, template String @db.Text, variables Json?, estado default 'BORRADOR' enum BORRADOR|ENVIANDO|COMPLETADA, totalDestinatarios default 0, enviados default 0, errores default 0, creadoEn, actualizadoEn), CampanaDestinatario (id, campanaId FK, leadId FK, estado default 'PENDIENTE' enum PENDIENTE|ENVIADO|ERROR, error?, enviadoEn?). Add Abono relation to Pago, Certificado relations to Inscripcion and Alumno. Run npx prisma migrate dev --name fase2-models.",
+        "testStrategy": "Run migration successfully. Use Prisma Studio to verify models and relations. Test JSON variables field in CampanaWhatsApp stores/retrieves correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "28"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "46",
+        "title": "Install node-cron and create scheduler for cuota alerts",
+        "description": "Set up daily cron jobs for payment reminders via WhatsApp based on cuota due dates",
+        "details": "Run npm install node-cron @types/node-cron in backend. Create backend/src/scheduler.ts. Import cron from node-cron. Set TZ=America/Guatemala in Railway env vars. Cron 1: cron.schedule('0 8 * * *', async () => {...}, {timezone: 'America/Guatemala'}) - query CuotaPago where estado=PENDIENTE AND fechaVence = now()+5 days. For each, get inscripcion.alumno.whatsapp, send WhatsApp: '⏰ Tu cuota de {curso} vence el {fecha}. Monto: Q{monto}.'. Cron 2: same time, fechaVence = today, urgent message. Cron 3: 9 AM, query fechaVence < today AND estado=PENDIENTE, update estado=VENCIDO, send WhatsApp notification. Use logger for cron execution logs. In backend/src/index.ts, import and call startScheduler() function after app.listen().",
+        "testStrategy": "Manually set cuota fechaVence to today+5 days, wait for cron (or manually trigger function), verify WhatsApp sent. Test timezone by checking cron fires at 8 AM Guatemala time. Mock date/time in tests to avoid waiting.",
+        "priority": "high",
+        "dependencies": [
+          "45",
+          "34"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install node-cron and @types/node-cron dependencies",
+            "description": "Add node-cron package and its TypeScript type definitions to the backend project dependencies",
+            "dependencies": [],
+            "details": "Navigate to /Users/guidoreyes/Desktop/proyecto/backend directory. Run `npm install node-cron` to install the cron scheduling library. Run `npm install --save-dev @types/node-cron` to install TypeScript type definitions for node-cron. Verify both packages appear in package.json (node-cron in dependencies, @types/node-cron in devDependencies). This provides the scheduling infrastructure needed for automated WhatsApp payment reminders.",
+            "status": "pending",
+            "testStrategy": "Verify node-cron appears in backend/package.json dependencies. Verify @types/node-cron appears in devDependencies. Run npm list node-cron and npm list @types/node-cron to confirm successful installation without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create scheduler.ts with cron job structure and timezone configuration",
+            "description": "Build backend/src/scheduler.ts with three cron jobs (5-day reminder, same-day urgent, overdue processor) scheduled at 8 AM Guatemala time",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/scheduler.ts file. Import cron from 'node-cron', prisma from './lib/prisma', and { sendWhatsAppMessage } from './lib/whatsapp-send'. Create startScheduler() function that will be exported. Inside startScheduler, define three cron.schedule calls with timezone: 'America/Guatemala'. Cron 1: schedule('0 8 * * *', async () => { console.log('[Scheduler] Running 5-day reminder cron...'); /* query and send logic */ }). Cron 2: schedule('0 8 * * *', async () => { console.log('[Scheduler] Running same-day urgent reminder...'); /* query and send logic */ }). Cron 3: schedule('0 9 * * *', async () => { console.log('[Scheduler] Running overdue processor...'); /* query and send logic */ }). Add console.log statements at the end of startScheduler: 'Scheduler initialized: 3 cron jobs registered'. Export startScheduler as named export. Note: Query implementation will be added in next subtask.",
+            "status": "pending",
+            "testStrategy": "Verify backend/src/scheduler.ts exists and compiles without TypeScript errors. Check that startScheduler function is exported. Verify three cron.schedule calls are present with correct cron expressions ('0 8 * * *' for first two, '0 9 * * *' for third) and timezone: 'America/Guatemala'. Run TypeScript compiler to ensure no type errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Prisma queries and WhatsApp message sending for all three cron jobs",
+            "description": "Add database queries to fetch cuotas based on fechaVence and estado, then send formatted WhatsApp reminders using existing sendWhatsAppMessage function",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/scheduler.ts, implement Cron 1 (5-day reminder): Query `await prisma.cuotaPago.findMany({ where: { estado: 'PENDIENTE', fechaVence: { equals: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) } }, include: { inscripcion: { include: { alumno: true, curso: true } } } })`. For each cuota, extract alumno.whatsapp, curso.nombre, fechaVence (formatted), monto. Send WhatsApp: `await sendWhatsAppMessage(whatsapp, '⏰ Tu cuota de {curso} vence el {fecha}. Monto: Q{monto}.')`. Cron 2 (same-day urgent): Same query but fechaVence equals today (new Date().setHours(0,0,0,0)). Message: '🚨 URGENTE: Tu cuota de {curso} vence HOY. Monto: Q{monto}.' Cron 3 (overdue processor): Query cuotas where `fechaVence < today AND estado = 'PENDIENTE'`. Update estado to 'VENCIDO': `await prisma.cuotaPago.update({ where: { id: cuota.id }, data: { estado: 'VENCIDO' } })`. Send WhatsApp: '❌ Tu cuota de {curso} está VENCIDA desde {fecha}. Monto: Q{monto}. Contacta administración.' Add try-catch blocks with console.error for each cron job to handle errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Create test cuotas in database with fechaVence = today+5 days, today, and yesterday. Manually invoke each cron function (export them temporarily or trigger via time manipulation). Verify Prisma queries return expected cuotas. Verify sendWhatsAppMessage is called with correct phone numbers and formatted messages. Check console logs show execution. Verify overdue cuotas get estado updated to 'VENCIDO' in database.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Initialize scheduler in index.ts and configure Railway environment variable",
+            "description": "Import and call startScheduler() in backend entry point after server starts, and set TZ=America/Guatemala in Railway environment",
+            "dependencies": [
+              3
+            ],
+            "details": "In backend/src/index.ts, add import statement: `import { startScheduler } from './scheduler';`. After the app.listen() call (after line 69), add: `startScheduler();` with a comment above: `// Initialize cron jobs for cuota payment reminders`. This ensures the scheduler starts when the backend server starts. For Railway configuration: In Railway dashboard, navigate to project > backend service > Variables tab. Add new environment variable: Key='TZ', Value='America/Guatemala'. This sets the system timezone for the Node.js process, ensuring cron jobs fire at correct local time. Redeploy the backend service for changes to take effect.",
+            "status": "pending",
+            "testStrategy": "Verify backend/src/index.ts imports startScheduler and calls it after app.listen(). Start backend locally with npm run dev, check console shows 'Scheduler initialized: 3 cron jobs registered' message. In Railway, verify TZ environment variable is set to 'America/Guatemala'. Check Railway logs after deployment show scheduler initialization message. Wait for next 8 AM Guatemala time or manually test cron execution to verify timezone is correct.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "47",
+        "title": "Install PDF generation libraries and create /api/certificados routes",
+        "description": "Build certificate generation system with PDFKit, QR codes, and Cloudflare R2 storage",
+        "details": "Run npm install pdfkit qrcode @types/pdfkit @types/qrcode @aws-sdk/client-s3 in backend. Create backend/src/routes/certificados.ts. POST /api/certificados: body {inscripcionId}. Verify inscripcion.estado='COMPLETADA'. Generate codigo: crypto.randomBytes(8).toString('hex'). Generate QR PNG with qrcode.toDataURL(`https://www.mea.edu.gt/verify/${codigo}`). Create PDF with PDFKit: load logo from public folder, add text 'Certificado de Finalización', alumno nombre, curso nombre, fecha emission, embed QR image. Convert PDFKit stream to buffer. Upload to Cloudflare R2 using S3Client from @aws-sdk/client-s3: endpoint https://{CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com, credentials from env vars, bucket CLOUDFLARE_R2_BUCKET, key certificados/{codigo}.pdf. Construct urlPdf from CLOUDFLARE_R2_PUBLIC_URL. Save Certificado record. GET /api/certificados: list with filter alumnoId. GET /api/certificados/verify/:codigo: no JWT, query by codigo, return {valid: boolean, alumno, curso, fecha} or 404. Use Redis cache 24h for verify endpoint (key: cert:{codigo}).",
+        "testStrategy": "Mark inscripcion as COMPLETADA, POST certificados, verify PDF uploads to R2 and URL accessible. Call verify endpoint, check Redis cache hit. Test invalid codigo returns 404.",
+        "priority": "medium",
+        "dependencies": [
+          "45"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install PDF generation dependencies and configure Cloudflare R2 environment variables",
+            "description": "Install required npm packages for PDF generation and QR codes, then configure Cloudflare R2 storage credentials in Railway and local environment",
+            "dependencies": [],
+            "details": "Run `cd backend && npm install pdfkit qrcode @types/pdfkit @types/qrcode @aws-sdk/client-s3` to install dependencies. Add to backend/.env.example: CLOUDFLARE_R2_ACCOUNT_ID, CLOUDFLARE_R2_ACCESS_KEY_ID, CLOUDFLARE_R2_SECRET_ACCESS_KEY, CLOUDFLARE_R2_BUCKET (default: mea-certificados), CLOUDFLARE_R2_PUBLIC_URL (e.g., https://cdn.mea.edu.gt). Configure these same variables in Railway dashboard under backend service environment variables. Verify installation with `npm list pdfkit qrcode @aws-sdk/client-s3`. Update backend/package.json scripts if needed for TypeScript build process.",
+            "status": "pending",
+            "testStrategy": "Run `npm list` to verify all packages installed. Check Railway environment variables are set. Start dev server with `npm run dev` and verify no import errors for new packages.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create Cloudflare R2 storage utility module following existing lib patterns",
+            "description": "Build a reusable R2 storage client utility in backend/src/lib/r2-storage.ts with upload and retrieve functions, following the pattern established by existing lib modules",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/lib/r2-storage.ts. Import S3Client, PutObjectCommand, GetObjectCommand from @aws-sdk/client-s3. Create and export S3Client instance configured with: endpoint: `https://${process.env.CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`, region: 'auto', credentials from CLOUDFLARE_R2_ACCESS_KEY_ID and CLOUDFLARE_R2_SECRET_ACCESS_KEY. Export async uploadPDF(buffer: Buffer, key: string) function that uses PutObjectCommand with Bucket from env, Key, Body buffer, ContentType 'application/pdf'. Return constructed public URL using CLOUDFLARE_R2_PUBLIC_URL. Add error handling similar to redis.ts pattern. Include reconnection logic and console logging for errors.",
+            "status": "pending",
+            "testStrategy": "Create unit test that mocks S3Client and verifies uploadPDF constructs correct PutObjectCommand with buffer and key. Test error handling by simulating failed upload. Verify public URL construction matches expected format.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement PDF generation service with QR code embedding",
+            "description": "Create backend/src/lib/pdf-generator.ts module that generates certificate PDFs with MEA branding, student info, course details, and embedded QR code",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/lib/pdf-generator.ts. Import PDFDocument from pdfkit, qrcode. Export async function generateCertificadoPDF(data: {codigo: string, alumnoNombre: string, cursoNombre: string, fechaEmision: Date}): Promise<Buffer>. Generate QR code PNG using qrcode.toDataURL(`https://www.mea.edu.gt/verify/${codigo}`). Create new PDFDocument. Load MEA logo from public/mea logo.svg (convert path to absolute using process.cwd()). Set page size A4 landscape. Add logo at top center. Use font 'Helvetica-Bold' 24pt for title 'Certificado de Finalización'. Add alumnoNombre in 18pt. Add 'Ha completado exitosamente el curso:' followed by cursoNombre. Add fechaEmision formatted as 'DD de MMMM de YYYY'. Embed QR code image at bottom right (150x150px). Add footer text 'Verificar en mea.edu.gt/verify'. Pipe PDFDocument to buffer array, return concatenated Buffer. Handle errors and ensure stream cleanup.",
+            "status": "pending",
+            "testStrategy": "Create test that calls generateCertificadoPDF with mock data and verifies Buffer is returned. Use pdf-parse npm package to extract text from generated PDF and verify alumnoNombre, cursoNombre, title present. Check PDF file size > 0. Test with special characters in names (accents, ñ). Manually open generated PDF to verify layout and QR code renders correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create backend/src/routes/certificados.ts with POST /api/certificados endpoint",
+            "description": "Implement certificate creation route that verifies completed enrollment, generates certificate PDF with QR code, uploads to R2, and saves record to database",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Create backend/src/routes/certificados.ts following the pattern from cursos.ts. Import Router, prisma, verifyJWT, crypto, generateCertificadoPDF from lib/pdf-generator, uploadPDF from lib/r2-storage. Create router = Router(). Implement POST '/' with verifyJWT middleware. Extract {inscripcionId} from req.body (validate as number). Query Prisma for inscripcion (with relations: alumno, curso) where id=inscripcionId. Verify inscripcion.estado === 'COMPLETADA', return 400 'Inscripción no completada' if not. Generate codigo = crypto.randomBytes(8).toString('hex'). Call generateCertificadoPDF({codigo, alumnoNombre: inscripcion.alumno.nombre, cursoNombre: inscripcion.curso.nombre, fechaEmision: new Date()}). Call uploadPDF(pdfBuffer, `certificados/${codigo}.pdf`) to get urlPdf. Create Certificado record in Prisma with: codigo, inscripcionId, alumnoId, cursoId, urlPdf, fechaEmision. Return 201 with certificado JSON. Add try-catch for errors, return 500 on failure. Export default router.",
+            "status": "pending",
+            "testStrategy": "Create test inscripcion with estado='COMPLETADA' in test DB. POST to /api/certificados with valid JWT and inscripcionId. Verify 201 response with certificado containing codigo, urlPdf. Check Certificado record exists in DB. Verify PDF uploaded to R2 by fetching urlPdf (200 response, content-type application/pdf). Test with estado='PENDIENTE', verify 400 error. Test without JWT, verify 401.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement GET /api/certificados and GET /api/certificados/verify/:codigo with Redis caching",
+            "description": "Create list endpoint with alumnoId filter and public verification endpoint with 24h Redis cache for certificate validation",
+            "dependencies": [
+              4
+            ],
+            "details": "In backend/src/routes/certificados.ts, implement GET '/' with verifyJWT. Accept query param alumnoId (optional number). Query Prisma Certificado with where clause {alumnoId} if provided, include relations alumno, curso. Return JSON array. Implement GET '/verify/:codigo' WITHOUT verifyJWT (public endpoint). Extract codigo from params. Check Redis cache key `cert:${codigo}` using getJSON from lib/redis. If cached, return immediately. If not cached, query Prisma Certificado where codigo, include alumno, curso. If not found, return 404 {valid: false}. If found, construct response {valid: true, alumno: {nombre, email}, curso: {nombre}, fecha: fechaEmision}. Cache response in Redis with key `cert:${codigo}` and TTL 86400 (24h) using setJSON. Return response. Add to backend/src/index.ts: import certificadosRouter from './routes/certificados'; app.use('/api/certificados', certificadosRouter). Follow error handling patterns from cursos.ts.",
+            "status": "pending",
+            "testStrategy": "Create test certificado record. GET /api/certificados with JWT and alumnoId filter, verify returns only matching certificates. GET /api/certificados without alumnoId, verify returns all. GET /api/certificados/verify/:codigo without JWT, verify 200 {valid: true, alumno, curso, fecha}. Call verify twice, second call should hit Redis cache (verify with Redis monitor or logs). Test with invalid codigo, verify 404 {valid: false}. Test Redis unavailable scenario (mock Redis failure), verify endpoint still works by falling through to DB.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "48",
+        "title": "Create public /verify/[codigo] certificate validation page",
+        "description": "Build public-facing certificate verification page with SEO markup",
+        "details": "Create app/verify/[codigo]/page.tsx as server component (no 'use client'). In page function, fetch /api/certificados/verify/:codigo server-side. If valid: display card with green badge 'Certificado Válido', show alumno nombre, curso nombre, fecha emisión formatted. If invalid: red badge 'Certificado no encontrado o revocado', message 'Este código no corresponde a un certificado válido'. Add Schema.org markup: <script type='application/ld+json'> with @type: EducationalOccupationalCredential, name, credentialCategory, educationalLevel. Set page metadata for SEO: title, description. Style consistent with landing page.",
+        "testStrategy": "Generate certificado, visit /verify/{codigo}, verify valid display. Test invalid codigo shows error. Check page source for Schema.org markup. Test SEO meta tags with curl or view-source.",
+        "priority": "low",
+        "dependencies": [
+          "47"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "49",
+        "title": "Create /api/reportes/pl and /api/finanzas routes for CEO dashboard",
+        "description": "Build P&L reporting and expense management endpoints with projections and cash flow",
+        "details": "Extend backend/src/routes/reportes.ts. GET /api/reportes/pl: calculate monthly P&L for last 12 months. Ingresos: sum(Pago.monto where estado=PAGADO, group by month). Egresos: sum(Egreso.monto, group by month). Return array [{mes: 'YYYY-MM', ingresos, egresos, utilidad: ingresos-egresos}]. Use date-fns for date manipulation. GET /api/reportes/proyecciones: sum(CuotaPago.monto where estado=PENDIENTE, group by month of fechaVence). Next 6 months. GET /api/reportes/flujo-caja: calculate saldo actual = sum(Pago.monto where estado=PAGADO) - sum(Egreso.monto). Flujo próximos 30 días = sum(CuotaPago.monto where estado=PENDIENTE AND fechaVence <= now()+30 days) - estimated monthly egresos (avg last 3 months). Create backend/src/routes/finanzas.ts. GET /api/finanzas/egresos: paginated list with filters (categoria, mes as YYYY-MM). POST: create Egreso with Zod validation. PATCH /:id: update. DELETE: soft-delete. GET /api/finanzas/reconciliacion: query params mes (YYYY-MM). Group Pago by metodo where mes matches, sum monto for each metodo, separate GTQ and USD. Return [{metodo, totalGTQ, totalUSD}].",
+        "testStrategy": "Seed pagos and egresos across 12 months. Call /api/reportes/pl, verify 12 months returned with correct sums. Test proyecciones includes future cuotas. Test flujo-caja calculation. Create egreso, verify filters work. Test reconciliacion groups correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "45"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "50",
+        "title": "Create /admin/ceo dashboard with P&L charts and role restriction",
+        "description": "Build executive dashboard with financial KPIs and visualizations, accessible only to SUPER_ADMIN",
+        "details": "Create app/admin/ceo/page.tsx as 'use client'. Check admin.rol === 'SUPER_ADMIN' (read from JWT decoded or API call /api/auth/me). If not, redirect to /admin with message. Fetch /api/reportes/pl, /api/reportes/proyecciones, /api/reportes/flujo-caja. Display 4 KPI cards: Ingresos mes actual (last month from pl), Egresos mes actual, Utilidad mes actual, Alumnos activos (count from /api/alumnos?activo=true). Use Recharts LineChart: X=mes, 3 lines (ingresos, egresos, utilidad) with different colors. BarChart for proyecciones (X=mes, Y=monto proyectado). Table for flujo-caja showing next 4 weeks with estimated inflows/outflows. Add link in sidebar (only visible if SUPER_ADMIN): 'CEO Dashboard', icon TrendingUp.",
+        "testStrategy": "Login as SUPER_ADMIN, verify page accessible and data renders. Login as regular ADMIN, verify redirect or 403. Test charts with real data. Check calculations match raw data.",
+        "priority": "medium",
+        "dependencies": [
+          "49",
+          "38"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "51",
+        "title": "Create /admin/finanzas page with egresos and reconciliation tabs",
+        "description": "Build financial management page for expense tracking and payment method reconciliation",
+        "details": "Create app/admin/finanzas/page.tsx. Use Radix Tabs: 'Egresos' and 'Reconciliación'. Egresos tab: table with filters (categoria dropdown, mes date picker). Columns: Concepto, Monto, Moneda, Categoría (badge with color per category), Fecha. Button 'Nuevo egreso' opens modal: inputs concepto, monto, moneda (select GTQ/USD), categoria (select enum), fecha (date picker). POST /api/finanzas/egresos. Pagination. Reconciliación tab: month selector (default current month). Fetch /api/finanzas/reconciliacion?mes=YYYY-MM. Table grouped by metodo: QPAYPRO, PAYPAL, BANRURAL, BI, EFECTIVO. Columns: Método, Total GTQ, Total USD, Transacciones (count). Add totals row at bottom. Helpful for comparing with bank statements.",
+        "testStrategy": "Create egresos in different categories, verify table and filters. Test reconciliation for specific month with multiple payment methods. Verify totals sum correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "49"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "52",
+        "title": "Implement multi-agent AI router based on CRM stage",
+        "description": "Create agent selection system that uses different Claude prompts per lead funnel stage",
+        "details": "Create backend/src/agents/agentRouter.ts. Define interface AgentConfig {systemPrompt: string, maxTokens: number, temperature: number}. Function selectAgent(lead: Lead): AgentConfig. Query lead.etapa.nombre. Switch on etapa: 'Nuevo'→bienvenida agent (capta nombre, interés, presupuesto, tono amigable, open questions, maxTokens 300, temp 0.8), 'Interesado'→calificación agent (detecta urgencia, budget, menciona modalidades/precios, temp 0.7), 'Propuesta'→cierre agent (supera objeciones, CTA agenda llamada, temp 0.6), default→general agent (current behavior). Update backend/src/lib/claude.ts: in responderMensaje(), query Lead with include etapa by telefono before calling Anthropic. Pass selectAgent(lead).systemPrompt to messages. Implement logic: if lead.creadoEn > 30 days ago AND no messages in last 30 days, use full bienvenida. If last message between 1h-30d, use agent with lead.nombre. If <1h, normal response.",
+        "testStrategy": "Create leads in different stages, send messages, verify different agent responses (tone, content). Test 30-day inactive lead gets full bienvenida. Check lead in Propuesta stage gets sales-focused response.",
+        "priority": "high",
+        "dependencies": [
+          "33"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create agentRouter.ts with AgentConfig interface and stage-based prompts",
+            "description": "Create backend/src/agents/agentRouter.ts module with TypeScript interface for agent configurations and define system prompts for each CRM stage",
+            "dependencies": [],
+            "details": "Create file backend/src/agents/agentRouter.ts. Define interface AgentConfig with fields: systemPrompt (string), maxTokens (number), temperature (number). Create constant object AGENT_CONFIGS with keys matching CRM stage names ('Nuevo', 'Interesado', 'Propuesta', 'default'). For 'Nuevo' stage: systemPrompt should focus on friendly welcome, capturing nombre/interés/presupuesto with open questions, maxTokens: 300, temperature: 0.8. For 'Interesado': focus on qualification (urgency, budget), mention modalidades/precios, maxTokens: 400, temperature: 0.7. For 'Propuesta': sales-focused to overcome objections with strong CTA for scheduling call, maxTokens: 400, temperature: 0.6. For 'default': use current general behavior from claude.ts. Include WEB_CONTEXT constant imported from claude.ts or duplicated. Each systemPrompt should instruct Claude on tone, objectives, and information to gather specific to that funnel stage.",
+            "status": "pending",
+            "testStrategy": "Verify agentRouter.ts compiles without TypeScript errors. Import AGENT_CONFIGS and verify it contains all 4 keys. Check each config has systemPrompt (non-empty string), maxTokens (number 300-500), temperature (number 0.6-0.8). Review prompts manually to ensure they reflect stage-appropriate sales approach.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement selectAgent function with lead stage logic and time-based rules",
+            "description": "Add selectAgent function to agentRouter.ts that queries lead CRM stage and applies time-based reactivation logic to return appropriate AgentConfig",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/agents/agentRouter.ts, implement async function selectAgent(lead: Lead & { etapa: { nombre: string } | null, mensajes?: { creadoEn: Date }[] }): Promise<AgentConfig>. Logic: (1) If lead.creadoEn is more than 30 days ago AND last message is more than 30 days ago (or no messages), return 'Nuevo' agent (full re-engagement). (2) If last message was between 1 hour and 30 days ago, use lead.etapa?.nombre to select agent but personalize with lead.nombre if available. (3) If last message was within 1 hour, use standard stage-based selection. (4) Switch on lead.etapa?.nombre: 'Nuevo' → return AGENT_CONFIGS.Nuevo, 'Interesado' → return AGENT_CONFIGS.Interesado, 'Propuesta' → return AGENT_CONFIGS.Propuesta, default → return AGENT_CONFIGS.default. Add helper function to calculate time since last message. Export selectAgent as named export.",
+            "status": "pending",
+            "testStrategy": "Create test leads with different etapa values and message timestamps. Test selectAgent with lead created 60 days ago, no messages → should return Nuevo agent. Test with Interesado lead, last message 2 hours ago → should return Interesado agent. Test with Propuesta lead, last message 10 minutes ago → should return Propuesta agent. Test lead with no etapa → should return default agent. Verify return type matches AgentConfig interface.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Update responderMensaje in claude.ts to query Lead with etapa relation",
+            "description": "Modify backend/src/lib/claude.ts responderMensaje function to fetch Lead with etapa and mensajes relations, then use selectAgent to determine system prompt",
+            "dependencies": [
+              2
+            ],
+            "details": "In backend/src/lib/claude.ts, update responderMensaje function signature (no change needed). Before calling Anthropic API: (1) Import selectAgent from '../agents/agentRouter'. (2) Add Prisma query to fetch lead: const lead = await prisma.lead.findUnique({ where: { telefono }, include: { etapa: { select: { nombre: true } }, conversaciones: { include: { mensajes: { orderBy: { creadoEn: 'desc' }, take: 1 } } } } }). (3) If lead not found, use default agent. (4) Call const agentConfig = await selectAgent(lead). (5) Replace hardcoded systemPrompt with agentConfig.systemPrompt (keep WEB_CONTEXT and notionCtx concatenation logic). (6) Replace hardcoded max_tokens: 500 with agentConfig.maxTokens. (7) Add temperature parameter to client.messages.create call using agentConfig.temperature. (8) Ensure existing history and response logic remains unchanged. Import prisma client at top of file.",
+            "status": "pending",
+            "testStrategy": "Test responderMensaje with various phone numbers in different CRM stages. Mock Prisma to return lead with etapa.nombre='Propuesta', verify selectAgent is called and systemPrompt reflects sales-focused tone. Test with lead in 'Nuevo' stage, verify friendly welcome tone. Test with non-existent lead (null), verify default agent is used. Check Anthropic API calls include correct max_tokens and temperature parameters. Verify existing chat history functionality still works.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add prisma import and test agent router integration end-to-end",
+            "description": "Ensure Prisma client is properly imported in claude.ts, create integration test for full WhatsApp message flow with different lead stages",
+            "dependencies": [
+              3
+            ],
+            "details": "In backend/src/lib/claude.ts, verify import prisma from './prisma' is added at top of file. Create test file backend/src/agents/agentRouter.test.ts (or use manual testing approach). Test scenarios: (1) Create lead in 'Nuevo' stage via Prisma, send WhatsApp message, verify response uses friendly tone with open questions. (2) Update lead to 'Interesado' stage, send message, verify response mentions pricing/modalities. (3) Update lead to 'Propuesta' stage, send message, verify response has strong CTA and objection handling. (4) Create lead with no etapa (null), verify default behavior. (5) Create old lead (31+ days), verify gets re-engagement Nuevo agent. Test by sending actual webhook payloads to /api/whatsapp/webhook or by calling responderMensaje directly. Verify logs show correct agent selection and API parameters (maxTokens, temperature).",
+            "status": "pending",
+            "testStrategy": "Run full integration test with Railway MySQL database containing CRMEtapa seeds and test leads. Send test WhatsApp messages via webhook or direct function call. Check Railway logs for selectAgent function calls and verify correct agent chosen. Compare response tone/content for leads in different stages - 'Nuevo' should be friendlier and ask more questions, 'Propuesta' should be more sales-driven with clear CTA. Verify no errors in TypeScript compilation. Test error handling when etapa relation is missing or database query fails (should fall back to default agent).",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "53",
+        "title": "Create /api/marketing/campanas routes for WhatsApp broadcast",
+        "description": "Build campaign management system with background processing and rate limiting for bulk WhatsApp sends",
+        "details": "Create backend/src/routes/marketing.ts. GET /api/marketing/campanas: list campaigns. POST: Zod validate {nombre, template (string with {nombre}, {curso} placeholders), variables: string[]}. Create CampanaWhatsApp. POST /api/marketing/campanas/:id/enviar: body {leadIds[]}. Create CampanaDestinatario records in bulk. Update campana.estado='ENVIANDO'. Spawn background process (use setInterval): fetch PENDIENTE destinatarios in chunks of 10, for each: replace template variables with lead data, call sendWhatsAppMessage(), update destinatario.estado='ENVIADO'/'ERROR', increment campana.enviados/errores. Rate limit: 10 messages per 200ms = 50 msg/s (under Meta's 80/s limit). Clear interval when all sent, set campana.estado='COMPLETADA'. GET /api/marketing/campanas/:id/status: return {estado, totalDestinatarios, enviados, errores, progreso: enviados/total*100}.",
+        "testStrategy": "Create campaign, select 20 leads, trigger enviar. Poll /status endpoint, verify counters increment. Check destinatarios table updates. Test rate limiting doesn't exceed Meta limits (monitor Meta dashboard). Test error handling if WhatsApp API fails.",
+        "priority": "medium",
+        "dependencies": [
+          "45"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Prisma models for campaign management and install zod",
+            "description": "Create CampanaWhatsApp and CampanaDestinatario models in Prisma schema and install zod validation library",
+            "dependencies": [],
+            "details": "Add to backend/prisma/schema.prisma:\n\nmodel CampanaWhatsApp {\n  id                 Int                     @id @default(autoincrement())\n  nombre             String\n  template           String                  @db.Text\n  variables          Json\n  estado             String                  @default(\"CREADA\")\n  totalDestinatarios Int                     @default(0)\n  enviados           Int                     @default(0)\n  errores            Int                     @default(0)\n  creadoEn           DateTime                @default(now())\n  actualizadoEn      DateTime                @updatedAt\n  destinatarios      CampanaDestinatario[]\n}\n\nmodel CampanaDestinatario {\n  id         Int              @id @default(autoincrement())\n  campanaId  Int\n  campana    CampanaWhatsApp  @relation(fields: [campanaId], references: [id])\n  leadId     Int\n  lead       Lead             @relation(fields: [leadId], references: [id])\n  estado     String           @default(\"PENDIENTE\")\n  error      String?\n  enviadoEn  DateTime?\n  creadoEn   DateTime         @default(now())\n}\n\nAlso add destinatarios relation to Lead model: destinatarios CampanaDestinatario[]\n\nRun: npm install zod in backend directory, then npx prisma migrate dev --name add-campana-whatsapp",
+            "status": "pending",
+            "testStrategy": "Verify migration creates both tables with correct columns. Check zod is in package.json dependencies.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create GET and POST /api/marketing/campanas endpoints with validation",
+            "description": "Implement campaign listing and creation endpoints with zod schema validation for template and variables",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/routes/marketing.ts following existing route patterns (cursos.ts, leads.ts):\n\nimport { Router, Request, Response } from 'express';\nimport { z } from 'zod';\nimport prisma from '../lib/prisma';\nimport { verifyJWT } from '../middleware/auth.middleware';\n\nconst router = Router();\n\nconst createCampanaSchema = z.object({\n  nombre: z.string().min(1),\n  template: z.string().min(1),\n  variables: z.array(z.string())\n});\n\nrouter.get('/', verifyJWT, async (req: Request, res: Response) => {\n  const campanas = await prisma.campanaWhatsApp.findMany({\n    orderBy: { creadoEn: 'desc' },\n    include: { _count: { select: { destinatarios: true } } }\n  });\n  res.json(campanas);\n});\n\nrouter.post('/', verifyJWT, async (req: Request, res: Response) => {\n  const validation = createCampanaSchema.safeParse(req.body);\n  if (!validation.success) {\n    res.status(400).json({ error: 'Datos inválidos', details: validation.error });\n    return;\n  }\n  const { nombre, template, variables } = validation.data;\n  const campana = await prisma.campanaWhatsApp.create({\n    data: { nombre, template, variables }\n  });\n  res.status(201).json(campana);\n});\n\nexport default router;\n\nRegister route in backend/src/index.ts: import marketingRouter from './routes/marketing'; app.use('/api/marketing/campanas', marketingRouter);",
+            "status": "pending",
+            "testStrategy": "Test GET returns empty array initially. POST with valid data {nombre, template with {nombre} and {curso} placeholders, variables: ['nombre', 'curso']} creates campaign. POST with invalid data returns 400.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement POST /api/marketing/campanas/:id/enviar with background processing",
+            "description": "Create endpoint to trigger bulk WhatsApp sends with rate-limited background processing using setInterval",
+            "dependencies": [
+              2
+            ],
+            "details": "Add to backend/src/routes/marketing.ts:\n\nconst enviarCampanaSchema = z.object({\n  leadIds: z.array(z.number()).min(1)\n});\n\nrouter.post('/:id/enviar', verifyJWT, async (req: Request, res: Response) => {\n  const id = parseInt(req.params.id!);\n  if (isNaN(id)) { res.status(400).json({ error: 'ID inválido' }); return; }\n  \n  const validation = enviarCampanaSchema.safeParse(req.body);\n  if (!validation.success) {\n    res.status(400).json({ error: 'leadIds requerido' });\n    return;\n  }\n  \n  const campana = await prisma.campanaWhatsApp.findUnique({ where: { id } });\n  if (!campana) { res.status(404).json({ error: 'Campaña no encontrada' }); return; }\n  \n  const { leadIds } = validation.data;\n  \n  // Create destinatarios in bulk\n  await prisma.campanaDestinatario.createMany({\n    data: leadIds.map(leadId => ({ campanaId: id, leadId }))\n  });\n  \n  await prisma.campanaWhatsApp.update({\n    where: { id },\n    data: { estado: 'ENVIANDO', totalDestinatarios: leadIds.length }\n  });\n  \n  // Start background process\n  procesarEnvios(id);\n  \n  res.json({ message: 'Envío iniciado' });\n});\n\nImplement procesarEnvios function: use setInterval every 200ms. Fetch 10 PENDIENTE destinatarios with lead data. For each: replace {nombre}, {curso} etc in template with lead data, call sendWhatsAppMessage from '../lib/whatsapp-send', update destinatario estado to ENVIADO/ERROR, increment campana enviados/errores. Clear interval when no more PENDIENTE. Set campana estado to COMPLETADA.",
+            "status": "pending",
+            "testStrategy": "Create campaign with 20 lead IDs. Call enviar endpoint, verify returns immediately. Poll database to see destinatarios being processed in chunks. Verify rate: 10 messages per 200ms = 50/sec (under Meta's 80/s limit). Check final estado is COMPLETADA.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create GET /api/marketing/campanas/:id/status endpoint",
+            "description": "Implement status endpoint returning campaign progress metrics and completion percentage",
+            "dependencies": [
+              3
+            ],
+            "details": "Add to backend/src/routes/marketing.ts:\n\nrouter.get('/:id/status', verifyJWT, async (req: Request, res: Response) => {\n  const id = parseInt(req.params.id!);\n  if (isNaN(id)) {\n    res.status(400).json({ error: 'ID inválido' });\n    return;\n  }\n  \n  const campana = await prisma.campanaWhatsApp.findUnique({\n    where: { id },\n    select: {\n      estado: true,\n      totalDestinatarios: true,\n      enviados: true,\n      errores: true\n    }\n  });\n  \n  if (!campana) {\n    res.status(404).json({ error: 'Campaña no encontrada' });\n    return;\n  }\n  \n  const progreso = campana.totalDestinatarios > 0 \n    ? (campana.enviados / campana.totalDestinatarios) * 100 \n    : 0;\n  \n  res.json({\n    estado: campana.estado,\n    totalDestinatarios: campana.totalDestinatarios,\n    enviados: campana.enviados,\n    errores: campana.errores,\n    progreso: Math.round(progreso * 100) / 100\n  });\n});\n\nThis endpoint allows frontend to poll for real-time campaign progress updates.",
+            "status": "pending",
+            "testStrategy": "Trigger campaign send with 20 leads. Immediately call /status, verify estado='ENVIANDO', progreso near 0. Poll every second, verify enviados increments. After completion, verify estado='COMPLETADA', progreso=100, enviados + errores = totalDestinatarios.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "54",
+        "title": "Create /admin/marketing broadcast page with preview and progress tracking",
+        "description": "Build marketing campaign UI with recipient selection, message preview, and real-time send progress",
+        "details": "Create app/admin/marketing/page.tsx. Table of campaigns with estado badge. Button 'Nueva campaña' opens modal: input nombre, textarea template (show hint: use {nombre}, {curso}). Next step: recipient selection - filters by estado, etapa, interes. Show count of selected leads. Preview section: select first matching lead, render template with actual lead data. Confirmation modal: 'Enviar a N leads?' with final count. POST /api/marketing/campanas/:id/enviar. Show progress bar: poll /api/marketing/campanas/:id/status every 2s, update progress bar width and text 'Enviados: X / N'. Disable UI during send. Show success/error summary when complete. Add link to sidebar: 'Marketing', icon Send.",
+        "testStrategy": "Create campaign, select leads by filter, verify preview renders correctly. Send campaign, watch progress bar update in real-time. Verify final counts match. Test cancellation (add cancel button that stops background process if implemented).",
+        "priority": "medium",
+        "dependencies": [
+          "53"
+        ],
+        "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-08T04:34:04.048Z",
-      "taskCount": 21,
-      "completedCount": 2,
+      "lastModified": "2026-05-14T03:05:44.677Z",
+      "taskCount": 54,
+      "completedCount": 25,
       "tags": [
         "master"
       ]

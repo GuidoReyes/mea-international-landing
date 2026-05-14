@@ -42,6 +42,7 @@ Sesión de verificación y cierre de la integración Notion MCP iniciada en [[20
 ## Cross-refs
 
 - [[2026-04-30-infra-despliegue-wiki-notion-mcp]] — sesión anterior donde se configuró el MCP; esta sesión cierra sus pendientes
+- [[2026-05-08-backend-railway-desplegado]] — sesión posterior que usa Notion MCP como fuente para Task 9 (RAG de contexto)
 
 ## Fuentes
 

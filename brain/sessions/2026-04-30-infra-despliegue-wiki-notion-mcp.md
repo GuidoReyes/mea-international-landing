@@ -52,6 +52,7 @@ Sesión de configuración completa de infraestructura para el proyecto MEA Inter
 ## Cross-refs
 
 - [[2026-05-06-notion-mcp-activo-query-verificado]] — sesión que cerró los pendientes de MCP y verificó el primer query
+- [[2026-05-08-backend-railway-desplegado]] — sesión que agrega Railway como plataforma backend complementaria a Vercel
 
 ## Fuentes
 

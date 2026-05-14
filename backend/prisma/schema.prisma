@@ -6,28 +6,159 @@ datasource db {
   provider = "mysql"
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum InscripcionEstado {
+  ACTIVA
+  COMPLETADA
+  CANCELADA
+  SUSPENDIDA
+}
+
+enum PagoEstado {
+  PENDIENTE
+  COMPLETADO
+  RECHAZADO
+  REEMBOLSADO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  TARJETA
+  DEPOSITO
+  OTRO
+}
+
+enum Moneda {
+  GTQ
+  USD
+}
+
+// ─── CRM Pipeline ────────────────────────────────────────────────────────────
+
+model CRMEtapa {
+  id     Int    @id @default(autoincrement())
+  nombre String
+  orden  Int    @unique
+  color  String @default("#00b4d8")
+  leads  Lead[]
+}
+
+// ─── Core models ─────────────────────────────────────────────────────────────
+
 model Lead {
-  id             Int                    @id @default(autoincrement())
-  telefono       String                 @unique
-  nombre         String?
-  email          String?
-  interes        String?
-  estado         String                 @default("nuevo")
-  creadoEn       DateTime               @default(now())
-  actualizadoEn  DateTime               @updatedAt
-  conversaciones ConversacionWhatsApp[]
+  id                  Int                    @id @default(autoincrement())
+  telefono            String                 @unique
+  nombre              String?
+  email               String?
+  interes             String?
+  estado              String                 @default("nuevo")
+  etapaId             Int?
+  etapa               CRMEtapa?              @relation(fields: [etapaId], references: [id])
+  valorEstimado       Decimal?               @db.Decimal(10, 2)
+  fechaCierreEstimada DateTime?
+  notasCRM            String?                @db.Text
+  asignadoAdminId     Int?
+  asignadoAdmin       Admin?                 @relation(fields: [asignadoAdminId], references: [id])
+  creadoEn            DateTime               @default(now())
+  actualizadoEn       DateTime               @updatedAt
+  conversaciones      ConversacionWhatsApp[]
+}
+
+model Alumno {
+  id              Int           @id @default(autoincrement())
+  carnet          String        @unique
+  nombre          String
+  apellido        String
+  email           String        @unique
+  whatsapp        String?
+  fechaNacimiento DateTime?
+  pais            String        @default("GT")
+  activo          Boolean       @default(true)
+  password        String?
+  primerLogin     Boolean       @default(true)
+  creadoEn        DateTime      @default(now())
+  inscripciones   Inscripcion[]
+  certificados    Certificado[]
 }
 
 model Curso {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   nombre      String
-  descripcion String   @db.Text
-  precio      Decimal  @db.Decimal(10, 2)
+  descripcion String    @db.Text
+  precio      Decimal   @db.Decimal(10, 2)
   modalidad   String
   duracion    String
-  activo      Boolean  @default(true)
-  creadoEn    DateTime @default(now())
+  activo      Boolean   @default(true)
+  creadoEn    DateTime  @default(now())
+  ediciones   Edicion[]
 }
+
+model Edicion {
+  id            Int           @id @default(autoincrement())
+  cursoId       Int
+  curso         Curso         @relation(fields: [cursoId], references: [id])
+  nombre        String
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  precio        Decimal       @db.Decimal(10, 2)
+  precioUSD     Decimal?      @db.Decimal(10, 2)
+  cupo          Int           @default(20)
+  activo        Boolean       @default(true)
+  instructor    String?
+  inscripciones Inscripcion[]
+}
+
+model Inscripcion {
+  id          Int               @id @default(autoincrement())
+  alumnoId    Int
+  alumno      Alumno            @relation(fields: [alumnoId], references: [id])
+  edicionId   Int
+  edicion     Edicion           @relation(fields: [edicionId], references: [id])
+  estado      InscripcionEstado @default(ACTIVA)
+  creadoEn    DateTime          @default(now())
+  pagos       Pago[]
+  certificado Certificado?
+}
+
+model Pago {
+  id            Int         @id @default(autoincrement())
+  inscripcionId Int
+  inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id])
+  monto         Decimal     @db.Decimal(10, 2)
+  montoUSD      Decimal?    @db.Decimal(10, 2)
+  moneda        Moneda      @default(GTQ)
+  metodo        MetodoPago
+  estado        PagoEstado  @default(PENDIENTE)
+  referencia    String?
+  creadoEn      DateTime    @default(now())
+  cuotas        CuotaPago[]
+}
+
+model CuotaPago {
+  id          Int        @id @default(autoincrement())
+  pagoId      Int
+  pago        Pago       @relation(fields: [pagoId], references: [id])
+  numeroCuota Int
+  monto       Decimal    @db.Decimal(10, 2)
+  fechaVence  DateTime
+  estado      PagoEstado @default(PENDIENTE)
+  pagadoEn    DateTime?
+}
+
+model Certificado {
+  id            Int         @id @default(autoincrement())
+  inscripcionId Int         @unique
+  inscripcion   Inscripcion @relation(fields: [inscripcionId], references: [id])
+  alumnoId      Int
+  alumno        Alumno      @relation(fields: [alumnoId], references: [id])
+  codigo        String      @unique
+  fechaEmision  DateTime    @default(now())
+  revocado      Boolean     @default(false)
+}
+
+// ─── WhatsApp ─────────────────────────────────────────────────────────────────
 
 model ConversacionWhatsApp {
   id       Int               @id @default(autoincrement())
@@ -48,6 +179,8 @@ model MensajeWhatsApp {
   creadoEn       DateTime             @default(now())
 }
 
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
 model Admin {
   id        Int              @id @default(autoincrement())
   email     String           @unique
@@ -57,15 +190,16 @@ model Admin {
   activo    Boolean          @default(true)
   creadoEn  DateTime         @default(now())
   auditoria AuditoriaAdmin[]
+  leads     Lead[]
 }
 
 model AuditoriaAdmin {
-  id        Int      @id @default(autoincrement())
-  adminId   Int
-  admin     Admin    @relation(fields: [adminId], references: [id])
-  accion    String
-  recurso   String
-  detalle   String?  @db.Text
-  ip        String?
-  creadoEn  DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  adminId  Int
+  admin    Admin    @relation(fields: [adminId], references: [id])
+  accion   String
+  recurso  String
+  detalle  String?  @db.Text
+  ip       String?
+  creadoEn DateTime @default(now())
 }

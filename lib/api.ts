@@ -98,6 +98,43 @@ export interface AlumnosResponse {
   meta: { total: number; page: number; limit: number };
 }
 
+export interface Inscripcion {
+  id: number;
+  estado: string;
+  creadoEn: string;
+  edicion: {
+    id: number;
+    nombre: string;
+    precio: string;
+    curso: { nombre: string };
+  };
+  pagos: Pago[];
+}
+
+export interface Pago {
+  id: number;
+  monto: string;
+  montoUSD: string | null;
+  moneda: string;
+  metodo: string;
+  estado: string;
+  referencia: string | null;
+  creadoEn: string;
+}
+
+export interface AlumnoDetalle extends Alumno {
+  inscripciones: Inscripcion[];
+}
+
+export interface Edicion {
+  id: number;
+  nombre: string;
+  precio: string;
+  precioUSD: string | null;
+  activo: boolean;
+  curso: { nombre: string };
+}
+
 export interface CreateAlumnoInput {
   nombre: string;
   apellido: string;
@@ -135,5 +172,16 @@ export const api = {
     apiFetch<Alumno & { tempPassword: string }>("/api/alumnos", {
       method: "POST",
       body: JSON.stringify(data),
+    }),
+
+  getAlumno: (id: number) => apiFetch<AlumnoDetalle>(`/api/alumnos/${id}`),
+
+  getEdiciones: () =>
+    apiFetch<{ data: Edicion[] }>("/api/ediciones?activo=true&limit=100"),
+
+  createInscripcion: (alumnoId: number, edicionId: number) =>
+    apiFetch<Inscripcion>("/api/inscripciones", {
+      method: "POST",
+      body: JSON.stringify({ alumnoId, edicionId }),
     }),
 };

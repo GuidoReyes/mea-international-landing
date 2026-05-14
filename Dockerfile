@@ -9,10 +9,10 @@ RUN npm install
 
 COPY backend/ ./
 
-RUN npm run build && npx prisma generate
+RUN npx prisma generate && npm run build
 
 RUN npm prune --omit=dev
 
 EXPOSE 4000
 
-CMD npx prisma db push && node dist/index.js
+CMD ["node", "dist/index.js"]

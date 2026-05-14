@@ -1,8 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import prisma from "./prisma";
 import { log } from "./logger";
-
-type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
 
 export async function guardarMensajes(
   telefono: string,
@@ -10,7 +7,7 @@ export async function guardarMensajes(
   assistantResponse: string
 ): Promise<void> {
   try {
-    await prisma.$transaction(async (tx: TransactionClient) => {
+    await prisma.$transaction(async (tx) => {
       // 1. Upsert lead por teléfono
       const lead = await tx.lead.upsert({
         where: { telefono },

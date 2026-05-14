@@ -80,6 +80,29 @@ export interface LeadsResponse {
   meta: { total: number; page: number; limit: number };
 }
 
+export interface CRMEtapa {
+  id: number;
+  nombre: string;
+  orden: number;
+  color: string;
+}
+
+export interface CRMLead {
+  id: number;
+  nombre: string | null;
+  telefono: string;
+  email: string | null;
+  etapaId: number | null;
+  valorEstimado: string | null;
+  fechaCierreEstimada: string | null;
+  notasCRM: string | null;
+  asignadoAdminId: number | null;
+  asignadoAdmin: { id: number; nombre: string } | null;
+  creadoEn: string;
+}
+
+export type PipelineColumn = CRMEtapa & { leads: CRMLead[] };
+
 export interface Alumno {
   id: number;
   carnet: string;
@@ -175,6 +198,22 @@ export const api = {
     }),
 
   getAlumno: (id: number) => apiFetch<AlumnoDetalle>(`/api/alumnos/${id}`),
+
+  getPipeline: () => apiFetch<PipelineColumn[]>("/api/crm/pipeline"),
+
+  patchLeadEtapa: (leadId: number, etapaId: number) =>
+    apiFetch<CRMLead>(`/api/crm/leads/${leadId}/etapa`, {
+      method: "PATCH",
+      body: JSON.stringify({ etapaId }),
+    }),
+
+  patchCRMLead: (leadId: number, data: Partial<Pick<CRMLead, "notasCRM" | "asignadoAdminId" | "valorEstimado" | "fechaCierreEstimada">>) =>
+    apiFetch<CRMLead>(`/api/crm/leads/${leadId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  getCRMEtapas: () => apiFetch<CRMEtapa[]>("/api/crm/etapas"),
 
   getEdiciones: () =>
     apiFetch<{ data: Edicion[] }>("/api/ediciones?activo=true&limit=100"),

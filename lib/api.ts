@@ -80,6 +80,32 @@ export interface LeadsResponse {
   meta: { total: number; page: number; limit: number };
 }
 
+export interface Alumno {
+  id: number;
+  carnet: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  whatsapp: string | null;
+  pais: string;
+  activo: boolean;
+  creadoEn: string;
+  _count?: { inscripciones: number };
+}
+
+export interface AlumnosResponse {
+  data: Alumno[];
+  meta: { total: number; page: number; limit: number };
+}
+
+export interface CreateAlumnoInput {
+  nombre: string;
+  apellido: string;
+  email: string;
+  whatsapp?: string;
+  pais?: string;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
@@ -97,4 +123,17 @@ export const api = {
 
   patchLead: (id: number, data: Partial<Pick<Lead, "nombre" | "email" | "interes" | "estado">>) =>
     apiFetch<Lead>(`/api/leads/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  getAlumnos: (page = 1, search?: string, activo?: boolean) => {
+    const params = new URLSearchParams({ page: String(page), limit: "10" });
+    if (search) params.set("search", search);
+    if (activo !== undefined) params.set("activo", String(activo));
+    return apiFetch<AlumnosResponse>(`/api/alumnos?${params}`);
+  },
+
+  createAlumno: (data: CreateAlumnoInput) =>
+    apiFetch<Alumno & { tempPassword: string }>("/api/alumnos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };

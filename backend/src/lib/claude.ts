@@ -2,37 +2,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getJSON, setJSON, CHAT_HISTORY_TTL } from "./redis";
 import { getNotionContext } from "./notion-context";
 import { log } from "./logger";
+import prisma from "./prisma";
+import { selectAgent } from "../agents/agentRouter";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
-
-const WEB_CONTEXT = `
-MEA International es una academia premium de inglés online enfocada en Guatemala y Latinoamérica.
-Clases en vivo por Zoom/Google Meet con maestros certificados.
-
-PLANES Y PRECIOS (en Quetzales):
-- Inscripción: Q100 (pago único, una sola vez)
-- Plataforma educativa: Q130 (acceso digital, pago único)
-- Inglés Pre A (básico): Q300/mes → 8 clases al mes, 2 por semana, grupales
-- Inglés Intermedio-Avanzado B1-B2 (conversacional): Q250/mes → 8 clases al mes, 2 por semana, grupales. EL MÁS POPULAR.
-- VIP / Personalizado 1 a 1: Q1,600/mes → clases privadas, horario 100% flexible, plan a medida
-
-INCLUIDO EN TODOS LOS PLANES:
-- Material digital
-- Acceso a clases grabadas
-- Soporte por WhatsApp
-- Certificado de nivel
-- Sin contratos ni compromisos mínimos (podés cancelar cuando quieras)
-- Oferta de grupo familiar disponible
-
-PROGRAMAS ESPECIALIZADOS: inglés médico, inglés legal, preparación TOEFL.
-
-HORARIOS: flexibles de 6am a 9pm, adaptados al horario del estudiante.
-
-INSCRIPCIÓN Y CONTACTO: todo por WhatsApp al +502 5631-1728 o en mea.edu.gt
-`.trim();
 
 async function getHistory(telefono: string): Promise<Message[]> {
   try {
@@ -57,22 +33,42 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
 
   const notionCtx = await getNotionContext(mensaje).catch(() => "");
 
-  const systemPrompt = `Eres el asistente virtual de MEA International, una academia de inglés online premium en Guatemala.
-Respondés en español, de forma amable, natural y concisa (máximo 3 párrafos cortos).
-Si no sabés algo con certeza, decí que un asesor se pondrá en contacto pronto.
-No inventés precios ni fechas que no estén en el contexto proporcionado.
-Cuando sea relevante, animá al usuario a inscribirse o a consultar más por WhatsApp.
+  // Fetch lead with etapa and last message timestamp for agent selection
+  const lead = await prisma.lead.findUnique({
+    where: { telefono },
+    include: {
+      etapa: { select: { nombre: true } },
+      conversaciones: {
+        include: {
+          mensajes: { orderBy: { creadoEn: "desc" }, take: 1 },
+        },
+        orderBy: { creadoEn: "desc" },
+        take: 1,
+      },
+    },
+  }).catch(() => null);
 
-INFORMACIÓN DE MEA INTERNATIONAL:
-${WEB_CONTEXT}
+  const lastMessageAt = lead?.conversaciones?.[0]?.mensajes?.[0]?.creadoEn ?? null;
 
-${notionCtx ? `INFORMACIÓN ADICIONAL:\n${notionCtx}` : ""}`.trim();
+  const agentConfig = selectAgent(
+    lead
+      ? {
+          nombre: lead.nombre,
+          creadoEn: lead.creadoEn,
+          etapa: lead.etapa,
+          lastMessageAt,
+        }
+      : null
+  );
+
+  const systemPrompt = `${agentConfig.systemPrompt}${notionCtx ? `\n\nINFORMACIÓN ADICIONAL:\n${notionCtx}` : ""}`.trim();
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 500,
+    max_tokens: agentConfig.maxTokens,
+    temperature: agentConfig.temperature,
     system: systemPrompt,
     messages: history.slice(-10),
   });

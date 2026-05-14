@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
+import { auditLog } from "../middleware/audit.middleware";
 
 const router = Router();
 
@@ -55,7 +56,7 @@ router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
   res.json(lead);
 });
 
-router.patch("/:id", verifyJWT, async (req: Request, res: Response) => {
+router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_LEAD", "leads"), async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });

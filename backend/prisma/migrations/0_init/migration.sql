@@ -1,0 +1,2 @@
+-- Baseline migration: tables already exist via prisma db push.
+-- Mark as applied with: npx prisma migrate resolve --applied 0_init

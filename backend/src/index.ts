@@ -11,6 +11,7 @@ import pagosRouter from "./routes/pagos";
 import cuotasRouter from "./routes/cuotas";
 import crmRouter from "./routes/crm";
 import edicionesRouter from "./routes/ediciones";
+import inscripcionesRouter from "./routes/inscripciones";
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use("/api/pagos", pagosRouter);
 app.use("/api/cuotas", cuotasRouter);
 app.use("/api/crm", crmRouter);
 app.use("/api/ediciones", edicionesRouter);
+app.use("/api/inscripciones", inscripcionesRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {

@@ -5,10 +5,15 @@ export async function guardarMensajes(
   telefono: string,
   userMessage: string,
   assistantResponse: string
-): Promise<void> {
+): Promise<{ isNewLead: boolean }> {
   try {
+    let isNewLead = false;
+
     await prisma.$transaction(async (tx) => {
-      // 1. Upsert lead por teléfono
+      // 1. Detectar si el lead es nuevo antes del upsert
+      const existing = await tx.lead.findUnique({ where: { telefono }, select: { id: true } });
+      isNewLead = !existing;
+
       const lead = await tx.lead.upsert({
         where: { telefono },
         create: { telefono },
@@ -34,8 +39,11 @@ export async function guardarMensajes(
         ],
       });
     });
+
+    return { isNewLead };
   } catch (err) {
     // Falla silenciosa — la persistencia no debe interrumpir la respuesta del bot
     log("error", "[Persistence] Error guardando mensajes:", err);
+    return { isNewLead: false };
   }
 }

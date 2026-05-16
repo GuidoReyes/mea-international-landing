@@ -4,6 +4,8 @@ import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
 import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { notifyAdminNewLead } from "../services/notifications";
+import { desactivarModoHumano } from "../lib/human-handoff";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -59,6 +61,14 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
     const mensaje = msg.text.body;
     const mask = maskPhone(telefono);
 
+    // 55.7: /bot — asesor reactiva el bot manualmente
+    if (mensaje.trim() === "/bot") {
+      await desactivarModoHumano(telefono);
+      await sendWhatsAppMessage(telefono, "Bot reactivado ✅ Volviendo a modo automático.");
+      log("info", `[WhatsApp] ${mask} | Bot reactivado por comando /bot`);
+      continue;
+    }
+
     log("info", `[WhatsApp] ${mask} | mensaje recibido: "${mensaje.slice(0, 60)}"`);
 
     let respuesta: string;
@@ -72,9 +82,17 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
     }
 
     // Persistir (falla silenciosa)
-    await guardarMensajes(telefono, mensaje, respuesta).catch((err) =>
-      log("error", `[WhatsApp] ${mask} | Error persistiendo:`, err)
-    );
+    const { isNewLead } = await guardarMensajes(telefono, mensaje, respuesta).catch((err) => {
+      log("error", `[WhatsApp] ${mask} | Error persistiendo:`, err);
+      return { isNewLead: false };
+    });
+
+    // Notificar al admin cuando llega un lead nuevo (fire and forget)
+    if (isNewLead) {
+      notifyAdminNewLead(telefono, mensaje).catch((err) =>
+        log("error", `[WhatsApp] ${mask} | Error notificando nuevo lead:`, err)
+      );
+    }
 
     // Enviar respuesta por WhatsApp
     const sent = await sendWhatsAppMessage(telefono, respuesta);

@@ -130,6 +130,8 @@ ${WEB_CONTEXT}`,
   },
 };
 
+const ESCALATION_INSTRUCTION = `\n\nIMPORTANTE: Si el cliente pregunta algo fuera de tu conocimiento, pide hablar con una persona, o insiste en algo que no podés resolver, respondé ÚNICAMENTE con este JSON exacto sin texto adicional: {"accion": "escalar_humano", "motivo": "breve razón"}. No inventés información. Si no sabés → escalá.`;
+
 interface LeadWithEtapa {
   nombre: string | null;
   creadoEn: Date;
@@ -144,18 +146,20 @@ function msSince(date: Date): number {
 const MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
 const MS_1_HOUR = 60 * 60 * 1000;
 
+function withEscalation(config: AgentConfig): AgentConfig {
+  return { ...config, systemPrompt: config.systemPrompt + ESCALATION_INSTRUCTION };
+}
+
 export function selectAgent(lead: LeadWithEtapa | null): AgentConfig {
-  if (!lead) return AGENT_CONFIGS.default;
+  if (!lead) return withEscalation(AGENT_CONFIGS.default);
 
   const lastMsg = lead.lastMessageAt;
 
   // Re-engagement: lead older than 30 days with no recent contact
   if (msSince(lead.creadoEn) > MS_30_DAYS && (!lastMsg || msSince(lastMsg) > MS_30_DAYS)) {
-    return AGENT_CONFIGS.Nuevo;
+    return withEscalation(AGENT_CONFIGS.Nuevo);
   }
 
-  // Active conversation within 1 hour → use stage-based agent as-is
-  // Dormant 1h-30d → also use stage-based agent (context already in history)
   const etapaNombre = lead.etapa?.nombre ?? "default";
-  return AGENT_CONFIGS[etapaNombre] ?? AGENT_CONFIGS.default;
+  return withEscalation(AGENT_CONFIGS[etapaNombre] ?? AGENT_CONFIGS.default);
 }

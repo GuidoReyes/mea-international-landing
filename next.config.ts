@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.mea.edu.gt https://www.mea.edu.gt https://prod.spline.design https://*.spline.design",
+              "connect-src 'self' https://api.mea.edu.gt https://www.mea.edu.gt https://*.spline.design wss://*.spline.design",
               "frame-src https://challenges.cloudflare.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "worker-src 'self' blob:",

@@ -9,33 +9,28 @@ interface SplineSceneProps {
   className?: string
 }
 
-interface ErrorBoundaryState { hasError: boolean }
+interface EBState { hasError: boolean }
 
-class SplineErrorBoundary extends Component<{ children: ReactNode; className?: string }, ErrorBoundaryState> {
-  state = { hasError: false }
-  static getDerivedStateFromError() { return { hasError: true } }
+class SplineErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, EBState> {
+  state: EBState = { hasError: false }
+  static getDerivedStateFromError(): EBState { return { hasError: true } }
+  reset = () => this.setState({ hasError: false })
   render() {
-    if (this.state.hasError) {
-      return (
-        <div className={`w-full h-full flex items-center justify-center ${this.props.className ?? ''}`}>
-          <div className="w-12 h-12 border-4 border-[#00C4B4]/30 rounded-full" />
-        </div>
-      )
-    }
+    if (this.state.hasError) return this.props.fallback
     return this.props.children
   }
 }
 
+const Fallback = ({ className }: { className?: string }) => (
+  <div className={`w-full h-full flex items-center justify-center ${className ?? ''}`}>
+    <div className="w-16 h-16 border-4 border-[#00C4B4]/20 border-t-[#00C4B4] rounded-full animate-spin" />
+  </div>
+)
+
 export function SplineScene({ scene, className }: SplineSceneProps) {
   return (
-    <SplineErrorBoundary className={className}>
-      <Suspense
-        fallback={
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-12 h-12 border-4 border-[#00C4B4] border-t-transparent rounded-full animate-spin" />
-          </div>
-        }
-      >
+    <SplineErrorBoundary fallback={<Fallback className={className} />}>
+      <Suspense fallback={<Fallback className={className} />}>
         <Spline scene={scene} className={className} />
       </Suspense>
     </SplineErrorBoundary>

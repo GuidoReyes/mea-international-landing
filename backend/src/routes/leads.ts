@@ -29,6 +29,46 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   res.json({ data: leads, meta: { total, page, limit } });
 });
 
+function escapeCsv(value: unknown): string {
+  const str = value == null ? "" : String(value);
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+router.get("/export/csv", verifyJWT, auditLog("EXPORT_CSV", "leads"), async (req: Request, res: Response) => {
+  const estado = req.query.estado as string | undefined;
+  const where = estado ? { estado } : {};
+
+  const leads = await prisma.lead.findMany({
+    where,
+    orderBy: { creadoEn: "desc" },
+    include: { etapa: { select: { nombre: true } } },
+  });
+
+  const date = new Date().toISOString().slice(0, 10);
+  const headers = ["id", "nombre", "email", "telefono", "estado", "interes", "etapa", "creadoEn"];
+  const rows = leads.map((lead) =>
+    [
+      lead.id,
+      escapeCsv(lead.nombre),
+      escapeCsv(lead.email),
+      escapeCsv(lead.telefono),
+      escapeCsv(lead.estado),
+      escapeCsv(lead.interes),
+      escapeCsv(lead.etapa?.nombre),
+      escapeCsv(lead.creadoEn.toISOString()),
+    ].join(",")
+  );
+
+  const csv = [headers.join(","), ...rows].join("\n");
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename=leads-${date}.csv`);
+  res.send(csv);
+});
+
 router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {

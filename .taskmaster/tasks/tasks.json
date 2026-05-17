@@ -901,8 +901,9 @@
         "testStrategy": "Trigger Railway deploy, check build logs to confirm 'prisma migrate deploy' runs. Verify existing migrations apply successfully. Test that new migration created locally with 'migrate dev' deploys correctly on next push.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T03:53:53.489Z"
       },
       {
         "id": "27",
@@ -912,8 +913,9 @@
         "testStrategy": "Use curl -I http://mea.edu.gt to verify 301 redirect to https://www.mea.edu.gt. Test with and without paths (/cursos, /admin). Verify SSL works on both. Check Vercel domain settings show both domains.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T06:11:10.328Z"
       },
       {
         "id": "28",
@@ -925,7 +927,7 @@
         "dependencies": [
           "25"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -985,7 +987,8 @@
             "testStrategy": "Verify migration runs without errors and creates all tables. Run seed script and check database with Prisma Studio: npx prisma studio. Verify 6 CRMEtapa records exist with correct colors. Test creating a Lead with etapaId reference. Test creating full flow: Alumno -> Inscripcion -> Pago -> CuotaPago to verify all relations work.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-14T04:10:50.225Z"
       },
       {
         "id": "29",
@@ -997,7 +1000,7 @@
         "dependencies": [
           "28"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1058,7 +1061,8 @@
             "testStrategy": "Create alumno via POST, verify carnet format MEA-2026-0001. Create second alumno, verify carnet MEA-2026-0002. Test PATCH updates fields but not carnet. Test DELETE soft-deletes (activo=false). Verify all routes require JWT token.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-14T04:12:25.388Z"
       },
       {
         "id": "30",
@@ -1071,7 +1075,7 @@
           "28",
           "29"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1137,7 +1141,8 @@
             "testStrategy": "Restart backend server. Test GET http://localhost:4000/api/ediciones returns 200 (verifies router is mounted). Test all CRUD operations end-to-end: create edicion, list ediciones, get detail, update, inscribe alumno, soft-delete. Verify audit logs appear in console for all mutating operations (POST, PATCH, DELETE, inscribir). Check logs include correct admin ID from JWT token. Test Railway deployment: push to main branch, verify deployment succeeds, test production API endpoints work correctly. Verify TypeScript compilation succeeds with no errors.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-14T05:46:50.306Z"
       },
       {
         "id": "31",
@@ -1149,8 +1154,9 @@
         "dependencies": [
           "30"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T06:20:58.937Z"
       },
       {
         "id": "32",
@@ -1162,8 +1168,9 @@
         "dependencies": [
           "28"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T04:15:31.785Z"
       },
       {
         "id": "33",
@@ -1175,8 +1182,9 @@
         "dependencies": [
           "28"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T04:16:34.342Z"
       },
       {
         "id": "34",
@@ -1188,7 +1196,7 @@
         "dependencies": [
           "24"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1196,7 +1204,7 @@
             "description": "Create backend/src/services/notifications.ts with notifyAdminNewLead function that sends formatted WhatsApp messages to admin",
             "dependencies": [],
             "details": "Create backend/src/services/notifications.ts file. Import sendWhatsAppMessage from '../lib/whatsapp-send'. Define Lead type with properties: telefono (string), interes (string | null). Export async function notifyAdminNewLead(lead: Lead): Promise<void>. Inside function: get adminNumber from process.env.ADMIN_WA_NUMBER, construct message template: `🆕 Nuevo lead\\n📱 +${lead.telefono}\\n💬 ${lead.interes || 'Sin mensaje'}`. Call sendWhatsAppMessage(adminNumber, message) but don't await (fire and forget). Wrap in try-catch to log errors without throwing. Follow existing code patterns from whatsapp-send.ts (error handling, logging format).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test: mock sendWhatsAppMessage, call notifyAdminNewLead with test lead data, verify sendWhatsAppMessage called with correct admin number and formatted message. Test both with and without interes field.",
             "parentId": "undefined"
           },
@@ -1208,7 +1216,7 @@
               1
             ],
             "details": "In backend/src/services/notifications.ts, add interface MSGraphToken { access_token: string; expires_at: number }. Create module-level variable: let cachedToken: MSGraphToken | null = null. Export async function getMSGraphToken(): Promise<string>. Check if cachedToken exists and expires_at > Date.now(), return cached token if valid. Otherwise, fetch new token: POST to https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/token with body (URL-encoded): grant_type=client_credentials, client_id=MS_CLIENT_ID, client_secret=MS_CLIENT_SECRET, scope=https://graph.microsoft.com/.default. Parse response, cache token with expires_at = Date.now() + (expires_in * 1000) - 60000 (subtract 60s buffer). Return access_token. Add error handling for missing env vars and failed requests.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test: mock fetch, verify correct OAuth2 request format. Test token caching: call twice, verify fetch only called once. Test expiry: mock expired token, verify refetch. Mock MS Graph API response structure.",
             "parentId": "undefined"
           },
@@ -1220,7 +1228,7 @@
               2
             ],
             "details": "In backend/src/services/notifications.ts, export async function sendTransactionalEmail(to: string, subject: string, html: string): Promise<void>. Call getMSGraphToken() to get access token. Construct request body: { message: { subject, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: to }}], from: null }}. POST to https://graph.microsoft.com/v1.0/users/${process.env.ADMIN_EMAIL}/sendMail with headers: Authorization: 'Bearer ' + token, Content-Type: 'application/json'. Check response.ok, throw error if failed. Add console.log for success: '[Email] Sent to ${to} - ${subject}'. Handle errors with try-catch, log but don't throw (fire and forget pattern). Add env vars validation at function start.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Integration test with real MS Graph (dev environment): send test email, verify arrives in inbox (check spam). Unit test: mock getMSGraphToken and fetch, verify correct API call structure. Test error handling for invalid recipients.",
             "parentId": "undefined"
           },
@@ -1232,11 +1240,12 @@
               1
             ],
             "details": "In backend/src/routes/whatsapp.webhook.ts, import notifyAdminNewLead from '../services/notifications'. In POST route after guardarMensajes() call (line 74), detect if this is a new lead: query conversaciones count before guardarMensajes or track if lead was just created. Add logic: after guardarMensajes succeeds, check if this was first conversation for lead. If yes, call notifyAdminNewLead({ telefono, interes: null }) without await (fire and forget). Wrap in try-catch to prevent notification failure from affecting webhook. Add environment variables to .env.example: ADMIN_WA_NUMBER, ADMIN_EMAIL, MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET. Update backend/.env.example with these new variables and descriptions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "End-to-end test: send WhatsApp message from new phone number, verify guardarMensajes creates new lead, verify admin receives WhatsApp notification with correct format. Test that notification failure doesn't break webhook (mock sendWhatsAppMessage to throw error). Verify existing leads don't trigger notification.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-15T03:45:57.072Z"
       },
       {
         "id": "35",
@@ -1248,8 +1257,9 @@
         "dependencies": [
           "25"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T07:03:07.045Z"
       },
       {
         "id": "36",
@@ -1261,8 +1271,9 @@
         "dependencies": [
           "35"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T07:03:09.233Z"
       },
       {
         "id": "37",
@@ -1274,8 +1285,9 @@
         "dependencies": [
           "28"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T07:07:16.336Z"
       },
       {
         "id": "38",
@@ -1287,8 +1299,9 @@
         "dependencies": [
           "37"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T07:45:17.043Z"
       },
       {
         "id": "39",
@@ -1300,8 +1313,9 @@
         "dependencies": [
           "38"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T07:45:19.010Z"
       },
       {
         "id": "40",
@@ -1313,8 +1327,9 @@
         "dependencies": [
           "29"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T05:25:23.896Z"
       },
       {
         "id": "41",
@@ -1326,8 +1341,9 @@
         "dependencies": [
           "40"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-14T05:27:11.798Z"
       },
       {
         "id": "42",
@@ -1352,7 +1368,7 @@
         "dependencies": [
           "33"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1412,7 +1428,8 @@
             "testStrategy": "Drag lead between stages, verify PATCH /api/crm/leads/:id/etapa request fires with correct etapaId. Verify card moves to new column immediately (optimistic update). Click card, verify drawer opens on right side. Edit notasCRM in drawer, click save, verify PATCH /api/crm/leads/:id request succeeds and data persists. Test with 20+ leads per column to check performance and scroll behavior. Verify etapa.color backgrounds render correctly with light tint.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-14T05:32:57.329Z"
       },
       {
         "id": "44",
@@ -1637,7 +1654,7 @@
         "dependencies": [
           "33"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1685,7 +1702,8 @@
             "testStrategy": "Run full integration test with Railway MySQL database containing CRMEtapa seeds and test leads. Send test WhatsApp messages via webhook or direct function call. Check Railway logs for selectAgent function calls and verify correct agent chosen. Compare response tone/content for leads in different stages - 'Nuevo' should be friendlier and ask more questions, 'Propuesta' should be more sales-driven with clear CTA. Verify no errors in TypeScript compilation. Test error handling when etapa relation is missing or database query fails (should fall back to default agent).",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-14T05:39:12.237Z"
       },
       {
         "id": "53",
@@ -1759,13 +1777,443 @@
         ],
         "status": "pending",
         "subtasks": []
+      },
+      {
+        "id": "55",
+        "title": "Human Handoff — Traspaso a Asesor Humano",
+        "description": "Implementar sistema de traspaso de conversación WhatsApp del bot al asesor humano, con reactivación automática por timeout de 1 hora.",
+        "details": "",
+        "testStrategy": "",
+        "status": "done",
+        "dependencies": [
+          "34"
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Crear lib/human-handoff.ts con funciones Redis",
+            "description": "Crear backend/src/lib/human-handoff.ts con 4 funciones: activarModoHumano(telefono) guarda key 'handoff:{telefono}' en Redis TTL 3600s; desactivarModoHumano(telefono) elimina la key; estaModoHumano(telefono) retorna boolean; tiempoRestanteHandoff(telefono) retorna TTL restante en segundos con redis.ttl(). Importar cliente Redis de ./redis.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Agregar sendTemplateMessage() a lib/whatsapp-send.ts",
+            "description": "Agregar función sendTemplateMessage(telefono, templateName, params[]) que hace POST a Meta Graph API v21.0/{META_PHONE_ID}/messages con type 'template', language { code: 'es' }. Mapear params[] como components[0].parameters con type 'text'. Reutilizar el mismo fetch + headers + retry exponencial del sendWhatsAppMessage existente.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "55.1"
+            ],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Agregar variables de entorno MIRCE_PERSONAL_PHONE y MIRCE_BOT_PHONE",
+            "description": "Agregar en Railway (production) y en .env (local): MIRCE_PERSONAL_PHONE=50250191753 (número que recibe notificaciones de escalada) y MIRCE_BOT_PHONE=50256311728 (número desde donde Mirce escribe /bot para reactivar). Documentar ambas variables en el README del backend.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Actualizar agentRouter.ts — instrucción de escalada en cada agente",
+            "description": "Al final del systemPrompt de CADA agente en AGENT_CONFIGS (Nuevo, Contactado, Interesado, Propuesta, Negociacion, Cerrado, default) agregar: 'Si el cliente pregunta algo fuera de tu conocimiento o pide hablar con una persona, responde ÚNICAMENTE con este JSON exacto sin texto adicional: {\"accion\": \"escalar_humano\", \"motivo\": \"breve razón\"}. No inventes información. Si no sabes → escala.'",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "claude.ts — bloque de detección y ejecución de escalada",
+            "description": "Después de recibir respuesta de Claude y ANTES de retornarla: 1) Intentar JSON.parse() de la respuesta. 2) Si parsed.accion === 'escalar_humano': a) Llamar activarModoHumano(telefono), b) Actualizar lead en Prisma a etapa EscaladoHumano, c) Retornar mensaje humanizado al cliente ('Un momento por favor 😊 Voy a conectarte con una de nuestras asesoras...'), d) Llamar sendTemplateMessage(MIRCE_PERSONAL_PHONE, 'notificacion_escalada_interna', [telefono, parsed.motivo]) con template de alerta. 3) Si JSON.parse falla → retornar respuesta normal.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "55.1",
+              "55.2",
+              "55.3",
+              "55.4"
+            ],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "claude.ts — silenciar bot cuando modo humano está activo",
+            "description": "Al INICIO de responderMensaje(), antes de cualquier lógica: 1) if (await estaModoHumano(telefono)): a) Obtener segundos restantes con tiempoRestanteHandoff(), b) Calcular minutosRestantes = Math.ceil(segundos / 60), c) Enviar al cliente: 'Hola de nuevo 😊 Tu consulta ya está en manos de nuestra asesora. En breve te contacta. Si en {minutosRestantes} minutos no recibes respuesta, el asistente automático se reactiva.' d) return early (no llamar a Claude).",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "55.1",
+              "55.5"
+            ],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          },
+          {
+            "id": 7,
+            "title": "whatsapp.webhook.ts — comando /bot para reactivación manual",
+            "description": "Al inicio del handler POST, antes de llamar responderMensaje(): Si telefono === process.env.MIRCE_BOT_PHONE AND mensaje.startsWith('/bot '): a) Extraer telefonoCliente = mensaje.replace('/bot ', '').trim(), b) Llamar desactivarModoHumano(telefonoCliente), c) Enviar confirmación a MIRCE_BOT_PHONE: '✅ Bot reactivado para +{telefonoCliente}', d) return res.sendStatus(200). Importar estaModoHumano y desactivarModoHumano desde ../lib/human-handoff.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "55.1",
+              "55.6"
+            ],
+            "parentTaskId": 55,
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-16T03:06:56.182Z"
+      },
+      {
+        "id": "56",
+        "title": "Modelo Escalada — Log de escaladas en Prisma",
+        "description": "Registrar historial completo de escaladas a humano en base de datos con modelo Prisma Escalada.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "45"
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "schema.prisma — agregar modelo Escalada y migrar",
+            "description": "Agregar modelo Escalada al schema.prisma: id String @id @default(cuid()), telefono String, motivo String, etapaPrevia String, reactivadoPor String @default('timeout') (valores: 'timeout' o 'mirce_manual'), reactivadoEn DateTime? (nullable), creadoEn DateTime @default(now()), relación lead Lead @relation(fields:[telefono], references:[telefono]). Agregar también escaladas Escalada[] en el modelo Lead existente. Correr: npx prisma migrate dev --name add_escaladas_log",
+            "details": "",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 56,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "claude.ts — crear registro Escalada al escalar",
+            "description": "Dentro del bloque if parsed.accion === 'escalar_humano' (subtarea 55.5): 1) Antes de actualizar la etapa del lead, consultar su etapa actual, 2) Crear registro con prisma.escalada.create({ data: { telefono, motivo: parsed.motivo, etapaPrevia: etapaActual } }). Este registro queda con reactivadoPor='timeout' por default hasta que se llame la reactivación manual.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "56.1"
+            ],
+            "parentTaskId": 56,
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "whatsapp.webhook.ts — marcar reactivación manual en Escalada",
+            "description": "Dentro del handler del comando /bot (subtarea 55.7), después de desactivarModoHumano(): Llamar prisma.escalada.updateMany({ where: { telefono: telefonoCliente, reactivadoEn: null }, data: { reactivadoPor: 'mirce_manual', reactivadoEn: new Date() } }). Esto cierra correctamente el registro de escalada abierto.",
+            "details": "",
+            "status": "pending",
+            "dependencies": [
+              "56.1"
+            ],
+            "parentTaskId": 56,
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "57",
+        "title": "Setup Twilio account and WhatsApp Sandbox configuration",
+        "description": "Create Twilio account, configure WhatsApp Sandbox, perform admin opt-in, and document credentials",
+        "details": "1. Create Twilio account at twilio.com using ghreyes.montenegro@gmail.com\n2. Navigate to Messaging → Try it Out → Send a WhatsApp Message → Sandbox\n3. Note the sandbox number (e.g., whatsapp:+14155238886) and join code\n4. From admin's personal WhatsApp (+50256311728 or actual admin number), send 'join <code>' to the sandbox number to complete opt-in\n5. Document the following credentials:\n   - TWILIO_ACCOUNT_SID (from console)\n   - TWILIO_AUTH_TOKEN (from console)\n   - TWILIO_WHATSAPP_NUMBER (sandbox number in format whatsapp:+14155238886)\n   - ADMIN_TWILIO_WHATSAPP (admin's personal number in format whatsapp:+502XXXXXXXX)\n6. For production, consider upgrading to dedicated Twilio number with WhatsApp Business API approval\n7. Store credentials securely for Railway deployment",
+        "testStrategy": "Verify opt-in by sending a test message from Twilio console to admin's WhatsApp. Confirm message is received. Verify all four credentials are documented and formatted correctly.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "58",
+        "title": "Configure Twilio environment variables in Railway",
+        "description": "Add Twilio credentials and admin WhatsApp number to Railway backend service environment variables",
+        "details": "In Railway dashboard for the backend service:\n1. Add TWILIO_ACCOUNT_SID from Twilio console\n2. Add TWILIO_AUTH_TOKEN from Twilio console\n3. Add TWILIO_WHATSAPP_NUMBER in format whatsapp:+14155238886 (sandbox or dedicated number)\n4. Add ADMIN_TWILIO_WHATSAPP in format whatsapp:+502XXXXXXXX (admin's personal number that completed opt-in)\n5. Verify MIRCE_PERSONAL_PHONE is already configured (should be 50250191753 per .env.example)\n6. Trigger Railway redeploy to load new environment variables\n7. Check deployment logs to ensure no missing environment variable errors",
+        "testStrategy": "After deployment, verify environment variables are accessible by checking Railway logs. Optionally add a temporary health check endpoint that confirms Twilio credentials are present (without exposing values).",
+        "priority": "high",
+        "dependencies": [
+          "57"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "59",
+        "title": "Install Twilio SDK in backend",
+        "description": "Add twilio package and TypeScript types to backend dependencies",
+        "details": "In backend/ directory:\n1. Run: npm install twilio\n2. Run: npm install --save-dev @types/twilio\n3. Verify package.json includes twilio in dependencies section (not devDependencies)\n4. Verify @types/twilio in devDependencies\n5. Run npm install to ensure lock file is updated\n6. Commit package.json and package-lock.json changes",
+        "testStrategy": "Verify successful installation by importing twilio in a test file: `import twilio from 'twilio'`. Run `npm list twilio` to confirm version is installed. Check that TypeScript does not show type errors for twilio import.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:42.789Z"
+      },
+      {
+        "id": "60",
+        "title": "Create lib/twilio-send.ts with sendTwilioWhatsApp function",
+        "description": "Implement Twilio WhatsApp message sending utility with error handling and logging",
+        "details": "Create backend/src/lib/twilio-send.ts:\n\n```typescript\nimport twilio from 'twilio';\nimport { log } from './logger';\n\ninterface SendTwilioResult {\n  success: boolean;\n  sid?: string;\n  error?: string;\n}\n\nexport async function sendTwilioWhatsApp(to: string, body: string): Promise<SendTwilioResult> {\n  const accountSid = process.env.TWILIO_ACCOUNT_SID;\n  const authToken = process.env.TWILIO_AUTH_TOKEN;\n  const from = process.env.TWILIO_WHATSAPP_NUMBER;\n\n  if (!accountSid || !authToken || !from) {\n    log('error', '[Twilio] Missing credentials: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, or TWILIO_WHATSAPP_NUMBER');\n    return { success: false, error: 'Missing Twilio credentials' };\n  }\n\n  try {\n    const client = twilio(accountSid, authToken);\n    const message = await client.messages.create({\n      from, // whatsapp:+14155238886\n      to: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,\n      body\n    });\n\n    log('info', `[Twilio] Message sent to ${to} — SID: ${message.sid}`);\n    return { success: true, sid: message.sid };\n  } catch (err) {\n    const errorMsg = err instanceof Error ? err.message : String(err);\n    log('error', `[Twilio] Error sending message to ${to}:`, errorMsg);\n    return { success: false, error: errorMsg };\n  }\n}\n```\n\nNo retry logic needed (Twilio has internal retry). Use existing log() function from logger.ts. Handle both whatsapp: prefixed and non-prefixed phone numbers.",
+        "testStrategy": "Write a test that calls sendTwilioWhatsApp with admin's number and a test message. Verify message is received on admin's WhatsApp. Test error cases: missing credentials (mock env vars), invalid phone number format. Verify logs are written correctly.",
+        "priority": "high",
+        "dependencies": [
+          "59"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:44.732Z"
+      },
+      {
+        "id": "61",
+        "title": "Create Twilio webhook signature verification middleware",
+        "description": "Implement middleware to verify X-Twilio-Signature header using HMAC-SHA1 validation",
+        "details": "Create backend/src/middleware/twilio-webhook.middleware.ts:\n\n```typescript\nimport { Request, Response, NextFunction } from 'express';\nimport twilio from 'twilio';\nimport { log } from '../lib/logger';\n\nexport function verifyTwilioSignature(req: Request, res: Response, next: NextFunction) {\n  const signature = req.headers['x-twilio-signature'] as string | undefined;\n  \n  if (!signature) {\n    log('error', '[Twilio] Missing X-Twilio-Signature header');\n    res.status(403).json({ error: 'Missing signature' });\n    return;\n  }\n\n  const authToken = process.env.TWILIO_AUTH_TOKEN;\n  if (!authToken) {\n    log('error', '[Twilio] TWILIO_AUTH_TOKEN not configured');\n    res.status(500).json({ error: 'Server misconfiguration' });\n    return;\n  }\n\n  // Twilio validates URL + params (form-urlencoded body)\n  const url = `https://${req.headers.host}${req.originalUrl}`;\n  const params = req.body || {};\n\n  const isValid = twilio.validateRequest(authToken, signature, url, params);\n\n  if (!isValid) {\n    log('error', '[Twilio] Invalid webhook signature');\n    res.status(403).json({ error: 'Invalid signature' });\n    return;\n  }\n\n  next();\n}\n```\n\nUse twilio.validateRequest() from SDK (similar pattern to verifyMetaHmac). Twilio sends form-urlencoded data, not JSON. Signature validates URL + body params.",
+        "testStrategy": "Test with valid Twilio webhook request (can simulate using Twilio CLI or test sandbox). Verify middleware passes with valid signature. Test invalid signature returns 403. Test missing signature returns 403. Test missing TWILIO_AUTH_TOKEN returns 500.",
+        "priority": "high",
+        "dependencies": [
+          "59"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:46.706Z"
+      },
+      {
+        "id": "62",
+        "title": "Create Twilio webhook route handler",
+        "description": "Implement POST /api/twilio/webhook route to handle admin replies and bot reactivation commands",
+        "details": "Create backend/src/routes/twilio.webhook.ts:\n\n```typescript\nimport { Router, Request, Response } from 'express';\nimport { verifyTwilioSignature } from '../middleware/twilio-webhook.middleware';\nimport { sendWhatsAppMessage } from '../lib/whatsapp-send';\nimport { activarModoHumano, desactivarModoHumano } from '../lib/human-handoff';\nimport { sendTwilioWhatsApp } from '../lib/twilio-send';\nimport { log } from '../lib/logger';\nimport prisma from '../lib/prisma';\n\nconst router = Router();\n\nrouter.post('/', verifyTwilioSignature, async (req: Request, res: Response) => {\n  const { From, Body } = req.body as { From?: string; Body?: string };\n\n  if (!From || !Body) {\n    res.status(400).send('Missing From or Body');\n    return;\n  }\n\n  const adminPhone = From.replace('whatsapp:', '');\n  const message = Body.trim();\n\n  log('info', `[Twilio] Message from admin: \"${message.slice(0, 60)}\"`);\n\n  // Format 1: [+502XXXXXXXX] response text\n  const replyMatch = message.match(/^\\[(\\+?\\d+)\\]\\s*(.+)$/s);\n  if (replyMatch) {\n    const clientPhone = replyMatch[1].replace(/^\\+/, '');\n    const responseText = replyMatch[2];\n\n    await activarModoHumano(clientPhone);\n    const sent = await sendWhatsAppMessage(clientPhone, responseText);\n\n    if (sent.success) {\n      log('info', `[Twilio] Admin response sent to ${clientPhone}`);\n      \n      // Save message to DB as asesor message\n      try {\n        const lead = await prisma.lead.findUnique({ where: { telefono: clientPhone } });\n        if (lead) {\n          const conv = await prisma.conversacion.findFirst({\n            where: { leadId: lead.id },\n            orderBy: { creadoEn: 'desc' }\n          });\n          if (conv) {\n            await prisma.mensaje.create({\n              data: {\n                conversacionId: conv.id,\n                esDeCliente: false,\n                contenido: responseText,\n                rol: 'asesor'\n              }\n            });\n          }\n        }\n      } catch (err) {\n        log('error', '[Twilio] Error saving admin message to DB:', err);\n      }\n    }\n\n    res.status(200).send(''); // Twilio requires 200 response\n    return;\n  }\n\n  // Format 2: /bot [+502XXXXXXXX]\n  const botMatch = message.match(/^\\/bot\\s+\\[(\\+?\\d+)\\]$/);\n  if (botMatch) {\n    const clientPhone = botMatch[1].replace(/^\\+/, '');\n    await desactivarModoHumano(clientPhone);\n    await sendTwilioWhatsApp(From, `✅ Bot reactivado para ${clientPhone}`);\n    log('info', `[Twilio] Bot reactivated for ${clientPhone}`);\n    res.status(200).send('');\n    return;\n  }\n\n  // Invalid format — send help message\n  await sendTwilioWhatsApp(\n    From,\n    'Formato de respuesta:\\n[+502XXXXXXXX] Tu mensaje\\n\\nPara reactivar bot:\\n/bot [+502XXXXXXXX]'\n  );\n  res.status(200).send('');\n});\n\nexport default router;\n```\n\nHandle two command formats. Always return 200 (Twilio retries if not 200 within 15s). Save admin messages to DB with rol='asesor'.",
+        "testStrategy": "Test admin sends '[+502XXXXXXXX] Test response' → verify client receives message, modoHumano activated, message saved to DB. Test '/bot [+502XXXXXXXX]' → verify modoHumano deactivated, admin receives confirmation. Test invalid format → verify admin receives help message. All tests should verify 200 response.",
+        "priority": "high",
+        "dependencies": [
+          "60",
+          "61"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create lib/twilio-send.ts utility function",
+            "description": "Implement sendTwilioWhatsApp function to send WhatsApp messages via Twilio API with error handling and logging",
+            "dependencies": [],
+            "details": "Create backend/src/lib/twilio-send.ts following the pattern from whatsapp-send.ts. Implement sendTwilioWhatsApp(to: string, body: string): Promise<SendTwilioResult> with SendTwilioResult interface containing {success: boolean, sid?: string, error?: string}. Use twilio npm package (already installed per dependency task 59). Retrieve TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_NUMBER from environment. Initialize Twilio client: const client = twilio(accountSid, authToken). Send message using client.messages.create({ from, to, body }). Wrap in try/catch, log success with log('info', ...) and errors with log('error', ...). Return {success: true, sid: message.sid} on success or {success: false, error: errorMsg} on failure. Follow the error handling pattern from whatsapp-send.ts but without retry logic (Twilio SDK handles retries). Ensure 'to' parameter is in E.164 format (whatsapp:+502XXXXXXXX).",
+            "status": "pending",
+            "testStrategy": "Manual test: Call sendTwilioWhatsApp with admin's WhatsApp number (from env ADMIN_WA_NUMBER) and test message. Verify message is received on admin's WhatsApp. Test error handling: Mock missing env vars, verify function returns {success: false, error: ...}. Test invalid phone format, verify Twilio SDK error is caught and logged. Check logs contain expected info/error messages.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create middleware/twilio-webhook.middleware.ts for signature verification",
+            "description": "Implement verifyTwilioSignature middleware to validate webhook authenticity using Twilio signature verification",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/middleware/twilio-webhook.middleware.ts following the pattern from hmac.middleware.ts. Import crypto.createHmac and twilio.validateRequest (or manual implementation). Implement verifyTwilioSignature(req: Request, res: Response, next: NextFunction). Retrieve X-Twilio-Signature header. Get TWILIO_AUTH_TOKEN from env as signing secret. Construct full URL: const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`. Compute expected signature using Twilio's algorithm (HMAC-SHA1 of URL + sorted POST params). Use timing-safe comparison (timingSafeEqual) to compare signatures. If missing signature: res.status(403).json({error: 'Missing signature'}). If invalid: res.status(403).json({error: 'Invalid signature'}). If valid: call next(). Follow security pattern from hmac.middleware.ts for timing-safe comparison and error responses.",
+            "status": "pending",
+            "testStrategy": "Create test route that uses verifyTwilioSignature middleware. Send valid request with correct X-Twilio-Signature header (use Twilio SDK to generate). Verify request passes. Send request without signature header, verify 403 response. Send request with invalid signature, verify 403 response. Test with actual Twilio webhook test tool if available.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement POST /api/twilio/webhook route handler logic",
+            "description": "Create routes/twilio.webhook.ts with route handler to process admin reply and bot reactivation commands",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create backend/src/routes/twilio.webhook.ts. Import Router, Request, Response from express. Import verifyTwilioSignature, sendWhatsAppMessage, activarModoHumano, desactivarModoHumano, sendTwilioWhatsApp, log, prisma. Create router = Router(). Implement POST '/' route with verifyTwilioSignature middleware. Extract {From, Body} from req.body. Validate both exist, return 400 if missing. Parse adminPhone from From (remove 'whatsapp:' prefix). Log incoming message with log('info', ...). Implement reply format parsing: regex /^\\[(\\+?\\d+)\\]\\s*(.+)$/s to match '[+502XXXXXXXX] response text'. If match: extract clientPhone and responseText, call activarModoHumano(clientPhone), call sendWhatsAppMessage(clientPhone, responseText), save to DB (see subtask 4 for DB logic), return 200. Implement bot reactivation: regex /^\\/bot\\s+\\[(\\+?\\d+)\\]$/ to match '/bot [+502XXXXXXXX]'. If match: extract clientPhone, call desactivarModoHumano(clientPhone), send confirmation to admin via sendTwilioWhatsApp(From, '✅ Bot reactivado...'), return 200. If no match: send help message to admin via sendTwilioWhatsApp with format instructions, return 200. Always return 200 status (Twilio retries non-200 responses within 15s). Follow pattern from whatsapp.webhook.ts for structure and error handling.",
+            "status": "pending",
+            "testStrategy": "Test admin sends '[+502XXXXXXXX] Test response' → verify client receives message via Meta WhatsApp, verify modoHumano is activated in Redis (use redis-cli GET handoff:502XXXXXXXX), verify 200 response. Test '/bot [+502XXXXXXXX]' → verify modoHumano deactivated in Redis, verify admin receives confirmation via Twilio WhatsApp, verify 200 response. Test invalid format 'random message' → verify admin receives help message, verify 200 response. Test missing From/Body → verify 400 response. All tests should verify Twilio webhook receives 200 within 15s timeout.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement database persistence for admin replies with rol='asesor'",
+            "description": "Add database save logic to store admin messages in MensajeWhatsApp table with rol='asesor' when admin sends reply",
+            "dependencies": [
+              3
+            ],
+            "details": "In routes/twilio.webhook.ts, within the reply format handling block (after successful sendWhatsAppMessage), add database save logic. Wrap in try/catch to prevent DB errors from failing webhook response (follow pattern from persistence.ts). Use prisma.lead.findUnique({ where: { telefono: clientPhone } }) to find lead. If lead exists: find most recent active conversation using prisma.conversacionWhatsApp.findFirst({ where: { leadId: lead.id, estado: 'activo' }, orderBy: { creadoEn: 'desc' } }). If conversation exists: create mensaje with prisma.mensajeWhatsApp.create({ data: { conversacionId: conv.id, rol: 'asesor', contenido: responseText } }). Use rol='asesor' to differentiate from 'user' (client) and 'assistant' (Claude bot) messages. Log success with log('info', '[Twilio] Admin message saved to DB'). Catch errors with log('error', '[Twilio] Error saving admin message to DB:', err). Do NOT let DB errors throw - webhook must always return 200. Follow silent failure pattern from guardarMensajes in persistence.ts.",
+            "status": "pending",
+            "testStrategy": "Send admin reply '[+502XXXXXXXX] Test response' for existing lead with active conversation. Query database: SELECT * FROM MensajeWhatsApp WHERE conversacionId IN (SELECT id FROM ConversacionWhatsApp WHERE telefono='502XXXXXXXX') ORDER BY creadoEn DESC LIMIT 1. Verify latest message has rol='asesor' and contenido='Test response'. Test with non-existent lead, verify no error thrown and webhook returns 200. Test with lead that has no active conversation, verify no error and 200 response. Verify logs show success or error messages appropriately.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Register Twilio webhook route in backend/src/index.ts",
+            "description": "Add Twilio webhook router to Express app routing configuration at /api/twilio/webhook",
+            "dependencies": [
+              4
+            ],
+            "details": "Open backend/src/index.ts. Import twilioWebhookRouter: import twilioWebhookRouter from './routes/twilio.webhook'. Add route registration after existing webhook routes (after line 48): app.use('/api/twilio/webhook', twilioWebhookRouter). Follow the pattern of whatsappWebhookRouter registration. Ensure placement is after express.json() middleware setup (line 34-39) so req.body is parsed. Position before test endpoint block (line 57). This makes the webhook accessible at POST /api/twilio/webhook for Twilio to send admin messages. No authentication middleware needed - signature verification is handled in the route middleware.",
+            "status": "pending",
+            "testStrategy": "Start backend server: npm run dev in backend directory. Verify server starts without errors. Use curl to test route: curl -X POST http://localhost:4000/api/twilio/webhook -H 'Content-Type: application/json' -d '{\"From\":\"whatsapp:+502XXXXXXXX\",\"Body\":\"test\"}'. Verify route responds (may be 403 due to missing signature, which is expected). Check server logs show '[Twilio]' prefixed messages. Verify no 404 errors. Configure Twilio webhook URL in Twilio Console to point to deployed backend URL + /api/twilio/webhook. Test end-to-end: send message from admin's Twilio WhatsApp number, verify webhook is triggered and processed.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-17T03:22:48.663Z"
+      },
+      {
+        "id": "63",
+        "title": "Update notifications.ts to send notifications via Twilio",
+        "description": "Modify notifyAdminNewLead to send structured notifications to admin via Twilio in addition to Meta",
+        "details": "Modify backend/src/services/notifications.ts:\n\n1. Import sendTwilioWhatsApp from lib/twilio-send\n2. Update notifyAdminNewLead function:\n\n```typescript\nexport async function notifyAdminNewLead(telefono: string, primerMensaje: string): Promise<void> {\n  const adminWa = process.env.ADMIN_WA_NUMBER;\n  if (adminWa) {\n    const preview = primerMensaje.slice(0, 100);\n    const message = `🆕 Nuevo lead\\n📱 +${telefono}\\n💬 ${preview || 'Sin mensaje'}`;\n    const result = await sendWhatsAppMessage(adminWa, message);\n    if (!result.success) {\n      log('error', `[Notifications] Error notificando nuevo lead via Meta: ${result.error}`);\n    }\n  }\n\n  // Also notify via Twilio\n  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;\n  if (adminTwilio) {\n    const preview = primerMensaje.slice(0, 80);\n    const twilioMsg = `🆕 Nuevo lead\\n📱 [+${telefono}]\\n💬 \"${preview}\"\\n\\nPara responder manualmente envía:\\n[+${telefono}] Tu respuesta aquí`;\n    const result = await sendTwilioWhatsApp(adminTwilio, twilioMsg);\n    if (!result.success) {\n      log('error', `[Notifications] Error notificando nuevo lead via Twilio: ${result.error}`);\n    }\n  }\n}\n```\n\nKeep Meta notification as primary channel, add Twilio as secondary. Include reply format instructions in Twilio message.",
+        "testStrategy": "Trigger new lead creation (send message from new number to bot). Verify admin receives notification via both Meta and Twilio. Verify Twilio message includes proper formatting with [+502XXXXXXXX] bracket format and instructions.",
+        "priority": "medium",
+        "dependencies": [
+          "60"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:50.633Z"
+      },
+      {
+        "id": "64",
+        "title": "Update claude.ts escalation to notify via Twilio",
+        "description": "Modify escalation logic in claude.ts to send escalation notifications via Twilio with reply format",
+        "details": "Modify backend/src/lib/claude.ts around line 99:\n\n1. Import sendTwilioWhatsApp from './twilio-send'\n2. Update escalation notification logic:\n\n```typescript\nif (parsed.accion === 'escalar_humano') {\n  await activarModoHumano(telefono);\n  log('info', `[Claude] Escalación a humano — motivo: ${parsed.motivo ?? 'sin motivo'}`);\n\n  // Notify via Meta (existing)\n  const asesorPhone = process.env.MIRCE_PERSONAL_PHONE;\n  if (asesorPhone) {\n    const mask = `XXX-${telefono.slice(-4)}`;\n    sendWhatsAppMessage(\n      asesorPhone,\n      `🔔 Escalación requerida\\n📱 +${telefono}\\n💬 Motivo: ${parsed.motivo ?? 'sin motivo'}\\n\\nResponde directamente a este número. Envía /bot al bot para reactivarlo cuando termines.`\n    ).catch((err) => log('error', `[Claude] Error notificando escalación via Meta: ${mask}`, err));\n  }\n\n  // Also notify via Twilio\n  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;\n  if (adminTwilio) {\n    sendTwilioWhatsApp(\n      adminTwilio,\n      `🔔 Escalación requerida\\n📱 [+${telefono}]\\n💬 Motivo: ${parsed.motivo ?? 'sin motivo'}\\n\\nPara responder: [+${telefono}] Tu respuesta\\nPara reactivar bot: /bot [+${telefono}]`\n    ).catch((err) => log('error', `[Claude] Error notificando escalación via Twilio`, err));\n  }\n\n  const userMsg = 'Un momento, voy a conectarte con uno de nuestros asesores. 🙏 Te contactarán pronto por este mismo chat.';\n  history.push({ role: 'assistant', content: userMsg });\n  await saveHistory(telefono, history);\n  return userMsg;\n}\n```\n\nKeep Meta as fallback, add Twilio with proper command format.",
+        "testStrategy": "Trigger escalation by having Claude respond with escalation JSON. Verify admin receives escalation via both Meta and Twilio. Verify Twilio message includes proper [+502XXXXXXXX] format and both response and reactivation command formats.",
+        "priority": "medium",
+        "dependencies": [
+          "60"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:52.663Z"
+      },
+      {
+        "id": "65",
+        "title": "Implement real-time conversation forwarding to admin via Twilio",
+        "description": "Add forwarding of all bot conversations to admin's Twilio WhatsApp for real-time monitoring",
+        "details": "Modify backend/src/routes/whatsapp.webhook.ts:\n\nAfter the bot responds successfully (after line 103), add forwarding logic:\n\n```typescript\n// After sending response to client\nif (sent.success) {\n  log('info', `[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);\n  \n  // Forward conversation to admin via Twilio (fire and forget)\n  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;\n  if (adminTwilio) {\n    const previewMsg = mensaje.length > 60 ? mensaje.slice(0, 60) + '...' : mensaje;\n    const previewResp = respuesta.length > 60 ? respuesta.slice(0, 60) + '...' : respuesta;\n    const forwardMsg = `📩 Mensaje entrante\\n📱 [+${telefono}]\\n👤 \"${previewMsg}\"\\n🤖 \"${previewResp}\"`;\n    \n    sendTwilioWhatsApp(adminTwilio, forwardMsg).catch((err) =>\n      log('error', `[WhatsApp] ${mask} | Error forwarding to admin via Twilio:`, err)\n    );\n  }\n} else {\n  log('error', `[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);\n}\n```\n\nOnly forward if ADMIN_TWILIO_WHATSAPP is configured. Never block main flow if Twilio send fails (fire and forget). Truncate long messages to 60 chars with ellipsis.",
+        "testStrategy": "Send message to bot from client. Verify client receives bot response. Verify admin receives forwarding message via Twilio with proper format showing client message and bot response. Verify main flow is not blocked if Twilio send fails (test by temporarily misconfiguring TWILIO_AUTH_TOKEN).",
+        "priority": "medium",
+        "dependencies": [
+          "60"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:54.773Z"
+      },
+      {
+        "id": "66",
+        "title": "Register Twilio webhook route and configure urlencoded parser in index.ts",
+        "description": "Mount Twilio webhook router with proper middleware order in main Express app",
+        "details": "Modify backend/src/index.ts:\n\n1. Import Twilio router:\n```typescript\nimport twilioWebhookRouter from './routes/twilio.webhook';\n```\n\n2. Add urlencoded parser BEFORE mounting Twilio router (after line 39, before routes):\n```typescript\n// Twilio sends form-urlencoded data\napp.use(express.urlencoded({ extended: false }));\n```\n\n3. Mount Twilio webhook route (after other routes, around line 54):\n```typescript\napp.use('/api/twilio/webhook', twilioWebhookRouter);\n```\n\nOrder matters: helmet → cors → json parser → urlencoded parser → routes. The urlencoded middleware is needed specifically for Twilio (Meta sends JSON). Mount route at /api/twilio/webhook to match Twilio console configuration.",
+        "testStrategy": "Start server and verify no errors. Check that route is registered by inspecting logs or making test request. Verify urlencoded parser is active by sending test POST with form data to /api/twilio/webhook. Confirm order: helmet and cors apply before parsers, parsers apply before routes.",
+        "priority": "high",
+        "dependencies": [
+          "62"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-17T03:22:56.830Z"
+      },
+      {
+        "id": "67",
+        "title": "Configure Twilio webhook URL in Twilio console",
+        "description": "Set up webhook URL in Twilio Sandbox settings to point to Railway backend endpoint",
+        "details": "In Twilio Console:\n\n1. Navigate to Messaging → Try it Out → Send a WhatsApp Message → Sandbox Settings\n2. Find \"When a message comes in\" webhook configuration\n3. Set webhook URL: https://<railway-backend-url>/api/twilio/webhook\n   - Replace <railway-backend-url> with actual Railway deployment URL (e.g., backend-production-xxxx.up.railway.app)\n4. Set HTTP method: POST\n5. Click Save\n6. For production with dedicated Twilio number: Phone Numbers → Manage → Active Numbers → Select your number → Configure webhook under Messaging\n\nWebhook must be publicly accessible HTTPS URL. Railway provides HTTPS by default. Twilio will call this endpoint whenever admin sends message to Twilio number.",
+        "testStrategy": "After configuration, send test message from admin's WhatsApp to Twilio sandbox number. Check Railway logs for incoming webhook request. Verify signature validation passes. Verify webhook responds with 200 status. Twilio console should show successful delivery in logs.",
+        "priority": "high",
+        "dependencies": [
+          "66",
+          "58"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "68",
+        "title": "End-to-end testing of complete Twilio integration flow",
+        "description": "Comprehensive testing of bidirectional communication flow between admin, Twilio, backend, and Meta",
+        "details": "Execute complete workflow testing:\n\nTest 1: New lead notification\n- Send message from new number to bot (50256311728)\n- Verify admin receives notification via both Meta and Twilio\n- Verify Twilio message includes proper [+502XXXXXXXX] format\n\nTest 2: Real-time monitoring\n- Send message from existing client to bot\n- Verify client receives bot response\n- Verify admin receives forwarding via Twilio with client message + bot response\n\nTest 3: Admin manual response\n- Admin replies via Twilio: '[+502XXXXXXXX] Hola, te llamo en 5 minutos'\n- Verify client receives admin's message via Meta\n- Verify modoHumano activated for that client\n- Verify message saved to DB with rol='asesor'\n- Verify subsequent bot messages to that client are silenced\n\nTest 4: Bot reactivation\n- Admin sends to Twilio: '/bot [+502XXXXXXXX]'\n- Verify modoHumano deactivated\n- Send message from client, verify bot responds\n\nTest 5: Escalation\n- Trigger escalation from Claude (test with appropriate prompt)\n- Verify admin receives escalation via both Meta and Twilio\n- Verify Twilio includes both reply and reactivation formats\n\nTest 6: Error handling\n- Test invalid format → verify admin receives help message\n- Test missing credentials → verify graceful degradation (logs error, doesn't crash)\n- Test Twilio send failure → verify main flow continues\n\nDocument all results using task-master update-subtask with findings.",
+        "testStrategy": "Create test checklist with all 6 test scenarios above. Execute each scenario systematically. Record timestamps, message IDs, and screenshots. Verify Railway logs show correct flow. Check Prisma Studio to verify DB entries. Document any failures or unexpected behavior. Success criteria: all 6 scenarios pass without errors.",
+        "priority": "high",
+        "dependencies": [
+          "63",
+          "64",
+          "65",
+          "67"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Test new lead notification flow via Twilio",
+            "description": "Verify admin receives properly formatted notification via Twilio when a new lead sends first message to bot number 50256311728",
+            "dependencies": [],
+            "details": "Steps:\n1. Use a fresh phone number that has NEVER contacted 50256311728 before\n2. Send test message: \"Hola, quiero información sobre sus cursos\"\n3. Verify admin receives WhatsApp message via Twilio number with format:\n   🆕 Nuevo lead\n   📱 [+502XXXXXXXX]\n   💬 \"Hola, quiero información...\"\n   Para responder manualmente envía:\n   [+502XXXXXXXX] Tu respuesta aquí\n4. Verify message includes correct phone in bracket format [+502XXXXXXXX]\n5. Check Railway logs confirm sendTwilioWhatsApp() called successfully\n6. Verify admin ALSO receives notification via Meta API (existing flow)\n7. Document Twilio message SID from logs using task-master update-subtask",
+            "status": "pending",
+            "testStrategy": "Success criteria: Admin receives both Meta and Twilio notifications within 10s. Twilio message uses exact bracket format [+502XXXXXXXX]. Railway logs show no errors. Take screenshots of admin WhatsApp showing received message.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Test real-time conversation monitoring forwarding",
+            "description": "Verify admin receives real-time message forwarding via Twilio showing both client message and bot response for existing conversations",
+            "dependencies": [
+              1
+            ],
+            "details": "Steps:\n1. Use existing lead number (from Test 1 or any existing lead)\n2. Send message to bot: \"¿Cuánto cuesta el curso de programación?\"\n3. Wait for bot to respond to client\n4. Verify admin receives forwarding via Twilio with format:\n   📩 Mensaje entrante\n   📱 [+502XXXXXXXX]\n   👤 \"¿Cuánto cuesta...\"\n   🤖 \"[bot response text]\"\n5. Check Railway logs show forwarding triggered after bot response\n6. Verify forwarding is fire-and-forget (doesn't block main flow if fails)\n7. Send follow-up message, verify admin receives another forwarding\n8. Document timestamps and verify <5s delay using task-master update-subtask",
+            "status": "pending",
+            "testStrategy": "Success criteria: Admin receives forwarding within 5s of bot response. Format matches spec exactly. Main WhatsApp flow continues even if Twilio fails. Test with 3 consecutive messages to verify consistency.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Test admin manual response activates modoHumano",
+            "description": "Verify admin can manually respond to client via Twilio using bracket format, message reaches client via Meta, and modoHumano is activated",
+            "dependencies": [
+              2
+            ],
+            "details": "Steps:\n1. Admin replies to Twilio number: \"[+502XXXXXXXX] Hola, te llamo en 5 minutos para resolver tus dudas\"\n2. Verify Twilio webhook receives request at /api/twilio/webhook\n3. Check Railway logs show successful parsing of bracket format\n4. Verify client receives admin's message via Meta API (50256311728)\n5. Send message from client to bot - verify bot DOES NOT respond (silenced)\n6. Check Redis: key handoff:502XXXXXXXX exists with TTL ~3600s\n7. Query MySQL MensajeWhatsApp table: verify message saved with rol='asesor'\n8. Test invalid format: admin sends \"Hola sin formato\" - verify admin receives help message\n9. Document DB entry ID and Redis TTL using task-master update-subtask",
+            "status": "pending",
+            "testStrategy": "Success criteria: Client receives admin message within 3s. Bot stops responding to that client. Redis handoff key exists. DB record has rol='asesor'. Invalid format triggers help message to admin. Verify using Prisma Studio and Railway Redis console.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Test bot reactivation command from admin",
+            "description": "Verify admin can reactivate bot for specific client using /bot command via Twilio, clearing modoHumano state",
+            "dependencies": [
+              3
+            ],
+            "details": "Steps:\n1. Verify client is in modoHumano from Test 3 (Redis key exists)\n2. Admin sends to Twilio: \"/bot [+502XXXXXXXX]\"\n3. Verify Twilio webhook parses command correctly\n4. Check Railway logs show desactivarModoHumano() called\n5. Verify Redis key handoff:502XXXXXXXX is deleted\n6. Admin should receive confirmation via Twilio: \"Bot reactivado para [+502XXXXXXXX]\"\n7. Send message from client to bot - verify bot RESPONDS normally\n8. Verify bot response appears in conversation history\n9. Test without phone number: admin sends \"/bot\" alone - verify error handling\n10. Document Redis state before/after using task-master update-subtask",
+            "status": "pending",
+            "testStrategy": "Success criteria: Redis handoff key deleted. Bot resumes responding to client messages. Admin receives confirmation. Command with missing phone number handled gracefully. Verify with redis-cli GET handoff:502XXXXXXXX returns null.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Test Claude escalation triggers Twilio notification",
+            "description": "Verify Claude escalation action sends formatted notification to admin via Twilio with both response and reactivation instructions",
+            "dependencies": [
+              4
+            ],
+            "details": "Steps:\n1. Reactivate bot for test client (ensure modoHumano=false)\n2. Send message designed to trigger escalation: \"Necesito hablar urgente con un humano sobre un problema con mi pago\"\n3. Check Railway logs for: Claude returned JSON {\"accion\":\"escalar_humano\",\"motivo\":\"...\"}\n4. Verify client receives escalation message: \"Un momento, voy a conectarte con uno de nuestros asesores...\"\n5. Verify admin receives escalation via Twilio with format:\n   🔔 Escalación requerida\n   📱 [+502XXXXXXXX]\n   💬 Motivo: [motivo]\n   Para responder: [+502XXXXXXXX] Tu respuesta\n   Para reactivar bot: /bot [+502XXXXXXXX]\n6. Verify Redis handoff key created (modoHumano=true)\n7. Verify admin ALSO receives Meta notification (existing fallback)\n8. Test error handling: temporarily break Twilio (invalid auth token) - verify Meta fallback works and no crash\n9. Document escalation motivo and message IDs using task-master update-subtask",
+            "status": "pending",
+            "testStrategy": "Success criteria: Escalation detected in logs. Client receives user-facing message. Admin receives Twilio notification with exact format including both reply and reactivation instructions. modoHumano activated. Meta fallback works. System doesn't crash if Twilio fails.",
+            "parentId": "undefined"
+          }
+        ]
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-14T03:05:44.677Z",
-      "taskCount": 54,
-      "completedCount": 25,
+      "lastModified": "2026-05-17T07:45:19.011Z",
+      "taskCount": 68,
+      "completedCount": 52,
       "tags": [
         "master"
       ]

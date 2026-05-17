@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { getToken, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -26,7 +26,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/admin", icon: Users, label: "Leads" },
+    { href: "/admin/leads", icon: Users, label: "Leads" },
+    { href: "/admin/crm", icon: KanbanSquare, label: "CRM" },
+    { href: "/admin/alumnos", icon: GraduationCap, label: "Alumnos" },
+    { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
   ];
 
   return (

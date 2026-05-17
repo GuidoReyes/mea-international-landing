@@ -166,6 +166,24 @@ export interface CreateAlumnoInput {
   pais?: string;
 }
 
+export interface ReportesLeads {
+  periodo: string;
+  totalLeads: number;
+  porEstado: Record<string, number>;
+  porEtapa: { etapaId: number; nombre: string; count: number; valorTotal: number }[];
+  evolucion: { fecha: string; total: number }[];
+  tasaConversion: number;
+  tiempoPromedioCierre: number | null;
+}
+
+export interface ReportesResumen {
+  totalLeads: number;
+  nuevosUltimos30dias: number;
+  nuevosUltimos7dias: number;
+  inscripcionesActivas: number;
+  ingresosMes: number;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
@@ -214,6 +232,11 @@ export const api = {
     }),
 
   getCRMEtapas: () => apiFetch<CRMEtapa[]>("/api/crm/etapas"),
+
+  getReportesLeads: (periodo: "7d" | "30d" | "90d" = "30d") =>
+    apiFetch<ReportesLeads>(`/api/reportes/leads?periodo=${periodo}`),
+
+  getReportesResumen: () => apiFetch<ReportesResumen>("/api/reportes/resumen"),
 
   getEdiciones: () =>
     apiFetch<{ data: Edicion[] }>("/api/ediciones?activo=true&limit=100"),

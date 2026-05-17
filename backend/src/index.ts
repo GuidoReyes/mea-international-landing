@@ -12,6 +12,7 @@ import cuotasRouter from "./routes/cuotas";
 import crmRouter from "./routes/crm";
 import edicionesRouter from "./routes/ediciones";
 import inscripcionesRouter from "./routes/inscripciones";
+import reportesRouter from "./routes/reportes";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use("/api/cuotas", cuotasRouter);
 app.use("/api/crm", crmRouter);
 app.use("/api/ediciones", edicionesRouter);
 app.use("/api/inscripciones", inscripcionesRouter);
+app.use("/api/reportes", reportesRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {

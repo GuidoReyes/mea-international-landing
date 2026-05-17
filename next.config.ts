@@ -22,10 +22,10 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://unpkg.com https://www.gstatic.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.mea.edu.gt https://www.mea.edu.gt https://*.spline.design wss://*.spline.design",
+              "connect-src 'self' https://api.mea.edu.gt https://www.mea.edu.gt https://*.spline.design wss://*.spline.design https://unpkg.com https://www.gstatic.com",
               "frame-src https://challenges.cloudflare.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "worker-src 'self' blob:",

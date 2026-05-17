@@ -180,6 +180,19 @@ model MensajeWhatsApp {
   creadoEn       DateTime             @default(now())
 }
 
+// ─── Escalaciones ────────────────────────────────────────────────────────────
+
+model EscalacionLog {
+  id           Int       @id @default(autoincrement())
+  telefono     String
+  motivo       String    @db.Text
+  resueltaEn   DateTime?
+  resolvidaPor String?
+  creadoEn     DateTime  @default(now())
+
+  @@index([telefono])
+}
+
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 model Admin {

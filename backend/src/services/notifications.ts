@@ -1,4 +1,5 @@
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { sendTwilioWhatsApp } from "../lib/twilio-send";
 import { log } from "../lib/logger";
 
 // --- 34.2: MS Graph token cache en memoria ---
@@ -93,17 +94,29 @@ export async function sendTransactionalEmail(to: string, subject: string, html: 
 
 // --- 34.1: Alerta WhatsApp al admin cuando llega un nuevo lead ---
 export async function notifyAdminNewLead(telefono: string, primerMensaje: string): Promise<void> {
+  const preview = primerMensaje.slice(0, 100);
+
+  // Canal 1: Meta WhatsApp (número de negocio → admin)
   const adminWa = process.env.ADMIN_WA_NUMBER;
-  if (!adminWa) {
-    log("error", "[Notifications] ADMIN_WA_NUMBER no configurado");
-    return;
+  if (adminWa) {
+    const result = await sendWhatsAppMessage(adminWa, `🆕 Nuevo lead\n📱 +${telefono}\n💬 ${preview || "Sin mensaje"}`);
+    if (!result.success) {
+      log("error", `[Notifications] Error notificando lead (Meta): ${result.error}`);
+    }
   }
 
-  const preview = primerMensaje.slice(0, 100);
-  const message = `🆕 Nuevo lead\n📱 +${telefono}\n💬 ${preview || "Sin mensaje"}`;
+  // Canal 2: Twilio (admin recibe en su WhatsApp personal con formato de reply)
+  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
+  if (adminTwilio) {
+    const twilioMsg =
+      `🆕 *Nuevo lead*\n📱 [+${telefono}]\n💬 "${preview || "Sin mensaje"}"\n\n` +
+      `Para responder:\n\`[+${telefono}] Tu respuesta\``;
+    await sendTwilioWhatsApp(adminTwilio, twilioMsg).catch((err) =>
+      log("error", `[Notifications] Error notificando lead (Twilio):`, err)
+    );
+  }
 
-  const result = await sendWhatsAppMessage(adminWa, message);
-  if (!result.success) {
-    log("error", `[Notifications] Error notificando nuevo lead: ${result.error}`);
+  if (!adminWa && !adminTwilio) {
+    log("warn", "[Notifications] ADMIN_WA_NUMBER y ADMIN_TWILIO_WHATSAPP no configurados");
   }
 }

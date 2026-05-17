@@ -12,6 +12,7 @@ import cuotasRouter from "./routes/cuotas";
 import crmRouter from "./routes/crm";
 import edicionesRouter from "./routes/ediciones";
 import inscripcionesRouter from "./routes/inscripciones";
+import twilioWebhookRouter from "./routes/twilio.webhook";
 
 dotenv.config();
 
@@ -28,6 +29,9 @@ app.use(
     ],
   })
 );
+
+// Twilio envía form-urlencoded — montar ANTES del json parser y del router Twilio
+app.use("/api/twilio/webhook", express.urlencoded({ extended: false }), twilioWebhookRouter);
 
 // Capturar raw body para HMAC antes de parsear JSON
 app.use(

@@ -6,6 +6,7 @@ import prisma from "./prisma";
 import { selectAgent } from "../agents/agentRouter";
 import { estaModoHumano, activarModoHumano } from "./human-handoff";
 import { sendWhatsAppMessage } from "./whatsapp-send";
+import { sendTwilioWhatsApp } from "./twilio-send";
 
 interface Message {
   role: "user" | "assistant";
@@ -95,13 +96,30 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
         await activarModoHumano(telefono);
         log("info", `[Claude] Escalación a humano — motivo: ${parsed.motivo ?? "sin motivo"}`);
 
-        const asesorPhone = process.env.MIRCE_PERSONAL_PHONE;
+        const asesorPhone  = process.env.MIRCE_PERSONAL_PHONE;
+        const adminTwilio  = process.env.ADMIN_TWILIO_WHATSAPP;
+        const motivo       = parsed.motivo ?? "sin motivo";
+        const mask         = `XXX-${telefono.slice(-4)}`;
+
+        // Persistir escalación en BD
+        prisma.escalacionLog.create({
+          data: { telefono, motivo },
+        }).catch((err: unknown) => log("error", "[Claude] Error guardando EscalacionLog:", err));
+
+        // Canal Meta: notificación directa al asesor (si está configurado)
         if (asesorPhone) {
-          const mask = `XXX-${telefono.slice(-4)}`;
           sendWhatsAppMessage(
             asesorPhone,
-            `🔔 Escalación requerida\n📱 +${telefono}\n💬 Motivo: ${parsed.motivo ?? "sin motivo"}\n\nResponde directamente a este número. Envía /bot al bot para reactivarlo cuando termines.`
-          ).catch((err) => log("error", `[Claude] Error notificando escalación a asesor: ${mask}`, err));
+            `🔔 Escalación requerida\n📱 +${telefono}\n💬 Motivo: ${motivo}\n\nResponde directamente a este número. Envía /bot al bot para reactivarlo cuando termines.`
+          ).catch((err) => log("error", `[Claude] Error notificando escalación (Meta): ${mask}`, err));
+        }
+
+        // Canal Twilio: formato con reply para responder desde WhatsApp personal
+        if (adminTwilio) {
+          sendTwilioWhatsApp(
+            adminTwilio,
+            `🔔 *Escalación requerida*\n📱 [+${telefono}]\n💬 Motivo: ${motivo}\n\nPara responder:\n\`[+${telefono}] Tu respuesta\`\nPara reactivar bot:\n\`/bot [+${telefono}]\``
+          ).catch((err) => log("error", `[Claude] Error notificando escalación (Twilio): ${mask}`, err));
         }
 
         const userMsg = "Un momento, voy a conectarte con uno de nuestros asesores. 🙏 Te contactarán pronto por este mismo chat.";

@@ -5,7 +5,9 @@ import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 import { notifyAdminNewLead } from "../services/notifications";
+import prisma from "../lib/prisma";
 import { desactivarModoHumano } from "../lib/human-handoff";
+import { sendTwilioWhatsApp } from "../lib/twilio-send";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -66,6 +68,11 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
       await desactivarModoHumano(telefono);
       await sendWhatsAppMessage(telefono, "Bot reactivado ✅ Volviendo a modo automático.");
       log("info", `[WhatsApp] ${mask} | Bot reactivado por comando /bot`);
+      // Marcar escalación como resuelta
+      prisma.escalacionLog.updateMany({
+        where: { telefono, resueltaEn: null },
+        data: { resueltaEn: new Date(), resolvidaPor: "asesor-whatsapp" },
+      }).catch(() => {});
       continue;
     }
 
@@ -100,6 +107,15 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
       log("info", `[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
     } else {
       log("error", `[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
+    }
+
+    // Forwarding en tiempo real al admin vía Twilio (fire and forget)
+    const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
+    if (adminTwilio && respuesta) {
+      sendTwilioWhatsApp(
+        adminTwilio,
+        `📩 *[+${telefono}]*\n👤 "${mensaje.slice(0, 120)}"\n🤖 "${respuesta.slice(0, 200)}"`
+      ).catch((err) => log("error", `[WhatsApp] ${mask} | Error forwarding a Twilio:`, err));
     }
   }
 });

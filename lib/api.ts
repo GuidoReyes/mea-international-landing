@@ -241,6 +241,27 @@ export interface Reconciliacion {
   totalUSD: number;
 }
 
+export interface Campana {
+  id: number;
+  nombre: string;
+  template: string;
+  variables: string[];
+  estado: "BORRADOR" | "ENVIANDO" | "COMPLETADA";
+  totalDestinatarios: number;
+  enviados: number;
+  errores: number;
+  creadoEn: string;
+  _count?: { destinatarios: number };
+}
+
+export interface CampanaStatus {
+  estado: string;
+  totalDestinatarios: number;
+  enviados: number;
+  errores: number;
+  progreso: number;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
@@ -347,4 +368,18 @@ export const api = {
     const params = mes ? `?mes=${mes}` : "";
     return apiFetch<Reconciliacion[]>(`/api/finanzas/reconciliacion${params}`);
   },
+
+  getCampanas: () => apiFetch<Campana[]>("/api/marketing/campanas"),
+
+  createCampana: (data: { nombre: string; template: string }) =>
+    apiFetch<Campana>("/api/marketing/campanas", { method: "POST", body: JSON.stringify(data) }),
+
+  enviarCampana: (id: number, leadIds: number[]) =>
+    apiFetch<{ message: string; total: number }>(`/api/marketing/campanas/${id}/enviar`, {
+      method: "POST",
+      body: JSON.stringify({ leadIds }),
+    }),
+
+  getCampanaStatus: (id: number) =>
+    apiFetch<CampanaStatus>(`/api/marketing/campanas/${id}/status`),
 };

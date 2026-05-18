@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { getToken, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send } from "lucide-react";
 
 function getAdminRole(): string | null {
   if (typeof window === "undefined") return null;
@@ -47,6 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/ediciones", icon: BookOpen, label: "Ediciones" },
     { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
     { href: "/admin/finanzas", icon: Wallet, label: "Finanzas" },
+    { href: "/admin/marketing", icon: Send, label: "Marketing" },
     ...(rol === "SUPER_ADMIN" ? [{ href: "/admin/ceo", icon: LineChart, label: "CEO" }] : []),
   ];
 

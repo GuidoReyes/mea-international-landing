@@ -1,19 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { getToken, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart } from "lucide-react";
+
+function getAdminRole(): string | null {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem("mea_admin_token");
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.rol ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
+  const [rol, setRol] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoginPage && !getToken()) {
       router.replace("/admin/login");
+    } else {
+      setRol(getAdminRole());
     }
   }, [isLoginPage, router]);
 
@@ -31,6 +46,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/alumnos", icon: GraduationCap, label: "Alumnos" },
     { href: "/admin/ediciones", icon: BookOpen, label: "Ediciones" },
     { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
+    { href: "/admin/finanzas", icon: Wallet, label: "Finanzas" },
+    ...(rol === "SUPER_ADMIN" ? [{ href: "/admin/ceo", icon: LineChart, label: "CEO" }] : []),
   ];
 
   return (

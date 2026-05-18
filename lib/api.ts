@@ -200,12 +200,55 @@ export interface ReportesResumen {
   ingresosMes: number;
 }
 
+export interface PLMes {
+  mes: string;
+  ingresos: number;
+  egresos: number;
+  utilidad: number;
+}
+
+export interface Proyeccion {
+  mes: string;
+  proyectado: number;
+}
+
+export interface FlujoCaja {
+  saldoActual: number;
+  ingresoProyectado30dias: number;
+  egresoProyectado30dias: number;
+  flujoPROyectado30dias: number;
+}
+
+export interface Egreso {
+  id: number;
+  concepto: string;
+  monto: string;
+  moneda: string;
+  categoria: string;
+  fecha: string;
+  nota: string | null;
+  creadoEn: string;
+}
+
+export interface EgresosResponse {
+  data: Egreso[];
+  meta: { total: number; page: number; limit: number };
+}
+
+export interface Reconciliacion {
+  metodo: string;
+  totalGTQ: number;
+  totalUSD: number;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
+
+  getMe: () => apiFetch<Admin & { activo: boolean }>("/api/auth/me"),
 
   getLeads: (page = 1, estado?: string) => {
     const params = new URLSearchParams({ page: String(page), limit: "10" });
@@ -274,4 +317,34 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ alumnoId, edicionId }),
     }),
+
+  getPL: () => apiFetch<PLMes[]>("/api/reportes/pl"),
+
+  getProyecciones: () => apiFetch<Proyeccion[]>("/api/reportes/proyecciones"),
+
+  getFlujoCaja: () => apiFetch<FlujoCaja>("/api/reportes/flujo-caja"),
+
+  getEgresos: (page = 1, categoria?: string, mes?: string) => {
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (categoria) params.set("categoria", categoria);
+    if (mes) params.set("mes", mes);
+    return apiFetch<EgresosResponse>(`/api/finanzas/egresos?${params}`);
+  },
+
+  createEgreso: (data: { concepto: string; monto: number; moneda: string; categoria: string; fecha: string; nota?: string }) =>
+    apiFetch<Egreso>("/api/finanzas/egresos", { method: "POST", body: JSON.stringify(data) }),
+
+  updateEgreso: (id: number, data: Partial<{ concepto: string; monto: number; moneda: string; categoria: string; fecha: string; nota: string }>) =>
+    apiFetch<Egreso>(`/api/finanzas/egresos/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  deleteEgreso: (id: number) =>
+    fetch(`${API_URL}/api/finanzas/egresos/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${getToken()}` },
+    }),
+
+  getReconciliacion: (mes?: string) => {
+    const params = mes ? `?mes=${mes}` : "";
+    return apiFetch<Reconciliacion[]>(`/api/finanzas/reconciliacion${params}`);
+  },
 };

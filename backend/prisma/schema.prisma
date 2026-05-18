@@ -21,6 +21,7 @@ enum PagoEstado {
   COMPLETADO
   RECHAZADO
   REEMBOLSADO
+  VENCIDO
 }
 
 enum MetodoPago {

@@ -14,6 +14,7 @@ import edicionesRouter from "./routes/ediciones";
 import inscripcionesRouter from "./routes/inscripciones";
 import reportesRouter from "./routes/reportes";
 import twilioWebhookRouter from "./routes/twilio.webhook";
+import { startScheduler } from "./scheduler";
 
 dotenv.config();
 
@@ -84,6 +85,7 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT ==
 
 app.listen(PORT, () => {
   if (process.env.NODE_ENV !== "production") console.log(`MEA Backend corriendo en puerto ${PORT}`);
+  startScheduler();
 });
 
 export default app;

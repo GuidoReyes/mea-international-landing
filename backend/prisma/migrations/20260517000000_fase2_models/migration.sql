@@ -75,6 +75,13 @@ CREATE TABLE `CampanaDestinatario` (
     CONSTRAINT `CampanaDestinatario_leadId_fkey` FOREIGN KEY (`leadId`) REFERENCES `Lead` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- ─── PagoEstado — agregar VENCIDO ────────────────────────────────────────────
+ALTER TABLE `CuotaPago`
+    MODIFY COLUMN `estado` ENUM('PENDIENTE','COMPLETADO','RECHAZADO','REEMBOLSADO','VENCIDO') NOT NULL DEFAULT 'PENDIENTE';
+
+ALTER TABLE `Pago`
+    MODIFY COLUMN `estado` ENUM('PENDIENTE','COMPLETADO','RECHAZADO','REEMBOLSADO','VENCIDO') NOT NULL DEFAULT 'PENDIENTE';
+
 -- ─── Certificado — agregar urlPdf y urlQr ────────────────────────────────────
 ALTER TABLE `Certificado`
     ADD COLUMN `urlPdf` VARCHAR(191) NULL,

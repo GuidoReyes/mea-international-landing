@@ -62,16 +62,21 @@ function SplineInner({ scene, className }: SplineSceneProps) {
         setFailed(true)
       })
 
+    let resizeRaf = 0
     const ro = new ResizeObserver(() => {
-      const app = appRef.current
-      if (!app) return
-      const { width, height } = container.getBoundingClientRect()
-      if (width > 0 && height > 0) app.setSize(width, height)
+      cancelAnimationFrame(resizeRaf)
+      resizeRaf = requestAnimationFrame(() => {
+        const app = appRef.current
+        if (!app) return
+        const { width, height } = container.getBoundingClientRect()
+        if (width > 0 && height > 0) app.setSize(width, height)
+      })
     })
     ro.observe(container)
 
     return () => {
       disposed = true
+      cancelAnimationFrame(resizeRaf)
       ro.disconnect()
       appRef.current?.dispose()
       appRef.current = null
@@ -95,7 +100,6 @@ function SplineInner({ scene, className }: SplineSceneProps) {
             height: '100%',
             display: 'block',
             opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.5s ease',
           }}
         />
       )}

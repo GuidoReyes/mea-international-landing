@@ -371,9 +371,9 @@ export default function Home() {
             {/* Right — 3D Scene */}
             <motion.div
               className="flex-1 relative w-full lg:max-w-xl h-[400px] lg:h-[550px]"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8 }}
             >
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"

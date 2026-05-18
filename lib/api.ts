@@ -321,6 +321,18 @@ export const api = {
   getCursos: () =>
     apiFetch<Curso[]>("/api/cursos?limit=100"),
 
+  createCurso: (data: { nombre: string; descripcion: string; precio: number; modalidad: string; duracion: string }) =>
+    apiFetch<Curso>("/api/cursos", { method: "POST", body: JSON.stringify(data) }),
+
+  updateCurso: (id: number, data: Partial<{ nombre: string; descripcion: string; precio: number; modalidad: string; duracion: string; activo: boolean }>) =>
+    apiFetch<Curso>(`/api/cursos/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  deleteCurso: (id: number) =>
+    fetch(`${API_URL}/api/cursos/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${getToken()}` },
+    }),
+
   getEdiciones: (cursoId?: number, activo?: boolean) => {
     const params = new URLSearchParams({ limit: "200" });
     if (cursoId) params.set("cursoId", String(cursoId));

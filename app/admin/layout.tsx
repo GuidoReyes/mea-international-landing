@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { getToken, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library } from "lucide-react";
 
 function getAdminRole(): string | null {
   if (typeof window === "undefined") return null;
@@ -44,6 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/leads", icon: Users, label: "Leads" },
     { href: "/admin/crm", icon: KanbanSquare, label: "CRM" },
     { href: "/admin/alumnos", icon: GraduationCap, label: "Alumnos" },
+    { href: "/admin/cursos", icon: Library, label: "Cursos" },
     { href: "/admin/ediciones", icon: BookOpen, label: "Ediciones" },
     { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
     { href: "/admin/finanzas", icon: Wallet, label: "Finanzas" },

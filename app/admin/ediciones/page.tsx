@@ -155,7 +155,7 @@ export default function EdicionesPage() {
 
   useEffect(() => {
     if (!getToken()) { router.push("/admin/login"); return; }
-    api.getCursos().then((r) => setCursos(r.data)).catch(() => {});
+    api.getCursos().then((data) => setCursos(data)).catch(() => {});
   }, [router]);
 
   function load() {
@@ -182,8 +182,9 @@ export default function EdicionesPage() {
           <h1 className="text-2xl font-bold text-[#0A2540] tracking-tight">Ediciones</h1>
           <p className="text-slate-400 text-sm mt-1">Gestión de ediciones por curso</p>
         </div>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#0A2540] text-white text-sm font-semibold rounded-xl hover:bg-[#0A2540]/90 transition-colors">
+        <button onClick={() => setShowModal(true)} disabled={cursos.length === 0}
+          title={cursos.length === 0 ? "Primero crea un curso en /api/cursos" : undefined}
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0A2540] text-white text-sm font-semibold rounded-xl hover:bg-[#0A2540]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           <Plus className="w-4 h-4" />
           Nueva edición
         </button>

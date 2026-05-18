@@ -319,7 +319,7 @@ export const api = {
   getReportesResumen: () => apiFetch<ReportesResumen>("/api/reportes/resumen"),
 
   getCursos: () =>
-    apiFetch<{ data: Curso[] }>("/api/cursos?limit=100"),
+    apiFetch<Curso[]>("/api/cursos?limit=100"),
 
   getEdiciones: (cursoId?: number, activo?: boolean) => {
     const params = new URLSearchParams({ limit: "200" });

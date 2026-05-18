@@ -36,6 +36,25 @@ enum Moneda {
   USD
 }
 
+enum CategoriaEgreso {
+  SALARIO
+  COMISION
+  OPERATIVO
+  MARKETING
+}
+
+enum CampanaEstado {
+  BORRADOR
+  ENVIANDO
+  COMPLETADA
+}
+
+enum DestinatarioEstado {
+  PENDIENTE
+  ENVIADO
+  ERROR
+}
+
 // ─── CRM Pipeline ────────────────────────────────────────────────────────────
 
 model CRMEtapa {
@@ -65,6 +84,7 @@ model Lead {
   creadoEn            DateTime               @default(now())
   actualizadoEn       DateTime               @updatedAt
   conversaciones      ConversacionWhatsApp[]
+  campanasDestinatario CampanaDestinatario[]
 }
 
 model Alumno {
@@ -79,9 +99,10 @@ model Alumno {
   activo          Boolean       @default(true)
   password        String?
   primerLogin     Boolean       @default(true)
-  creadoEn        DateTime      @default(now())
+  creadoEn        DateTime        @default(now())
   inscripciones   Inscripcion[]
   certificados    Certificado[]
+  auditoria       AuditoriaAlumno[]
 }
 
 model Curso {
@@ -146,6 +167,19 @@ model CuotaPago {
   fechaVence  DateTime
   estado      PagoEstado @default(PENDIENTE)
   pagadoEn    DateTime?
+  abonos      Abono[]
+}
+
+model Abono {
+  id          Int       @id @default(autoincrement())
+  cuotaId     Int
+  cuota       CuotaPago @relation(fields: [cuotaId], references: [id])
+  monto       Decimal   @db.Decimal(10, 2)
+  fecha       DateTime  @default(now())
+  nota        String?
+  creadoEn    DateTime  @default(now())
+
+  @@index([cuotaId])
 }
 
 model Certificado {
@@ -155,6 +189,8 @@ model Certificado {
   alumnoId      Int
   alumno        Alumno      @relation(fields: [alumnoId], references: [id])
   codigo        String      @unique
+  urlPdf        String?
+  urlQr         String?
   fechaEmision  DateTime    @default(now())
   revocado      Boolean     @default(false)
 }
@@ -178,6 +214,66 @@ model MensajeWhatsApp {
   rol            String
   contenido      String               @db.Text
   creadoEn       DateTime             @default(now())
+}
+
+// ─── Finanzas ────────────────────────────────────────────────────────────────
+
+model Egreso {
+  id        Int             @id @default(autoincrement())
+  concepto  String
+  monto     Decimal         @db.Decimal(10, 2)
+  moneda    Moneda          @default(GTQ)
+  categoria CategoriaEgreso
+  fecha     DateTime
+  nota      String?         @db.Text
+  creadoEn  DateTime        @default(now())
+
+  @@index([fecha])
+}
+
+// ─── Auditoría Alumno ────────────────────────────────────────────────────────
+
+model AuditoriaAlumno {
+  id       Int      @id @default(autoincrement())
+  alumnoId Int
+  alumno   Alumno   @relation(fields: [alumnoId], references: [id])
+  accion   String
+  detalle  String?  @db.Text
+  adminId  Int?
+  ip       String?
+  creadoEn DateTime @default(now())
+
+  @@index([alumnoId])
+}
+
+// ─── Campañas WhatsApp ────────────────────────────────────────────────────────
+
+model CampanaWhatsApp {
+  id                  Int                    @id @default(autoincrement())
+  nombre              String
+  template            String                 @db.Text
+  variables           Json?
+  estado              CampanaEstado          @default(BORRADOR)
+  totalDestinatarios  Int                    @default(0)
+  enviados            Int                    @default(0)
+  errores             Int                    @default(0)
+  creadoEn            DateTime               @default(now())
+  actualizadoEn       DateTime               @updatedAt
+  destinatarios       CampanaDestinatario[]
+}
+
+model CampanaDestinatario {
+  id         Int                @id @default(autoincrement())
+  campanaId  Int
+  campana    CampanaWhatsApp    @relation(fields: [campanaId], references: [id])
+  leadId     Int
+  lead       Lead               @relation(fields: [leadId], references: [id])
+  estado     DestinatarioEstado @default(PENDIENTE)
+  error      String?
+  enviadoEn  DateTime?
+
+  @@index([campanaId])
+  @@index([leadId])
 }
 
 // ─── Escalaciones ────────────────────────────────────────────────────────────

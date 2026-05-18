@@ -1355,8 +1355,9 @@
         "dependencies": [
           "30"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:09:08.885Z"
       },
       {
         "id": "43",
@@ -1441,8 +1442,9 @@
         "dependencies": [
           "43"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:09:10.844Z"
       },
       {
         "id": "45",
@@ -1932,8 +1934,9 @@
         "testStrategy": "Verify opt-in by sending a test message from Twilio console to admin's WhatsApp. Confirm message is received. Verify all four credentials are documented and formatted correctly.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:05:33.656Z"
       },
       {
         "id": "58",
@@ -1945,8 +1948,9 @@
         "dependencies": [
           "57"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:05:35.940Z"
       },
       {
         "id": "59",
@@ -2130,8 +2134,9 @@
           "66",
           "58"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:05:37.928Z"
       },
       {
         "id": "68",
@@ -2146,7 +2151,7 @@
           "65",
           "67"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2206,14 +2211,15 @@
             "testStrategy": "Success criteria: Escalation detected in logs. Client receives user-facing message. Admin receives Twilio notification with exact format including both reply and reactivation instructions. modoHumano activated. Meta fallback works. System doesn't crash if Twilio fails.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-18T01:05:39.882Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-17T07:45:19.011Z",
+      "lastModified": "2026-05-18T01:09:10.844Z",
       "taskCount": 68,
-      "completedCount": 52,
+      "completedCount": 58,
       "tags": [
         "master"
       ]

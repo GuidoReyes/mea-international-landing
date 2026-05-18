@@ -149,13 +149,29 @@ export interface AlumnoDetalle extends Alumno {
   inscripciones: Inscripcion[];
 }
 
-export interface Edicion {
+export interface Curso {
   id: number;
   nombre: string;
+  descripcion: string;
+  precio: string;
+  modalidad: string;
+  duracion: string;
+  activo: boolean;
+}
+
+export interface Edicion {
+  id: number;
+  cursoId: number;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
   precio: string;
   precioUSD: string | null;
+  cupo: number;
   activo: boolean;
-  curso: { nombre: string };
+  instructor: string | null;
+  curso: { id: number; nombre: string };
+  _count?: { inscripciones: number };
 }
 
 export interface CreateAlumnoInput {
@@ -238,8 +254,20 @@ export const api = {
 
   getReportesResumen: () => apiFetch<ReportesResumen>("/api/reportes/resumen"),
 
-  getEdiciones: () =>
-    apiFetch<{ data: Edicion[] }>("/api/ediciones?activo=true&limit=100"),
+  getCursos: () =>
+    apiFetch<{ data: Curso[] }>("/api/cursos?limit=100"),
+
+  getEdiciones: (cursoId?: number, activo?: boolean) => {
+    const params = new URLSearchParams({ limit: "200" });
+    if (cursoId) params.set("cursoId", String(cursoId));
+    if (activo !== undefined) params.set("activo", String(activo));
+    return apiFetch<{ data: Edicion[] }>(`/api/ediciones?${params}`);
+  },
+
+  createEdicion: (data: {
+    cursoId: number; nombre: string; fechaInicio: string; fechaFin: string;
+    precio: number; precioUSD?: number; cupo: number; instructor?: string;
+  }) => apiFetch<Edicion>("/api/ediciones", { method: "POST", body: JSON.stringify(data) }),
 
   createInscripcion: (alumnoId: number, edicionId: number) =>
     apiFetch<Inscripcion>("/api/inscripciones", {

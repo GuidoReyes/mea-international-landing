@@ -1456,8 +1456,9 @@
         "dependencies": [
           "28"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:13:27.319Z"
       },
       {
         "id": "46",
@@ -1470,7 +1471,7 @@
           "45",
           "34"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1518,7 +1519,8 @@
             "testStrategy": "Verify backend/src/index.ts imports startScheduler and calls it after app.listen(). Start backend locally with npm run dev, check console shows 'Scheduler initialized: 3 cron jobs registered' message. In Railway, verify TZ environment variable is set to 'America/Guatemala'. Check Railway logs after deployment show scheduler initialization message. Wait for next 8 AM Guatemala time or manually test cron execution to verify timezone is correct.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-18T01:20:40.226Z"
       },
       {
         "id": "47",
@@ -1530,7 +1532,7 @@
         "dependencies": [
           "45"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1591,7 +1593,8 @@
             "testStrategy": "Create test certificado record. GET /api/certificados with JWT and alumnoId filter, verify returns only matching certificates. GET /api/certificados without alumnoId, verify returns all. GET /api/certificados/verify/:codigo without JWT, verify 200 {valid: true, alumno, curso, fecha}. Call verify twice, second call should hit Redis cache (verify with Redis monitor or logs). Test with invalid codigo, verify 404 {valid: false}. Test Redis unavailable scenario (mock Redis failure), verify endpoint still works by falling through to DB.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-18T01:27:59.567Z"
       },
       {
         "id": "48",
@@ -1603,8 +1606,9 @@
         "dependencies": [
           "47"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T01:28:01.510Z"
       },
       {
         "id": "49",
@@ -2217,9 +2221,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-18T01:09:10.844Z",
+      "lastModified": "2026-05-18T01:28:01.511Z",
       "taskCount": 68,
-      "completedCount": 58,
+      "completedCount": 62,
       "tags": [
         "master"
       ]

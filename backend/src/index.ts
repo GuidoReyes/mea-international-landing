@@ -13,6 +13,7 @@ import crmRouter from "./routes/crm";
 import edicionesRouter from "./routes/ediciones";
 import inscripcionesRouter from "./routes/inscripciones";
 import reportesRouter from "./routes/reportes";
+import certificadosRouter from "./routes/certificados";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 import { startScheduler } from "./scheduler";
 
@@ -59,6 +60,7 @@ app.use("/api/crm", crmRouter);
 app.use("/api/ediciones", edicionesRouter);
 app.use("/api/inscripciones", inscripcionesRouter);
 app.use("/api/reportes", reportesRouter);
+app.use("/api/certificados", certificadosRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {

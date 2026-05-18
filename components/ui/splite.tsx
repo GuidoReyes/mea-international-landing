@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState, memo, Component, type ReactNode } from 'react'
+import { Suspense, lazy, useState, memo, Component, type ReactNode } from 'react'
 import type { Application } from '@splinetool/runtime'
 
 interface SplineSceneProps {
@@ -25,76 +25,25 @@ const Spinner = () => (
   </div>
 )
 
-// Uses Application from @splinetool/runtime directly so the canvas is never
-// hidden (display:none), which would give clientWidth/clientHeight = 0 and
-// break the WebGL renderer initialization in Three.js.
+// lazy-loaded so the Spline bundle doesn't block the initial page render
+const SplineLazy = lazy(() => import('@splinetool/react-spline'))
+
 function SplineInner({ scene, className }: SplineSceneProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const canvasRef   = useRef<HTMLCanvasElement>(null)
-  const appRef      = useRef<Application | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    const canvas    = canvasRef.current
-    const container = containerRef.current
-    if (!canvas || !container) return
-
-    let disposed = false
-
-    import('@splinetool/runtime')
-      .then(({ Application }) => {
-        if (disposed) return
-
-        const app = new Application(canvas, { renderMode: 'continuous' })
-        appRef.current = app
-
-        return app.load(scene).then(() => {
-          if (disposed) return
-          const { width, height } = container.getBoundingClientRect()
-          if (width > 0 && height > 0) app.setSize(width, height)
-          setLoaded(true)
-        })
-      })
-      .catch((err: unknown) => {
-        if (disposed) return
-        console.error('[Spline] scene load failed:', err)
-        setFailed(true)
-      })
-
-    let resizeRaf = 0
-    const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(resizeRaf)
-      resizeRaf = requestAnimationFrame(() => {
-        const app = appRef.current
-        if (!app) return
-        const { width, height } = container.getBoundingClientRect()
-        if (width > 0 && height > 0) app.setSize(width, height)
-      })
-    })
-    ro.observe(container)
-
-    return () => {
-      disposed = true
-      cancelAnimationFrame(resizeRaf)
-      ro.disconnect()
-      appRef.current?.dispose()
-      appRef.current = null
-    }
-  }, [scene])
 
   return (
-    <div ref={containerRef} className={`relative overflow-hidden ${className ?? ''}`}>
-      {!loaded && !failed && (
+    <div className={`relative overflow-hidden ${className ?? ''}`}>
+      {!loaded && (
         <div className="absolute inset-0 z-10 pointer-events-none">
           <Spinner />
         </div>
       )}
-      {failed ? (
-        <Spinner />
-      ) : (
-        <canvas
-          ref={canvasRef}
+      {/* Suspense fallback is null so the outer div (with explicit h-[400px]) keeps
+          its dimensions — the canvas never gets display:none / 0×0 sizing. */}
+      <Suspense fallback={null}>
+        <SplineLazy
+          scene={scene}
+          onLoad={(_app: Application) => setLoaded(true)}
           style={{
             width: '100%',
             height: '100%',
@@ -102,7 +51,7 @@ function SplineInner({ scene, className }: SplineSceneProps) {
             opacity: loaded ? 1 : 0,
           }}
         />
-      )}
+      </Suspense>
     </div>
   )
 }

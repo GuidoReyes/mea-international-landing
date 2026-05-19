@@ -34,7 +34,7 @@ PREGUNTAS FRECUENTES:
 - ¿Tienen oferta familiar?: Sí, paquetes especiales para familias, consultar directamente.
 - ¿Qué incluye el plan?: Material digital, clases grabadas, soporte WhatsApp, certificado de nivel.
 
-CONTACTO: WhatsApp +502 5631-1728 · mea.edu.gt · Horario de atención Lunes a Sábado 8am-5pm
+CONTACTO: mea.edu.gt · Horario de atención Lunes a Sábado 8am-5pm · (el equipo contactará al cliente directamente cuando sea necesario)
 `.trim();
 
 const AGENT_CONFIGS: Record<string, AgentConfig> = {
@@ -142,7 +142,7 @@ ${WEB_CONTEXT}`,
   },
 };
 
-const ESCALATION_INSTRUCTION = `\n\nIMPORTANTE: Si el cliente pregunta algo fuera de tu conocimiento, pide hablar con una persona, o insiste en algo que no podés resolver, respondé ÚNICAMENTE con este JSON exacto sin texto adicional: {"accion": "escalar_humano", "motivo": "breve razón"}. No inventés información. Si no sabés → escalá.`;
+const ESCALATION_INSTRUCTION = `\n\nIMPORTANTE: Nunca menciones números de teléfono ni de WhatsApp en tus respuestas. Si el cliente necesita hablar con alguien, decile que el equipo lo contactará pronto por este mismo chat.\n\nSi el cliente pregunta algo fuera de tu conocimiento, pide hablar con una persona, o insiste en algo que no podés resolver, respondé ÚNICAMENTE con este JSON exacto sin texto adicional: {"accion": "escalar_humano", "motivo": "breve razón"}. No inventés información. Si no sabés → escalá.`;
 
 interface LeadWithEtapa {
   nombre: string | null;

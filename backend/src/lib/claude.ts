@@ -7,6 +7,7 @@ import { selectAgent } from "../agents/agentRouter";
 import { estaModoHumano, activarModoHumano } from "./human-handoff";
 import { sendWhatsAppMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
+import { detectIntent, notifyAdvisorIfNeeded } from "./advisor-notify";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,6 +39,10 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
 
   const history = await getHistory(telefono);
   history.push({ role: "user", content: mensaje });
+
+  // Proactive advisor notification based on user intent
+  const intent = detectIntent(mensaje);
+  notifyAdvisorIfNeeded(telefono, mensaje, intent).catch(() => null);
 
   const notionCtx = await getNotionContext(mensaje).catch(() => "");
 

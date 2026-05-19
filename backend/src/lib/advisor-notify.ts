@@ -12,19 +12,23 @@ export type AdvisorNotifIntent =
 const INTENT_PATTERNS: Array<{ intent: AdvisorNotifIntent; patterns: RegExp }> = [
   {
     intent: "comprobante_pago",
-    patterns: /recibo|comprobante|transfer[ei]ncia|depósito|deposito|constancia|pago|pagué|pague|ya pag/i,
+    // recibo / comprobante / transferencia / depósito / ya pagué / envié el pago
+    patterns: /recibo|comprobante|transferencia|deposito|depósito|constancia|ya pag|envié.*pago|mando.*pago|te mando|aquí.*pago|aqui.*pago/i,
   },
   {
     intent: "listo_inscribirse",
-    patterns: /me inscribo|quiero inscribirme|voy a inscribirme|lista para inscribir|listo para inscribir|cómo me inscribo|como me inscribo|inscripción|inscripcion/i,
+    // me inscribo / quiero inscribirme / cómo me inscribo / cuándo empiezo
+    patterns: /me inscribo|inscribo|inscribirme|inscripci[oó]n|c[oó]mo.*empez|cu[aá]ndo.*empez|quiero entrar|quiero empezar/i,
   },
   {
     intent: "clase_prueba",
-    patterns: /clase de prueba|clase prueba|prueba gratis|clase gratis|clase trial|quiero probar|probar el curso|antes de inscribir/i,
+    // clases? de prueba / clase trial / quiero probar / clase gratis / prueba gratis
+    patterns: /clases? de prueba|clase.*prueba|prueba.*clase|prueba gratis|clase gratis|clase trial|quiero probar|probar.*curso|antes de inscribir/i,
   },
   {
     intent: "hablar_asesor",
-    patterns: /hablar con|hablar a|asesor|asesora|persona real|alguien de|equipo de|agente|me llamen|me contacten/i,
+    // hablar con alguien / con un asesor / me llamen / persona real
+    patterns: /hablar con|hablar a|un asesor|una asesora|persona real|alguien de|equipo de|me llamen|me contacten|llamarme|hablar directo/i,
   },
 ];
 

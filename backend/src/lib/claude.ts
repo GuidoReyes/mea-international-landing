@@ -69,7 +69,15 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
       : null
   );
 
-  const systemPrompt = `${agentConfig.systemPrompt}${notionCtx ? `\n\nINFORMACIÓN ADICIONAL:\n${notionCtx}` : ""}`.trim();
+  // Notion KB se inyecta ANTES de la instrucción de escalación para que
+  // Claude la consulte antes de decidir escalar.
+  const notionSection = notionCtx
+    ? `\n\nBASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`
+    : "";
+  const systemPrompt = agentConfig.systemPrompt.replace(
+    "\n\nIMPORTANTE: Si el cliente pregunta",
+    `${notionSection}\n\nIMPORTANTE: Si el cliente pregunta`
+  );
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 

@@ -6,7 +6,7 @@ export interface AgentConfig {
 
 const WEB_CONTEXT = `
 MEA International es una academia premium de inglés online enfocada en Guatemala y Latinoamérica.
-Clases en vivo por Zoom/Google Meet con maestros certificados.
+Clases en vivo con maestros certificados. El bot se llama Mía.
 
 PLANES Y PRECIOS (en Quetzales):
 - Inscripción: Q100 (pago único, una sola vez)
@@ -20,9 +20,21 @@ INCLUIDO EN TODOS LOS PLANES:
 - Sin contratos ni compromisos mínimos (podés cancelar cuando quieras)
 - Oferta de grupo familiar disponible
 
-PROGRAMAS ESPECIALIZADOS: inglés médico, inglés legal, preparación TOEFL.
-HORARIOS: flexibles de 6am a 9pm.
-CONTACTO: todo por WhatsApp al +502 5631-1728 o en mea.edu.gt
+HORARIOS:
+- Niños: Martes y Jueves 4:00-5:00pm · Lunes y Miércoles 5:00-6:00pm
+- Adolescentes: Lunes y Miércoles 6:20-7:20pm
+- Adultos: Lunes y Miércoles 7:20-8:20pm · Lunes y Miércoles 8:30-9:30pm
+
+PAGOS: Banco Industrial GTQ · Cuenta 693-001550-5 · Nombre: Corporacion ME SA · Enviar comprobante por WhatsApp.
+
+PREGUNTAS FRECUENTES:
+- ¿Hay clases de prueba?: Sí, se puede coordinar una clase de prueba antes de inscribirse.
+- ¿Las clases son presenciales u online?: 100% online desde casa. Plataforma propia + clases en vivo.
+- ¿Hay contrato o mínimo de meses?: No. Sin contratos ni compromisos. Se puede pausar cuando se necesite.
+- ¿Tienen oferta familiar?: Sí, paquetes especiales para familias, consultar directamente.
+- ¿Qué incluye el plan?: Material digital, clases grabadas, soporte WhatsApp, certificado de nivel.
+
+CONTACTO: WhatsApp +502 5631-1728 · mea.edu.gt · Horario de atención Lunes a Sábado 8am-5pm
 `.trim();
 
 const AGENT_CONFIGS: Record<string, AgentConfig> = {

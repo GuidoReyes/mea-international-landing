@@ -2,8 +2,8 @@ import { Client, isFullBlock } from "@notionhq/client";
 import { getJSON, setJSON } from "./redis";
 import { log } from "./logger";
 
-// IDs de páginas clave de MEA International en Notion
-const MEA_PRICING_PAGE_ID = "35d83de9-b32b-8001-bec4-edb3e3e4665c";
+// Base de Conocimiento principal del bot — contiene identidad, planes, horarios, pagos y FAQ
+const MEA_KB_PAGE_ID = "36183de9-b32b-8064-9456-c0d9ce8e942c";
 
 let notion: Client | null = null;
 
@@ -17,7 +17,7 @@ async function fetchPageText(pageId: string): Promise<string> {
   const client = getClient();
   if (!client) return "";
 
-  const blocks = await client.blocks.children.list({ block_id: pageId, page_size: 50 });
+  const blocks = await client.blocks.children.list({ block_id: pageId, page_size: 100 });
   const lines: string[] = [];
 
   for (const block of blocks.results) {
@@ -29,7 +29,6 @@ async function fetchPageText(pageId: string): Promise<string> {
 
     if (!content) continue;
 
-    // Extraer texto de rich_text
     if (Array.isArray(content["rich_text"])) {
       const text = (content["rich_text"] as Array<{ plain_text: string }>)
         .map((t) => t.plain_text)
@@ -37,7 +36,6 @@ async function fetchPageText(pageId: string): Promise<string> {
       if (text.trim()) lines.push(text.trim());
     }
 
-    // Extraer celdas de tablas
     if (type === "table_row" && Array.isArray(content["cells"])) {
       const cells = (content["cells"] as Array<Array<{ plain_text: string }>>)
         .map((cell) => cell.map((t) => t.plain_text).join(""))
@@ -46,66 +44,43 @@ async function fetchPageText(pageId: string): Promise<string> {
     }
   }
 
-  return lines.join("\n").slice(0, 1200);
+  return lines.join("\n").slice(0, 5000);
 }
 
 export async function getNotionContext(userMessage: string): Promise<string> {
+  const startTime = Date.now();
   const client = getClient();
-  if (!client) return "";
-
-  const msg = userMessage.toLowerCase();
-  const cacheKey = `notion:context:${Buffer.from(msg).toString("base64").slice(0, 40)}`;
-
-  // Cache hit
-  const cached = await getJSON<string>(cacheKey).catch(() => null);
-  if (cached) return cached;
-
-  const sections: string[] = [];
-
-  try {
-    // Siempre incluir precios si el usuario pregunta por costos, inscripción o cursos
-    const pricingKeywords = ["precio", "costo", "cuanto", "cuánto", "inscripcion", "inscripción",
-      "curso", "plan", "vip", "mensual", "mes", "pagar", "quetzal", "q.", "básico", "basico",
-      "intermedio", "avanzado", "modalidad", "clase", "english", "inglés", "ingles"];
-
-    if (pricingKeywords.some((kw) => msg.includes(kw)) || sections.length === 0) {
-      const pricingText = await fetchPageText(MEA_PRICING_PAGE_ID);
-      if (pricingText) sections.push(`--- Precios y Planes MEA ---\n${pricingText}`);
-    }
-
-    // Búsqueda adicional en Notion si hay términos específicos
-    const searchTerms = extractSearchTerms(msg);
-    if (searchTerms && sections.length === 0) {
-      const searchResults = await client.search({
-        query: searchTerms,
-        filter: { value: "page", property: "object" },
-        page_size: 2,
-      });
-
-      for (const result of searchResults.results) {
-        if (result.object !== "page") continue;
-        const text = await fetchPageText(result.id);
-        if (text) sections.push(text);
-      }
-    }
-  } catch (err) {
-    log("error", "[Notion] Error obteniendo contexto:", err);
+  if (!client) {
+    log("warn", "[NotionRAG] NOTION_TOKEN no configurado — sin contexto");
     return "";
   }
 
-  const context = sections.join("\n\n").slice(0, 1500);
-  await setJSON(cacheKey, context, 3600).catch(() => null);
-  return context;
-}
+  const msg = userMessage.toLowerCase();
+  // Cache por mensaje — TTL 1h
+  const cacheKey = `notion:kb:${Buffer.from(msg).toString("base64").slice(0, 40)}`;
 
-function extractSearchTerms(message: string): string {
-  const stopWords = new Set(["el", "la", "los", "las", "un", "una", "de", "en", "que", "y",
-    "me", "mi", "tu", "es", "se", "por", "con", "para", "como", "hola", "buenas", "quiero",
-    "necesito", "puedo", "puede", "tienes", "tiene", "hay"]);
+  const cached = await getJSON<string>(cacheKey).catch(() => null);
+  if (cached) {
+    log("info", `[NotionRAG] Cache hit (${cached.length} chars, ${Date.now() - startTime}ms)`);
+    return cached;
+  }
 
-  return message
-    .split(/\s+/)
-    .filter((w) => w.length > 3 && !stopWords.has(w))
-    .slice(0, 4)
-    .join(" ");
+  try {
+    // Toda la base de conocimiento está en una sola página — siempre la cargamos completa
+    const kbText = await fetchPageText(MEA_KB_PAGE_ID);
+
+    if (!kbText) {
+      log("warn", "[NotionRAG] Página KB vacía o sin acceso");
+      return "";
+    }
+
+    const context = `--- Base de Conocimiento MEA International ---\n${kbText}`.slice(0, 5000);
+    await setJSON(cacheKey, context, 3600).catch(() => null);
+
+    log("info", `[NotionRAG] Contexto generado (${context.length} chars, ${Date.now() - startTime}ms)`);
+    return context;
+  } catch (err) {
+    log("error", "[NotionRAG] Error obteniendo contexto:", err);
+    return "";
+  }
 }

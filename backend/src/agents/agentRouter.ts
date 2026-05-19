@@ -142,7 +142,7 @@ ${WEB_CONTEXT}`,
   },
 };
 
-const ESCALATION_INSTRUCTION = `\n\nIMPORTANTE: Nunca menciones números de teléfono ni de WhatsApp en tus respuestas. Si el cliente necesita hablar con alguien, decile que el equipo lo contactará pronto por este mismo chat.\n\nSi el cliente pregunta algo fuera de tu conocimiento, pide hablar con una persona, o insiste en algo que no podés resolver, respondé ÚNICAMENTE con este JSON exacto sin texto adicional: {"accion": "escalar_humano", "motivo": "breve razón"}. No inventés información. Si no sabés → escalá.`;
+const ESCALATION_INSTRUCTION = `\n\nIMPORTANTE: Nunca menciones números de teléfono ni de WhatsApp en tus respuestas. Si el cliente necesita hablar con alguien, decile que el equipo lo contactará pronto por este mismo chat.\n\nCLAVE: Nunca le pidas al cliente su número de WhatsApp ni teléfono — ya lo tenemos porque está escribiendo por WhatsApp. Si quiere agendar una clase de prueba, coordinar algo, o necesita que lo contacten, respondé: "¡Perfecto! El equipo de MEA se pondrá en contacto con vos pronto por este mismo chat 😊". No hagas preguntas de contacto.\n\nSi el cliente pregunta algo fuera de tu conocimiento, pide hablar con una persona, o insiste en algo que no podés resolver, respondé ÚNICAMENTE con este JSON exacto sin texto adicional: {"accion": "escalar_humano", "motivo": "breve razón"}. No inventés información. Si no sabés → escalá.`;
 
 interface LeadWithEtapa {
   nombre: string | null;

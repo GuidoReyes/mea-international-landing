@@ -79,10 +79,13 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
   const notionSection = notionCtx
     ? `\n\nBASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`
     : "";
-  const systemPrompt = agentConfig.systemPrompt.replace(
-    "\n\nIMPORTANTE: Si el cliente pregunta",
-    `${notionSection}\n\nIMPORTANTE: Si el cliente pregunta`
-  );
+  // Inject Notion KB before the escalation block (anchored to new ESCALATION_INSTRUCTION prefix)
+  const systemPrompt = notionSection
+    ? agentConfig.systemPrompt.replace(
+        "\n\nIMPORTANTE: Nunca menciones",
+        `${notionSection}\n\nIMPORTANTE: Nunca menciones`
+      )
+    : agentConfig.systemPrompt;
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 

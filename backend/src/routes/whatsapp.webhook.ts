@@ -101,12 +101,14 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
       );
     }
 
-    // Enviar respuesta por WhatsApp
-    const sent = await sendWhatsAppMessage(telefono, respuesta);
-    if (sent.success) {
-      log("info", `[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
-    } else {
-      log("error", `[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
+    // Enviar respuesta por WhatsApp (modo humano devuelve "" — no enviar vacío)
+    if (respuesta) {
+      const sent = await sendWhatsAppMessage(telefono, respuesta);
+      if (sent.success) {
+        log("info", `[WhatsApp] ${mask} | Respuesta enviada — ID: ${sent.messageId}`);
+      } else {
+        log("error", `[WhatsApp] ${mask} | Error enviando mensaje: ${sent.error}`);
+      }
     }
 
     // Forwarding en tiempo real al admin vía Twilio (fire and forget)

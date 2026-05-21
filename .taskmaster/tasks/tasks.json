@@ -1635,8 +1635,9 @@
           "49",
           "38"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T03:44:07.173Z"
       },
       {
         "id": "51",
@@ -1648,8 +1649,9 @@
         "dependencies": [
           "49"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T03:44:09.117Z"
       },
       {
         "id": "52",
@@ -1722,7 +1724,7 @@
         "dependencies": [
           "45"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1770,7 +1772,8 @@
             "testStrategy": "Trigger campaign send with 20 leads. Immediately call /status, verify estado='ENVIANDO', progreso near 0. Poll every second, verify enviados increments. After completion, verify estado='COMPLETADA', progreso=100, enviados + errores = totalDestinatarios.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-18T03:55:51.458Z"
       },
       {
         "id": "54",
@@ -1782,8 +1785,9 @@
         "dependencies": [
           "53"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-18T03:55:53.443Z"
       },
       {
         "id": "55",
@@ -1889,7 +1893,7 @@
         "description": "Registrar historial completo de escaladas a humano en base de datos con modelo Prisma Escalada.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "45"
         ],
@@ -1929,7 +1933,8 @@
             "parentTaskId": 56,
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2026-05-18T03:51:08.882Z"
       },
       {
         "id": "57",
@@ -2218,13 +2223,556 @@
           }
         ],
         "updatedAt": "2026-05-18T01:05:39.882Z"
+      },
+      {
+        "id": "69",
+        "title": "Implement complete Notion RAG system for WhatsApp bot",
+        "description": "Build a multi-page retrieval-augmented generation system that connects the WhatsApp bot with MEA's complete Notion knowledge base, enabling accurate responses about pricing, schedules, courses, instructors, methodology, requirements, certifications, and availability using intent-based routing, Redis caching, and real-time database queries.",
+        "details": "**Architecture Overview:**\n\nThe current `backend/src/lib/notion-context.ts` has critical limitations:\n1. Only fetches ONE hardcoded pricing page (ID: 35d83de9-b32b-8001-bec4-edb3e3e4665c)\n2. Additional search never executes due to bug: `if (searchTerms && sections.length === 0)` is always false after pricing page loads\n3. Context limited to 1,500 chars - insufficient for multi-topic responses\n4. No intent-based routing - can't distinguish between pricing vs schedule queries\n5. No real-time course availability from database\n\n**Implementation Strategy:**\n\n**Subtask 69.1: Audit and map Notion pages**\n- Create constant `NOTION_PAGES` object mapping intents to page IDs:\n```typescript\nconst NOTION_PAGES = {\n  pricing: '35d83de9-b32b-8001-bec4-edb3e3e4665c',\n  schedules: 'PAGE_ID_HERE', // Get from Notion workspace\n  courses: 'PAGE_ID_HERE',\n  instructors: 'PAGE_ID_HERE',\n  methodology: 'PAGE_ID_HERE',\n  requirements: 'PAGE_ID_HERE',\n  certifications: 'PAGE_ID_HERE',\n  faq: 'PAGE_ID_HERE',\n  payment_policy: 'PAGE_ID_HERE'\n} as const;\n```\n- Document process: Navigate to each Notion page → Copy page ID from URL → Verify NOTION_TOKEN has read access\n- Test token access with `notion.pages.retrieve()` for each page ID\n\n**Subtask 69.2: Fix search bug in notion-context.ts**\n\nCurrent buggy code (lines 78-90):\n```typescript\nif (searchTerms && sections.length === 0) { // BUG: always false!\n  const searchResults = await client.search(...);\n  // never executes\n}\n```\n\nFixed approach:\n```typescript\n// Step 1: Execute intent-based page fetching first\nconst intentPages = detectIntent(msg);\nfor (const pageId of intentPages) {\n  const text = await fetchPageText(pageId);\n  if (text) sections.push(text);\n}\n\n// Step 2: Execute additional Notion search INDEPENDENTLY\nconst searchTerms = extractSearchTerms(msg);\nif (searchTerms) { // Remove sections.length check!\n  const searchResults = await client.search({\n    query: searchTerms,\n    filter: { value: 'page', property: 'object' },\n    page_size: 3\n  });\n  \n  for (const result of searchResults.results) {\n    if (result.object === 'page') {\n      const text = await fetchPageText(result.id);\n      if (text) sections.push(text);\n    }\n  }\n}\n\n// Step 3: Combine results up to token limit (3000 chars)\nconst context = formatSections(sections).slice(0, 3000);\n```\n\n**Subtask 69.3: Implement intent-based multi-page routing**\n\nCreate intent detection function:\n```typescript\ntype Intent = keyof typeof NOTION_PAGES;\n\nfunction detectIntent(message: string): string[] {\n  const msg = message.toLowerCase();\n  const pageIds: string[] = [];\n  \n  const intentMap: Record<Intent, string[]> = {\n    pricing: ['precio', 'costo', 'cuanto', 'cuánto', 'pagar', 'quetzal', 'q.', 'mensual', 'plan'],\n    schedules: ['horario', 'hora', 'clase', 'día', 'dias', 'cuando', 'cuándo'],\n    courses: ['curso', 'nivel', 'a1', 'a2', 'b1', 'b2', 'c1', 'básico', 'basico', 'intermedio', 'avanzado'],\n    requirements: ['inscripción', 'inscripcion', 'requisito', 'documento', 'empezar', 'necesito'],\n    instructors: ['instructor', 'profesor', 'maestro', 'teacher'],\n    certifications: ['certificado', 'certificación', 'diploma'],\n    methodology: ['metodología', 'metodologia', 'cómo funciona', 'plataforma'],\n    payment_policy: ['pago', 'cuota', 'forma de pago', 'deposito', 'transferencia']\n  };\n  \n  // Check each intent, add up to 2 pages max per query\n  let count = 0;\n  for (const [intent, keywords] of Object.entries(intentMap)) {\n    if (count >= 2) break;\n    if (keywords.some(kw => msg.includes(kw))) {\n      pageIds.push(NOTION_PAGES[intent as Intent]);\n      count++;\n    }\n  }\n  \n  // Fallback: always include pricing if no intent matched\n  if (pageIds.length === 0) {\n    pageIds.push(NOTION_PAGES.pricing);\n  }\n  \n  return pageIds;\n}\n```\n\n**Subtask 69.4: Query Notion database for real-time availability**\n\nNotion databases can be queried using the `@notionhq/client` database API. Implement:\n\n```typescript\ninterface CourseAvailability {\n  name: string;\n  price: number;\n  availableSlots: number;\n  nextStartDate: string;\n  modality: string;\n  instructor?: string;\n}\n\nasync function queryNotionDatabase(databaseId: string): Promise<CourseAvailability[]> {\n  const client = getClient();\n  if (!client) return [];\n  \n  const cacheKey = 'notion:courses:availability';\n  const cached = await getJSON<CourseAvailability[]>(cacheKey);\n  if (cached) {\n    log('info', '[NotionRAG] Cache hit for course availability');\n    return cached;\n  }\n  \n  try {\n    const response = await client.databases.query({\n      database_id: databaseId,\n      filter: {\n        property: 'Activo',\n        checkbox: { equals: true }\n      },\n      sorts: [{\n        property: 'Fecha Inicio',\n        direction: 'ascending'\n      }],\n      page_size: 10\n    });\n    \n    const courses: CourseAvailability[] = response.results.map((page: any) => ({\n      name: page.properties['Nombre']?.title[0]?.plain_text || 'Sin nombre',\n      price: page.properties['Precio']?.number || 0,\n      availableSlots: page.properties['Cupos Disponibles']?.number || 0,\n      nextStartDate: page.properties['Fecha Inicio']?.date?.start || '',\n      modality: page.properties['Modalidad']?.select?.name || '',\n      instructor: page.properties['Instructor']?.rich_text[0]?.plain_text\n    }));\n    \n    await setJSON(cacheKey, courses, 1800); // 30 min TTL\n    log('info', '[NotionRAG] Fetched and cached course availability', { count: courses.length });\n    return courses;\n  } catch (err) {\n    log('error', '[NotionRAG] Error querying Notion database:', err);\n    return [];\n  }\n}\n\n// Integrate into getNotionContext:\nif (msg.includes('disponible') || msg.includes('cuándo empieza') || msg.includes('cupo')) {\n  const COURSES_DB_ID = 'YOUR_NOTION_DATABASE_ID'; // Add to env or constants\n  const availability = await queryNotionDatabase(COURSES_DB_ID);\n  if (availability.length > 0) {\n    sections.push(formatCourseAvailability(availability));\n  }\n}\n```\n\n**Subtask 69.5: Increase context limit and improve formatting**\n\nReplace flat text concatenation with structured sections:\n\n```typescript\nfunction formatSections(sections: string[]): string {\n  // Group sections by type based on content markers\n  const formatted: string[] = [];\n  \n  sections.forEach((section, idx) => {\n    if (section.includes('Precio') || section.includes('Costo')) {\n      formatted.push(`## Precios y Planes\\n${section}`);\n    } else if (section.includes('Horario') || section.includes('Hora')) {\n      formatted.push(`## Horarios\\n${section}`);\n    } else if (section.includes('Curso') || section.includes('Nivel')) {\n      formatted.push(`## Cursos Disponibles\\n${section}`);\n    } else if (section.includes('Instructor') || section.includes('Profesor')) {\n      formatted.push(`## Instructores\\n${section}`);\n    } else {\n      formatted.push(`## Información Adicional\\n${section}`);\n    }\n  });\n  \n  return formatted.join('\\n\\n');\n}\n\n// Update context limit from 1500 to 3000 chars\nconst context = formatSections(sections).slice(0, 3000);\nawait setJSON(cacheKey, context, 3600);\nreturn context;\n```\n\n**Subtask 69.6: Add logging and monitoring**\n\nInstrument `getNotionContext` with detailed logs:\n\n```typescript\nexport async function getNotionContext(userMessage: string): Promise<string> {\n  const startTime = Date.now();\n  const client = getClient();\n  if (!client) {\n    log('warn', '[NotionRAG] Notion client not available - missing NOTION_TOKEN');\n    return '';\n  }\n  \n  const msg = userMessage.toLowerCase();\n  const cacheKey = `notion:context:${Buffer.from(msg).toString('base64').slice(0, 40)}`;\n  \n  // Check cache\n  const cached = await getJSON<string>(cacheKey).catch(() => null);\n  if (cached) {\n    log('info', '[NotionRAG] Cache hit', { \n      messageLength: msg.length,\n      contextLength: cached.length,\n      duration: Date.now() - startTime\n    });\n    return cached;\n  }\n  \n  log('info', '[NotionRAG] Cache miss - fetching from Notion', { messageLength: msg.length });\n  \n  const sections: string[] = [];\n  const fetchedPages: string[] = [];\n  \n  try {\n    // Intent-based page fetching\n    const intentPages = detectIntent(msg);\n    log('info', '[NotionRAG] Detected intents', { pageCount: intentPages.length });\n    \n    for (const pageId of intentPages) {\n      const text = await fetchPageText(pageId);\n      if (text) {\n        sections.push(text);\n        fetchedPages.push(pageId);\n      }\n    }\n    \n    // Additional search\n    const searchTerms = extractSearchTerms(msg);\n    if (searchTerms) {\n      log('info', '[NotionRAG] Executing additional search', { terms: searchTerms });\n      const searchResults = await client.search({\n        query: searchTerms,\n        filter: { value: 'page', property: 'object' },\n        page_size: 3\n      });\n      \n      for (const result of searchResults.results) {\n        if (result.object === 'page') {\n          const text = await fetchPageText(result.id);\n          if (text) sections.push(text);\n        }\n      }\n    }\n    \n    const context = formatSections(sections).slice(0, 3000);\n    await setJSON(cacheKey, context, 3600);\n    \n    log('info', '[NotionRAG] Context generated successfully', {\n      fetchedPages,\n      sectionsCount: sections.length,\n      contextLength: context.length,\n      hadContext: context.length > 0,\n      duration: Date.now() - startTime\n    });\n    \n    return context;\n  } catch (err) {\n    log('error', '[NotionRAG] Error generating context:', err);\n    return '';\n  }\n}\n```\n\n**Environment Variables Needed:**\n- `NOTION_TOKEN` (already exists)\n- `NOTION_COURSES_DATABASE_ID` (new - for real-time availability queries)\n\n**Testing Strategy:**\nTest queries that should trigger different intents:\n1. \"¿Cuánto cuesta el curso?\" → Should fetch pricing page\n2. \"¿Qué horarios tienen?\" → Should fetch schedules page  \n3. \"¿Cuándo empiezan las clases de inglés intermedio?\" → Should fetch courses page + query database for availability\n4. \"¿Qué documentos necesito para inscribirme?\" → Should fetch requirements page\n5. \"¿Quiénes son los profesores?\" → Should fetch instructors page\n\nVerify logs show:\n- Cache hit/miss\n- Pages fetched\n- Context length sent to Claude\n- Response time\n\n**Success Criteria:**\n- Lead asking \"¿cuándo empiezan las clases de inglés intermedio?\" receives actual start date from Notion\n- Lead asking \"¿qué documentos necesito para inscribirme?\" receives exact requirements from MEA's Notion page\n- Responses include context from multiple relevant pages (not just pricing)\n- Additional search executes correctly when search terms present\n- Context structured with clear section headers for Claude to reference\n- All Notion API calls logged with cache hit/miss and timing info",
+        "testStrategy": "**Unit Tests:**\n1. Test `detectIntent()` with various Spanish queries:\n   - Pricing queries: 'cuanto cuesta', 'precio del curso', 'planes disponibles'\n   - Schedule queries: 'horarios de clase', 'que dias tienen', 'cuando son las clases'\n   - Course queries: 'curso basico', 'nivel intermedio', 'clases de B1'\n   - Verify correct page IDs returned\n\n2. Test `extractSearchTerms()` filters stopwords and returns meaningful terms\n\n3. Test `formatSections()` creates structured markdown with headers\n\n4. Test `queryNotionDatabase()` cache behavior:\n   - First call hits Notion API\n   - Second call within 30 min returns cached data\n   - Mock Notion API responses\n\n**Integration Tests:**\n1. Test complete flow in `getNotionContext()`:\n   - Mock Notion client responses for pages and search\n   - Mock Redis for cache\n   - Verify sections combined correctly\n   - Verify 3000 char limit enforced\n   - Verify logs emitted with correct structure\n\n2. Test bug fix: Verify additional search executes even when intent pages found\n\n3. Test cache key generation for different messages\n\n**Manual Testing (Staging Environment):**\n1. Send WhatsApp messages to bot from test number:\n   - \"¿Cuánto cuesta el curso básico?\"\n   - \"¿Qué horarios tienen disponibles?\"\n   - \"¿Cuándo empiezan las clases de inglés intermedio?\"\n   - \"¿Qué documentos necesito para inscribirme?\"\n   - \"¿Quiénes son los instructores?\"\n\n2. Verify bot responses:\n   - Include specific info from Notion pages (not generic responses)\n   - Include real start dates from database when asked about availability\n   - Include actual requirements when asked about enrollment\n\n3. Check backend logs for:\n   - `[NotionRAG]` prefix on all log lines\n   - Cache hit/miss status\n   - Pages fetched for each query\n   - Context length sent to Claude\n   - Response times under 2 seconds for cache hits, under 5 seconds for misses\n\n4. Verify Redis cache:\n   - Check keys exist: `notion:context:*` and `notion:courses:availability`\n   - Verify TTLs: 3600s for context, 1800s for availability\n\n**Acceptance Criteria:**\n✅ Lead receives start date for \"¿cuándo empiezan las clases de inglés intermedio?\" from real Notion database\n✅ Lead receives exact requirements for \"¿qué documentos necesito?\" from Notion requirements page\n✅ Bot can answer questions about pricing, schedules, courses, instructors, methodology, requirements, certifications, and payment policy\n✅ Additional Notion search executes correctly (bug fixed)\n✅ Context includes up to 3000 chars with structured markdown sections\n✅ All Notion interactions logged with cache status and timing\n✅ Redis caching reduces Notion API calls (30 min TTL for context, 30 min for availability)\n✅ No regression: existing pricing queries still work correctly",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Audit and map Notion pages to create NOTION_PAGES constant",
+            "description": "Navigate to each knowledge base page in Notion workspace and extract page IDs to create a constant mapping intents to page IDs for pricing, schedules, courses, instructors, methodology, requirements, certifications, FAQ, and payment policy.",
+            "dependencies": [],
+            "details": "In backend/src/lib/notion-context.ts, replace the single MEA_PRICING_PAGE_ID constant with a comprehensive NOTION_PAGES object. The structure should be:\n\nconst NOTION_PAGES = {\n  pricing: '35d83de9-b32b-8001-bec4-edb3e3e4665c',\n  schedules: 'PAGE_ID_HERE',\n  courses: 'PAGE_ID_HERE',\n  instructors: 'PAGE_ID_HERE',\n  methodology: 'PAGE_ID_HERE',\n  requirements: 'PAGE_ID_HERE',\n  certifications: 'PAGE_ID_HERE',\n  faq: 'PAGE_ID_HERE',\n  payment_policy: 'PAGE_ID_HERE'\n} as const;\n\nProcess: Navigate to each relevant page in MEA's Notion workspace → Copy the page ID from the browser URL (the long hash after the page title) → Verify the NOTION_TOKEN environment variable has read access by testing notion.pages.retrieve() for each page ID. Document any access issues. Keep the existing pricing page ID since it's already working.\n<info added on 2026-05-19T05:33:32.587Z>\nI'll analyze the codebase to understand the current implementation of the Notion RAG system and then provide the update based on your resolution.RESOLVED: Architecture changed from multi-page mapping to single-page knowledge base. The complete MEA knowledge base is consolidated in page ID 36183de9-b32b-8064-9456-c0d9ce8e942c, containing bot identity (Mía), pricing plans, schedules by group (niños/adolescentes/adultos), payment details (Banco Industrial Q693-001550-5), complete FAQ, and contact information. The NOTION_PAGES constant approach is no longer needed. Implementation updated in backend/src/lib/notion-context.ts using MEA_KB_PAGE_ID constant. Fixed code deployed to production. This subtask is obsolete as the single-page architecture eliminates the need for multi-page ID mapping.\n</info added on 2026-05-19T05:33:32.587Z>",
+            "status": "done",
+            "testStrategy": "Write a test script that attempts to fetch each page ID using the Notion API with the configured NOTION_TOKEN. Verify all pages return 200 status and contain text content. Test with notion.pages.retrieve({ page_id }) for each entry in NOTION_PAGES. Log any access errors or empty pages.",
+            "updatedAt": "2026-05-19T05:33:38.140Z",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Fix search execution bug in getNotionContext function",
+            "description": "Fix the conditional logic bug at line 78 that prevents additional Notion search from executing because the condition checks 'sections.length === 0' after the pricing page has already been added to sections.",
+            "dependencies": [
+              1
+            ],
+            "details": "In backend/src/lib/notion-context.ts, lines 78-90, the current code has a critical bug:\n\nif (searchTerms && sections.length === 0) { // BUG: always false after pricing loads!\n  const searchResults = await client.search(...);\n}\n\nThis condition is always false because the pricing page is already added to sections[] before this check. Fix by:\n\n1. Remove the 'sections.length === 0' check entirely\n2. Change line 78 to: if (searchTerms) {\n3. Keep the existing search logic (query: searchTerms, filter: { value: 'page', property: 'object' }, page_size: 2)\n4. This allows search to execute independently, adding additional relevant pages beyond intent-based pages\n\nThe search should ALWAYS execute when search terms are present, regardless of how many sections have already been added by intent-based fetching.",
+            "status": "done",
+            "testStrategy": "Test with a query that contains searchable terms like 'certificado del curso intermedio de inglés'. Verify through logs that: (1) intent-based pages are fetched first, (2) additional Notion search executes independently, (3) search results are added to sections. Check that sections.length > 1 after processing. Add debug logs before and after the search block to confirm execution.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-19T05:33:38.146Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement intent-based multi-page routing with detectIntent function",
+            "description": "Create an intent detection function that analyzes user messages in Spanish to identify which Notion pages are relevant, supporting up to 2 pages per query with fallback to pricing page.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In backend/src/lib/notion-context.ts, add a new function detectIntent(message: string): string[] that:\n\n1. Converts message to lowercase\n2. Defines an intentMap with Spanish keywords for each intent:\n   - pricing: ['precio', 'costo', 'cuanto', 'cuánto', 'pagar', 'quetzal', 'q.', 'mensual', 'plan']\n   - schedules: ['horario', 'hora', 'clase', 'día', 'dias', 'cuando', 'cuándo']\n   - courses: ['curso', 'nivel', 'a1', 'a2', 'b1', 'b2', 'c1', 'básico', 'basico', 'intermedio', 'avanzado']\n   - requirements: ['inscripción', 'inscripcion', 'requisito', 'documento', 'empezar', 'necesito']\n   - instructors: ['instructor', 'profesor', 'maestro', 'teacher']\n   - certifications: ['certificado', 'certificación', 'diploma']\n   - methodology: ['metodología', 'metodologia', 'cómo funciona', 'plataforma']\n   - payment_policy: ['pago', 'cuota', 'forma de pago', 'deposito', 'transferencia']\n3. Checks each intent, adds up to 2 matching page IDs (break after 2)\n4. Returns pricing page as fallback if no intents matched\n5. Integrate into getNotionContext: replace lines 66-74 with intent-based fetching using detectIntent()\n\nThis replaces the hardcoded pricing keywords check with intelligent routing.",
+            "status": "done",
+            "testStrategy": "Unit test detectIntent() with various Spanish queries: (1) '¿Cuánto cuesta el curso?' should return [pricing_page_id], (2) '¿Qué horarios tienen?' should return [schedules_page_id], (3) '¿Cuándo empiezan las clases de inglés intermedio?' should return [courses_page_id, schedules_page_id], (4) '¿Qué documentos necesito para inscribirme?' should return [requirements_page_id], (5) 'Hola' should return [pricing_page_id] as fallback. Verify max 2 pages returned.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-19T05:33:38.151Z"
+          },
+          {
+            "id": 4,
+            "title": "Query Notion database for real-time course availability",
+            "description": "Implement queryNotionDatabase function to fetch active courses with availability, pricing, start dates, and instructor info from a Notion database, with Redis caching (30 min TTL).",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "In backend/src/lib/notion-context.ts, create:\n\n1. Interface CourseAvailability with fields: name, price, availableSlots, nextStartDate, modality, instructor?\n2. Function async queryNotionDatabase(databaseId: string): Promise<CourseAvailability[]>\n   - Check Redis cache first: 'notion:courses:availability'\n   - If cache miss, query Notion: client.databases.query({ database_id: databaseId, filter: { property: 'Activo', checkbox: { equals: true }}, sorts: [{ property: 'Fecha Inicio', direction: 'ascending' }], page_size: 10 })\n   - Map results to CourseAvailability, extracting properties: Nombre (title), Precio (number), Cupos Disponibles (number), Fecha Inicio (date), Modalidad (select), Instructor (rich_text)\n   - Cache results with 30 min TTL (1800s)\n   - Return empty array on error\n3. Add environment variable NOTION_COURSES_DATABASE_ID to .env.example\n4. Integrate into getNotionContext: if message includes 'disponible', 'cuándo empieza', or 'cupo', call queryNotionDatabase and format results into sections\n5. Create helper formatCourseAvailability(courses: CourseAvailability[]): string to format course data",
+            "status": "cancelled",
+            "testStrategy": "Mock Notion database with test data containing 3 active courses with different start dates. Verify: (1) First call fetches from Notion and caches, (2) Second call within 30 min returns cached data, (3) Query with 'cuándo empieza el curso' triggers database query, (4) Formatted output includes all course details, (5) Database query errors return empty array without crashing. Check logs for cache hit/miss.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-19T05:36:49.160Z"
+          },
+          {
+            "id": 5,
+            "title": "Increase context limit and implement structured section formatting",
+            "description": "Replace flat text concatenation with structured markdown sections, increase context limit from 1500 to 3000 characters, and implement section type detection for better Claude comprehension.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "In backend/src/lib/notion-context.ts:\n\n1. Create function formatSections(sections: string[]): string that:\n   - Analyzes each section content to detect type (contains 'Precio'/'Costo' → '## Precios y Planes', contains 'Horario'/'Hora' → '## Horarios', contains 'Curso'/'Nivel' → '## Cursos Disponibles', contains 'Instructor'/'Profesor' → '## Instructores', else → '## Información Adicional')\n   - Adds markdown headers to each section based on detected type\n   - Joins sections with double newlines for clear separation\n2. Update line 96: change .slice(0, 1500) to .slice(0, 3000)\n3. Replace line 96: const context = sections.join('\\n\\n').slice(0, 1500); with: const context = formatSections(sections).slice(0, 3000);\n4. Update fetchPageText line 49: increase from 1200 to 2000 chars per page to support longer pages\n\nThis provides Claude with clearly structured context instead of unformatted text blobs.",
+            "status": "done",
+            "testStrategy": "Test with a query that triggers multiple page types (e.g., 'cuánto cuesta y qué horarios tienen'). Verify: (1) Output contains markdown headers (## Precios y Planes, ## Horarios), (2) Sections are separated by double newlines, (3) Total context length can reach 3000 chars (test with verbose pages), (4) Claude's response accurately references different sections. Compare response quality before/after structured formatting.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-19T05:33:38.154Z"
+          },
+          {
+            "id": 6,
+            "title": "Add comprehensive logging and monitoring to getNotionContext",
+            "description": "Instrument getNotionContext with detailed logging for cache hits/misses, page fetches, search execution, context generation, and timing metrics to enable monitoring and debugging of the RAG system.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "In backend/src/lib/notion-context.ts, enhance getNotionContext with:\n\n1. Add const startTime = Date.now() at function start\n2. Log when client unavailable: log('warn', '[NotionRAG] Notion client not available - missing NOTION_TOKEN')\n3. Log cache hit with metrics: log('info', '[NotionRAG] Cache hit', { messageLength: msg.length, contextLength: cached.length, duration: Date.now() - startTime })\n4. Log cache miss: log('info', '[NotionRAG] Cache miss - fetching from Notion', { messageLength: msg.length })\n5. Log detected intents: log('info', '[NotionRAG] Detected intents', { pageCount: intentPages.length })\n6. Track fetched pages in array: const fetchedPages: string[] = []; push pageId when successfully fetched\n7. Log search execution: log('info', '[NotionRAG] Executing additional search', { terms: searchTerms })\n8. Log final success: log('info', '[NotionRAG] Context generated successfully', { fetchedPages, sectionsCount: sections.length, contextLength: context.length, hadContext: context.length > 0, duration: Date.now() - startTime })\n9. Enhance error logging at line 92: include duration and message details\n10. Add similar logging to queryNotionDatabase for cache hits and database query execution",
+            "status": "done",
+            "testStrategy": "Test with various query types and verify logs show: (1) Cache hit/miss on repeated queries, (2) List of page IDs fetched for each query, (3) Search terms extracted and used, (4) Number of sections added to context, (5) Final context length, (6) Response time in milliseconds. Test cold start (no cache) vs warm (cached). Verify logs help diagnose: empty context, slow queries, missing pages, search not executing.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-19T05:33:38.157Z"
+          }
+        ],
+        "updatedAt": "2026-05-21T07:00:45.886Z"
+      },
+      {
+        "id": "70",
+        "title": "Implement proactive advisor notification system for high-intent user actions",
+        "description": "Build an intent detection system that identifies when users want to schedule a trial class, send payment proof, speak with an advisor, or are ready to enroll, and automatically notifies the advisor via Twilio with contextualized alerts without interrupting bot conversation flow.",
+        "details": "**Architecture Overview:**\n\nThis feature adds a parallel notification layer that runs AFTER the bot generates a response but BEFORE sending it to the user. Unlike escalation (Task 55), which transfers control to a human, this system sends proactive \"heads up\" notifications to the advisor while the bot continues handling the conversation.\n\n**Implementation Steps:**\n\n1. **Create intent detection utility** (`backend/src/lib/intent-detector.ts`):\n\n```typescript\nexport type UserIntent = 'clase_prueba' | 'comprobante_pago' | 'hablar_asesor' | 'listo_inscribirse' | null;\n\ninterface IntentResult {\n  detected: boolean;\n  intent: UserIntent;\n  confidence: 'high' | 'medium' | 'low';\n}\n\n/**\n * Detect high-intent user actions from message content.\n * Uses keyword matching + Claude's response to determine intent.\n */\nexport function detectIntent(userMessage: string, botResponse: string): IntentResult {\n  const msg = userMessage.toLowerCase();\n  const resp = botResponse.toLowerCase();\n  \n  // Intent: clase_prueba (trial class scheduling)\n  if (\n    msg.includes('clase de prueba') || \n    msg.includes('clase prueba') || \n    msg.includes('probar') || \n    msg.includes('demo') ||\n    (msg.includes('clase') && (msg.includes('gratis') || msg.includes('primera')))\n  ) {\n    return { detected: true, intent: 'clase_prueba', confidence: 'high' };\n  }\n  \n  // Intent: comprobante_pago (payment proof upload)\n  if (\n    msg.includes('comprobante') || \n    msg.includes('pagué') || \n    msg.includes('pague') ||\n    msg.includes('transferencia') || \n    msg.includes('deposité') ||\n    msg.includes('adjunto') ||\n    msg.includes('envío el pago') ||\n    (msg.includes('ya') && msg.includes('pag'))\n  ) {\n    return { detected: true, intent: 'comprobante_pago', confidence: 'high' };\n  }\n  \n  // Intent: hablar_asesor (wants to speak with human advisor)\n  if (\n    msg.includes('hablar con') || \n    msg.includes('comunicar') || \n    msg.includes('asesor') ||\n    msg.includes('alguien') || \n    msg.includes('persona') ||\n    msg.includes('llamar') ||\n    msg.includes('contacto')\n  ) {\n    return { detected: true, intent: 'hablar_asesor', confidence: 'high' };\n  }\n  \n  // Intent: listo_inscribirse (ready to enroll)\n  if (\n    msg.includes('inscrib') || \n    msg.includes('quiero empezar') || \n    msg.includes('listo para') ||\n    msg.includes('me anoto') || \n    msg.includes('como me inscribo') ||\n    (msg.includes('si') && (msg.includes('inscri') || msg.includes('empez'))) ||\n    resp.includes('inscripción') || \n    resp.includes('bienvenid')\n  ) {\n    return { detected: true, intent: 'listo_inscribirse', confidence: 'high' };\n  }\n  \n  return { detected: false, intent: null, confidence: 'low' };\n}\n\n/**\n * Generate contextualized advisor notification message based on detected intent.\n */\nexport function generateAdvisorNotification(\n  telefono: string, \n  intent: UserIntent, \n  userMessage: string\n): string {\n  const preview = userMessage.slice(0, 100);\n  \n  switch (intent) {\n    case 'clase_prueba':\n      return `🎯 *OPORTUNIDAD: Clase de prueba*\\n📱 [+${telefono}]\\n💬 \"${preview}\"\\n\\n✅ Cliente interesado en agendar clase de prueba. Contactar para coordinar horario.`;\n    \n    case 'comprobante_pago':\n      return `💰 *ACCIÓN REQUERIDA: Comprobante de pago*\\n📱 [+${telefono}]\\n💬 \"${preview}\"\\n\\n⚠️ Cliente dice haber enviado/va a enviar comprobante. Verificar pago y confirmar inscripción.`;\n    \n    case 'hablar_asesor':\n      return `🙋 *SOLICITUD: Hablar con asesor*\\n📱 [+${telefono}]\\n💬 \"${preview}\"\\n\\n📞 Cliente solicita contacto con asesor humano. Atender consulta personalizada.`;\n    \n    case 'listo_inscribirse':\n      return `🚀 *LEAD CALIENTE: Listo para inscribirse*\\n📱 [+${telefono}]\\n💬 \"${preview}\"\\n\\n🔥 Cliente muestra interés alto en inscribirse. Cerrar venta inmediatamente.`;\n    \n    default:\n      return '';\n  }\n}\n```\n\n2. **Integrate intent detection in WhatsApp webhook** (`backend/src/routes/whatsapp.webhook.ts`):\n\nAdd import at top:\n```typescript\nimport { detectIntent, generateAdvisorNotification } from '../lib/intent-detector';\n```\n\nAfter line 84 (after `respuesta = await responderMensaje(telefono, mensaje)`), add:\n\n```typescript\n// Proactive intent detection — notify advisor if high-intent action detected\nconst intentResult = detectIntent(mensaje, respuesta);\nif (intentResult.detected && intentResult.intent) {\n  const advisorPhone = process.env.MIRCE_PERSONAL_PHONE;\n  if (advisorPhone) {\n    const notification = generateAdvisorNotification(telefono, intentResult.intent, mensaje);\n    sendTwilioWhatsApp(advisorPhone, notification).catch((err) =>\n      log('error', `[WhatsApp] ${mask} | Error enviando notificación de intent:`, err)\n    );\n    log('info', `[WhatsApp] ${mask} | Intent detectado: ${intentResult.intent}`);\n  }\n}\n```\n\n3. **Ensure bot never mentions MEA phone number**:\n\nUpdate `backend/src/agents/agentRouter.ts`:\n\n- Remove or obfuscate the phone number in `WEB_CONTEXT` constant (line 37):\n```typescript\nCONTACTO: WhatsApp disponible · mea.edu.gt · Horario de atención Lunes a Sábado 8am-5pm\n```\n\n- Add to ALL agent system prompts (after WEB_CONTEXT injection):\n```typescript\nRESTRICCIÓN CRÍTICA: NUNCA menciones números de teléfono de MEA en tus respuestas. Si el cliente pregunta por contacto, decí \"podés escribirnos por este mismo WhatsApp\" o \"te contactaremos pronto por aquí\".\n```\n\n4. **Environment variable validation**:\n\nEnsure `MIRCE_PERSONAL_PHONE` is configured. Add validation in `backend/src/index.ts` startup:\n\n```typescript\nif (!process.env.MIRCE_PERSONAL_PHONE) {\n  log('warn', '[Config] MIRCE_PERSONAL_PHONE no configurado — notificaciones de intent deshabilitadas');\n}\n```\n\n**Key Design Decisions:**\n\n1. **No escalation**: Unlike Task 55's escalation system, this does NOT activate human mode or silence the bot. The bot continues responding normally.\n\n2. **Fire-and-forget**: Intent notifications are sent asynchronously without blocking the main response flow (same pattern as Task 65's forwarding).\n\n3. **Single channel**: Notifications go to `MIRCE_PERSONAL_PHONE` via Twilio only (not Meta WhatsApp) to avoid duplicate alerts.\n\n4. **Keyword-based detection**: Uses simple keyword matching for reliability. Can be upgraded to Claude-based classification later if needed.\n\n5. **Context-aware messages**: Each intent has a specific emoji + action label to help advisor prioritize (🎯 trial, 💰 payment, 🙋 advisor request, 🚀 ready to enroll).\n\n**Integration with existing systems:**\n\n- Works alongside Task 65's real-time forwarding (which sends all conversations)\n- Works alongside Task 55's escalation system (which transfers control)\n- Uses same Twilio infrastructure from Task 60, 63, 64\n- Leverages Notion RAG context from Task 69 for accurate bot responses\n\n**Error handling:**\n\n- If Twilio send fails, it logs error but doesn't block main flow\n- If `MIRCE_PERSONAL_PHONE` not configured, feature is silently disabled\n- Intent detection always returns a result (defaults to no intent detected)\n\n**Performance impact:**\n\n- Intent detection adds ~1-2ms (simple string operations)\n- Notification send is async, no latency impact on user\n- No additional database queries required",
+        "testStrategy": "**Test Plan:**\n\n**1. Intent Detection Unit Tests:**\n\nCreate `backend/src/lib/intent-detector.test.ts`:\n\n```typescript\nimport { detectIntent } from './intent-detector';\n\ndescribe('Intent Detection', () => {\n  test('detects clase_prueba intent', () => {\n    const result = detectIntent('Hola, quiero una clase de prueba', 'Claro, podemos coordinar...');\n    expect(result.detected).toBe(true);\n    expect(result.intent).toBe('clase_prueba');\n  });\n  \n  test('detects comprobante_pago intent', () => {\n    const result = detectIntent('Ya pagué, te envío el comprobante', '');\n    expect(result.detected).toBe(true);\n    expect(result.intent).toBe('comprobante_pago');\n  });\n  \n  test('detects hablar_asesor intent', () => {\n    const result = detectIntent('Necesito hablar con un asesor', '');\n    expect(result.detected).toBe(true);\n    expect(result.intent).toBe('hablar_asesor');\n  });\n  \n  test('detects listo_inscribirse intent', () => {\n    const result = detectIntent('Quiero inscribirme ya', 'Perfecto, para inscribirte...');\n    expect(result.detected).toBe(true);\n    expect(result.intent).toBe('listo_inscribirse');\n  });\n  \n  test('returns null for no intent detected', () => {\n    const result = detectIntent('Hola, cómo estás?', 'Muy bien, gracias');\n    expect(result.detected).toBe(false);\n    expect(result.intent).toBe(null);\n  });\n});\n```\n\nRun: `npm test intent-detector.test.ts`\n\n**2. End-to-End Intent Notification Tests:**\n\n**Test 1: Trial class intent**\n- Send message to bot: \"Hola, me gustaría tomar una clase de prueba antes de inscribirme\"\n- Verify bot responds normally (doesn't escalate or mention phone)\n- Verify advisor receives Twilio notification: \"🎯 *OPORTUNIDAD: Clase de prueba*...\"\n- Check Railway logs: `Intent detectado: clase_prueba`\n\n**Test 2: Payment proof intent**\n- Send message: \"Ya hice la transferencia, te envío el comprobante por aquí\"\n- Verify bot responds normally\n- Verify advisor receives: \"💰 *ACCIÓN REQUERIDA: Comprobante de pago*...\"\n- Check Railway logs: `Intent detectado: comprobante_pago`\n\n**Test 3: Speak with advisor intent**\n- Send message: \"Necesito hablar con un asesor para consultar algo específico\"\n- Verify bot responds normally (not escalated yet)\n- Verify advisor receives: \"🙋 *SOLICITUD: Hablar con asesor*...\"\n- Check Railway logs: `Intent detectado: hablar_asesor`\n\n**Test 4: Ready to enroll intent**\n- Send message: \"Listo, quiero inscribirme en el curso intermedio\"\n- Verify bot responds normally\n- Verify advisor receives: \"🚀 *LEAD CALIENTE: Listo para inscribirse*...\"\n- Check Railway logs: `Intent detectado: listo_inscribirse`\n\n**Test 5: No phone number in responses**\n- Send various queries about contact information\n- Verify bot NEVER includes \"+502 5631-1728\" or any MEA phone in responses\n- Expected responses: \"podés escribirnos por este mismo WhatsApp\", \"te contactaremos por aquí\"\n\n**Test 6: Multiple intents in sequence**\n- Send 3 different high-intent messages from same client\n- Verify advisor receives 3 separate notifications\n- Verify bot continues functioning normally (no escalation)\n- Verify no duplicate or missed notifications\n\n**Test 7: Intent + Escalation interaction**\n- Send message triggering intent: \"Quiero inscribirme pero tengo una duda muy específica\"\n- Bot responds normally + sends intent notification\n- Send follow-up that triggers escalation: \"Necesito hablar con alguien YA\"\n- Verify both intent notification AND escalation notification are sent\n- Verify bot enters human mode after escalation\n\n**Test 8: Missing MIRCE_PERSONAL_PHONE**\n- Temporarily unset `MIRCE_PERSONAL_PHONE` in Railway\n- Send high-intent message\n- Verify bot responds normally\n- Verify no crash or error blocking main flow\n- Check logs: warning about notifications disabled\n\n**Test 9: Twilio send failure**\n- Temporarily misconfigure TWILIO_AUTH_TOKEN\n- Send high-intent message\n- Verify bot responds to user successfully (not blocked)\n- Check logs: error logged but flow continues\n\n**Test 10: Performance test**\n- Send 10 messages rapidly (mix of intent and non-intent)\n- Verify all bot responses arrive in < 10 seconds\n- Verify intent detection doesn't add significant latency\n- Check Railway metrics: no CPU or memory spikes\n\n**Success Criteria:**\n- All 10 tests pass\n- Intent detection accuracy > 90% (manually test 20 sample phrases)\n- No phone numbers in any bot responses (test 50+ conversations)\n- Zero crashes or blocking errors even with misconfiguration\n- Advisor notifications arrive within 5 seconds of message\n- Bot response time remains < 10 seconds (no degradation)",
+        "status": "pending",
+        "dependencies": [
+          "69",
+          "65"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": "71",
+        "title": "Install Required Dependencies for Security Agent and Backup System",
+        "description": "Install @anthropic-ai/sdk, nodemailer, googleapis, and ensure node-cron is available for both security scanning and database backup features",
+        "details": "Run npm install commands:\n- npm install @anthropic-ai/sdk (already installed per package.json)\n- npm install nodemailer @types/nodemailer\n- npm install googleapis\n- Verify node-cron is installed (already in dependencies)\n\nNo version conflicts expected. All dependencies compatible with Node 18+ and existing Express/TypeScript stack.",
+        "testStrategy": "Verify installation: check package.json lists all dependencies, run npm list to confirm no peer dependency warnings, ensure tsc can resolve all type declarations without errors",
+        "priority": "high",
+        "dependencies": [],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T07:01:59.166Z"
+      },
+      {
+        "id": "72",
+        "title": "Create TypeScript Interfaces and Type Definitions for Security Agent",
+        "description": "Define all TypeScript interfaces in src/security-agent/types.ts for Severity, Difficulty, ScanStatus, FixGuide, Vulnerability, and ScanResult",
+        "details": "Create src/security-agent/types.ts with:\n\nexport type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';\nexport type Difficulty = 'EASY' | 'MEDIUM' | 'COMPLEX';\nexport type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';\n\nexport interface FixGuide {\n  steps: string[];\n  code_before?: string;\n  code_after?: string;\n  difficulty: Difficulty;\n  estimated_time: string;\n}\n\nexport interface Vulnerability {\n  id: string;\n  title: string;\n  severity: Severity;\n  file: string;\n  line: number;\n  code_snippet: string;\n  description: string;\n  attack_scenario: string;\n  business_impact: string;\n  owasp_reference: string;\n  cve_reference?: string;\n  fix_guide: FixGuide;\n  resolved: boolean;\n  resolved_at?: string;\n}\n\nexport interface ScanResult {\n  scan_id: string;\n  timestamp: string;\n  project_name: string;\n  files_scanned: number;\n  security_score: number;\n  vulnerabilities: Vulnerability[];\n  scan_summary: string;\n  status: ScanStatus;\n  duration_ms: number;\n}\n\nUse strict typing throughout.",
+        "testStrategy": "Run tsc --noEmit to verify no type errors, import types in a test file to confirm exports work correctly",
+        "priority": "high",
+        "dependencies": [
+          "71"
+        ],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create security-agent directory structure",
+            "description": "Create the src/security-agent/ directory in the backend folder to house all security agent TypeScript files",
+            "dependencies": [],
+            "details": "Create the directory at backend/src/security-agent/ using mkdir -p. This directory will contain types.ts along with other security agent modules (scanner.ts, analyzer.ts, reporter.ts, etc.). Verify the directory exists and is at the correct path within the existing backend/src/ structure alongside routes/, lib/, middleware/, etc.",
+            "status": "pending",
+            "testStrategy": "Run ls -la backend/src/security-agent to confirm directory was created. Verify it appears in the expected location relative to other src directories.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Define union type aliases Severity, Difficulty, and ScanStatus",
+            "description": "Create types.ts file with the three fundamental union type aliases that define severity levels, fix difficulty, and scan status states",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/security-agent/types.ts with three exported type aliases:\n- export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';\n- export type Difficulty = 'EASY' | 'MEDIUM' | 'COMPLEX';\n- export type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';\n\nUse string literal union types (not enums) to match the existing codebase patterns seen in advisor-notify.ts. Place these at the top of the file before interfaces.",
+            "status": "pending",
+            "testStrategy": "Run tsc --noEmit from backend/ directory to verify no TypeScript errors. Import types in a temporary test file to confirm exports work: import { Severity, Difficulty, ScanStatus } from './security-agent/types';",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Define FixGuide interface with remediation properties",
+            "description": "Add the FixGuide interface that describes step-by-step fix instructions with code examples and difficulty estimation",
+            "dependencies": [
+              2
+            ],
+            "details": "Add to types.ts:\nexport interface FixGuide {\n  steps: string[];           // Array of remediation steps\n  code_before?: string;      // Optional: vulnerable code snippet\n  code_after?: string;       // Optional: fixed code snippet\n  difficulty: Difficulty;    // References the Difficulty type alias\n  estimated_time: string;    // e.g., '15 minutes', '1 hour'\n}\n\nNote that FixGuide references the Difficulty type, so order matters. Use optional properties (?) for code_before and code_after as specified in the PRD.",
+            "status": "pending",
+            "testStrategy": "Run tsc --noEmit to verify FixGuide interface compiles correctly and Difficulty reference resolves. Test by creating a mock object: const fix: FixGuide = { steps: ['Step 1'], difficulty: 'EASY', estimated_time: '5 min' };",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Define Vulnerability interface with complete security finding properties",
+            "description": "Add the comprehensive Vulnerability interface describing a single security finding with all metadata, OWASP references, and resolution status",
+            "dependencies": [
+              3
+            ],
+            "details": "Add to types.ts:\nexport interface Vulnerability {\n  id: string;                // Unique vulnerability identifier\n  title: string;             // Brief vulnerability title\n  severity: Severity;        // References Severity type\n  file: string;              // Affected file path\n  line: number;              // Line number of vulnerability\n  code_snippet: string;      // Vulnerable code excerpt\n  description: string;       // Detailed explanation\n  attack_scenario: string;   // How it could be exploited\n  business_impact: string;   // Business consequences\n  owasp_reference: string;   // OWASP category reference\n  cve_reference?: string;    // Optional CVE ID\n  fix_guide: FixGuide;       // References FixGuide interface\n  resolved: boolean;         // Whether fixed\n  resolved_at?: string;      // Optional ISO timestamp when resolved\n}\n\nThis interface references both Severity and FixGuide types.",
+            "status": "pending",
+            "testStrategy": "Run tsc --noEmit to verify Vulnerability interface compiles with all property types resolved. Verify Severity and FixGuide type references work correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Define ScanResult interface and verify complete type exports",
+            "description": "Add the ScanResult interface representing a complete security scan outcome and verify all types export correctly together",
+            "dependencies": [
+              4
+            ],
+            "details": "Add to types.ts:\nexport interface ScanResult {\n  scan_id: string;              // Unique scan identifier\n  timestamp: string;            // ISO 8601 timestamp\n  project_name: string;         // Scanned project name\n  files_scanned: number;        // Count of files analyzed\n  security_score: number;       // 0-100 security score\n  vulnerabilities: Vulnerability[];  // Array of findings\n  scan_summary: string;         // Executive summary text\n  status: ScanStatus;           // References ScanStatus type\n  duration_ms: number;          // Scan duration in milliseconds\n}\n\nFinal file should export all 6 types: Severity, Difficulty, ScanStatus, FixGuide, Vulnerability, ScanResult. Verify the file follows existing codebase conventions (no trailing commas in interfaces, consistent semicolons).",
+            "status": "pending",
+            "testStrategy": "Run tsc --noEmit to verify zero TypeScript errors. Test all exports: import { Severity, Difficulty, ScanStatus, FixGuide, Vulnerability, ScanResult } from './security-agent/types'; Create a mock ScanResult object with all required properties to validate the complete type structure.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-21T07:03:14.801Z"
+      },
+      {
+        "id": "73",
+        "title": "Create TypeScript Interfaces for Database Backup System",
+        "description": "Define all TypeScript interfaces in src/backup/types.ts for backup operations, Drive uploads, and cleanup results",
+        "details": "Create src/backup/types.ts with:\n\nexport interface DumpResult {\n  filePath: string;\n  fileName: string;\n  sizeBytes: number;\n  durationMs: number;\n}\n\nexport interface UploadResult {\n  driveFileId: string;\n  driveFileName: string;\n  webViewLink: string;\n}\n\nexport interface BackupResult {\n  success: boolean;\n  timestamp: string;\n  dump?: DumpResult;\n  upload?: UploadResult;\n  error?: string;\n}\n\nexport interface DatabaseConfig {\n  user: string;\n  password: string;\n  host: string;\n  port: number;\n  database: string;\n}\n\nAll interfaces follow Railway-compatible patterns (ephemeral filesystem awareness).",
+        "testStrategy": "Run tsc --noEmit to verify types compile without errors, ensure types align with googleapis SDK types for Drive operations",
+        "priority": "high",
+        "dependencies": [
+          "71"
+        ],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T07:04:51.041Z"
+      },
+      {
+        "id": "74",
+        "title": "Implement Security Agent Scanner Module",
+        "description": "Build src/security-agent/scanner.ts to recursively read codebase files, filter by type, chunk for Claude API, and skip large files",
+        "details": "Create scanner.ts with:\n\nimport * as fs from 'fs';\nimport * as path from 'path';\n\ninterface FileChunk {\n  files: Array<{ name: string; path: string; content: string; size: number; lines: number }>;\n  totalSize: number;\n}\n\nexport async function scanCodebase(): Promise<FileChunk[]> {\n  const scanPaths = (process.env.SECURITY_SCAN_PATHS || './src').split(',').map(p => p.trim());\n  const MAX_FILE_SIZE = 400 * 1024; // 400KB\n  const MAX_CHUNK_SIZE = 80 * 1024; // 80KB\n  const INCLUDE_EXTS = ['.ts', '.js', '.json'];\n  const EXCLUDE_DIRS = ['node_modules', 'dist', '.git', 'coverage'];\n  const EXCLUDE_FILES = ['package-lock.json'];\n  const EXCLUDE_PATTERNS = ['.test.ts', '.spec.ts'];\n\n  const allFiles: Array<{name: string; path: string; content: string; size: number; lines: number}> = [];\n\n  function walkDir(dir: string) {\n    const entries = fs.readdirSync(dir, { withFileTypes: true });\n    for (const entry of entries) {\n      const fullPath = path.join(dir, entry.name);\n      if (entry.isDirectory()) {\n        if (!EXCLUDE_DIRS.includes(entry.name)) walkDir(fullPath);\n      } else {\n        const ext = path.extname(entry.name);\n        if (INCLUDE_EXTS.includes(ext) && \n            !EXCLUDE_FILES.includes(entry.name) &&\n            !EXCLUDE_PATTERNS.some(p => entry.name.includes(p))) {\n          const stat = fs.statSync(fullPath);\n          if (stat.size > MAX_FILE_SIZE) {\n            console.warn(`Skipping large file: ${fullPath} (${stat.size} bytes)`);\n            continue;\n          }\n          const content = fs.readFileSync(fullPath, 'utf8');\n          allFiles.push({\n            name: entry.name,\n            path: fullPath,\n            content,\n            size: stat.size,\n            lines: content.split('\\n').length\n          });\n        }\n      }\n    }\n  }\n\n  for (const scanPath of scanPaths) {\n    const resolvedPath = path.resolve(scanPath);\n    if (fs.existsSync(resolvedPath)) walkDir(resolvedPath);\n  }\n\n  // Chunk files into groups of max 80KB\n  const chunks: FileChunk[] = [];\n  let currentChunk: FileChunk = { files: [], totalSize: 0 };\n\n  for (const file of allFiles) {\n    if (currentChunk.totalSize + file.size > MAX_CHUNK_SIZE && currentChunk.files.length > 0) {\n      chunks.push(currentChunk);\n      currentChunk = { files: [], totalSize: 0 };\n    }\n    currentChunk.files.push(file);\n    currentChunk.totalSize += file.size;\n  }\n\n  if (currentChunk.files.length > 0) chunks.push(currentChunk);\n  return chunks;\n}\n\nUse path.join(__dirname, ...) for Railway compatibility.",
+        "testStrategy": "Unit test: mock fs.readdirSync and verify correct filtering of .ts/.js/.json files, exclusion of node_modules/dist/.git, skipping of files > 400KB, and chunking logic keeps chunks under 80KB",
+        "priority": "high",
+        "dependencies": [
+          "72"
+        ],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T07:06:03.920Z"
+      },
+      {
+        "id": "75",
+        "title": "Implement Security Agent Analyzer with Claude API Integration",
+        "description": "Build src/security-agent/analyzer.ts to send code chunks to Claude Sonnet 4.6, parse vulnerability JSON responses, and handle retries",
+        "details": "Create analyzer.ts:\n\nimport Anthropic from '@anthropic-ai/sdk';\nimport { Vulnerability } from './types';\n\nconst client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });\nconst MODEL = 'claude-sonnet-4-6';\nconst TIMEOUT = 60000;\n\nconst SYSTEM_PROMPT = `You are a cybersecurity expert specialized in TypeScript/Node.js/Express code auditing. Analyze the provided source code and return ONLY a valid JSON object, no markdown, no extra text.\n\nJSON schema:\n{\n  \"vulnerabilities\": [...],\n  \"security_score\": 75,\n  \"scan_summary\": \"Executive summary in 2-3 sentences\"\n}\n\nLook specifically for: SQL injection in raw Prisma queries, hardcoded secrets, JWT misconfiguration, CORS misconfiguration, missing rate limiting, weak input validation, error handling exposing stack traces, path traversal, prototype pollution, command injection, unvalidated env vars, logging sensitive data, IDOR in Prisma queries.\n\nIf no real vulnerabilities found, return empty array with high score. NEVER invent vulnerabilities.`;\n\ninterface ChunkAnalysis {\n  vulnerabilities: Vulnerability[];\n  security_score: number;\n  scan_summary: string;\n}\n\nexport async function analyzeChunk(chunkContent: string, retryCount = 0): Promise<ChunkAnalysis> {\n  try {\n    const response = await Promise.race([\n      client.messages.create({\n        model: MODEL,\n        max_tokens: 4096,\n        system: SYSTEM_PROMPT,\n        messages: [{ role: 'user', content: chunkContent }]\n      }),\n      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT))\n    ]) as Anthropic.Message;\n\n    const textContent = response.content.find(c => c.type === 'text');\n    if (!textContent || textContent.type !== 'text') throw new Error('No text response');\n    \n    const jsonMatch = textContent.text.match(/\\{[\\s\\S]*\\}/);\n    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : textContent.text);\n    return parsed as ChunkAnalysis;\n  } catch (err) {\n    if (retryCount < 1) {\n      console.warn(`Retry analyzing chunk (attempt ${retryCount + 1})`);\n      return analyzeChunk(chunkContent, retryCount + 1);\n    }\n    console.error('Analysis failed:', err);\n    return { vulnerabilities: [], security_score: 0, scan_summary: 'Analysis failed' };\n  }\n}\n\nUse claude-sonnet-4-6 model, 60s timeout, retry once on failure.",
+        "testStrategy": "Mock Anthropic SDK, verify system prompt is sent correctly, confirm JSON parsing handles both raw JSON and markdown-wrapped responses, test retry logic triggers exactly once on failure, validate timeout enforcement",
+        "priority": "high",
+        "dependencies": [
+          "72",
+          "74"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T07:10:42.361Z"
+      },
+      {
+        "id": "76",
+        "title": "Implement Database Dumper and Uploader Modules",
+        "description": "Build src/backup/dumper.ts to create gzipped MySQL dumps and src/backup/uploader.ts to upload to Google Drive via Service Account",
+        "details": "Create dumper.ts:\n\nimport { spawn } from 'child_process';\nimport * as fs from 'fs';\nimport * as path from 'path';\nimport { DumpResult, DatabaseConfig } from './types';\n\nfunction parseDatabaseUrl(url: string): DatabaseConfig {\n  const regex = /mysql:\\/\\/([^:]+):([^@]+)@([^:]+):(\\d+)\\/(.+)/;\n  const match = url.match(regex);\n  if (!match) throw new Error('Invalid DATABASE_URL format');\n  return {\n    user: match[1],\n    password: match[2],\n    host: match[3],\n    port: parseInt(match[4]),\n    database: match[5]\n  };\n}\n\nexport async function dumpDatabase(): Promise<DumpResult> {\n  const dbUrl = process.env.DATABASE_URL;\n  if (!dbUrl) throw new Error('DATABASE_URL not set');\n  \n  const config = parseDatabaseUrl(dbUrl);\n  const backupDir = path.join(__dirname, '../../backups');\n  fs.mkdirSync(backupDir, { recursive: true });\n  \n  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);\n  const fileName = `${config.database}_${timestamp}.sql.gz`;\n  const filePath = path.join(backupDir, fileName);\n  \n  const startTime = Date.now();\n  \n  return new Promise((resolve, reject) => {\n    const mysqldump = spawn('mysqldump', [\n      `-h${config.host}`,\n      `-P${config.port}`,\n      `-u${config.user}`,\n      `-p${config.password}`,\n      '--single-transaction',\n      '--quick',\n      '--routines',\n      '--triggers',\n      config.database\n    ]);\n    \n    const gzip = spawn('gzip');\n    const output = fs.createWriteStream(filePath);\n    \n    mysqldump.stdout.pipe(gzip.stdin);\n    gzip.stdout.pipe(output);\n    \n    mysqldump.stderr.on('data', (data) => console.error('mysqldump error:', data.toString()));\n    \n    output.on('finish', () => {\n      const stat = fs.statSync(filePath);\n      if (stat.size === 0) return reject(new Error('Dump file is empty'));\n      resolve({\n        filePath,\n        fileName,\n        sizeBytes: stat.size,\n        durationMs: Date.now() - startTime\n      });\n    });\n    \n    output.on('error', reject);\n  });\n}\n\nCreate uploader.ts:\n\nimport { google } from 'googleapis';\nimport * as fs from 'fs';\nimport * as path from 'path';\nimport { UploadResult } from './types';\n\nexport async function uploadToDrive(filePath: string, fileName: string): Promise<UploadResult> {\n  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;\n  if (!serviceAccountPath) throw new Error('GOOGLE_SERVICE_ACCOUNT_PATH not set');\n  \n  const auth = new google.auth.GoogleAuth({\n    keyFile: path.resolve(serviceAccountPath),\n    scopes: ['https://www.googleapis.com/auth/drive.file']\n  });\n  \n  const drive = google.drive({ version: 'v3', auth });\n  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;\n  \n  const fileSize = fs.statSync(filePath).size;\n  const uploadMethod = fileSize > 5 * 1024 * 1024 ? 'resumable' : 'multipart';\n  \n  try {\n    const response = await drive.files.create({\n      requestBody: {\n        name: fileName,\n        parents: folderId ? [folderId] : undefined\n      },\n      media: {\n        mimeType: 'application/gzip',\n        body: fs.createReadStream(filePath)\n      },\n      fields: 'id,name,webViewLink'\n    }, {\n      uploadType: uploadMethod as any\n    });\n    \n    // Delete local file after successful upload\n    fs.unlinkSync(filePath);\n    \n    return {\n      driveFileId: response.data.id!,\n      driveFileName: response.data.name!,\n      webViewLink: response.data.webViewLink || ''\n    };\n  } catch (err) {\n    // Retry once\n    console.warn('Upload failed, retrying...');\n    const retryResponse = await drive.files.create({\n      requestBody: {\n        name: fileName,\n        parents: folderId ? [folderId] : undefined\n      },\n      media: {\n        mimeType: 'application/gzip',\n        body: fs.createReadStream(filePath)\n      },\n      fields: 'id,name,webViewLink'\n    });\n    \n    fs.unlinkSync(filePath);\n    \n    return {\n      driveFileId: retryResponse.data.id!,\n      driveFileName: retryResponse.data.name!,\n      webViewLink: retryResponse.data.webViewLink || ''\n    };\n  }\n}\n\nBoth modules Railway-compatible with path.join(__dirname, ...).",
+        "testStrategy": "dumper.ts: Mock spawn to verify mysqldump flags (--single-transaction, --quick, --routines, --triggers), test DATABASE_URL parsing with valid/invalid formats, verify .sql.gz file creation and size > 0 check. uploader.ts: Mock googleapis, verify Service Account auth, test resumable vs multipart upload selection (5MB threshold), confirm local file deletion after upload, validate retry logic",
+        "priority": "high",
+        "dependencies": [
+          "73"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create backup types and interfaces module",
+            "description": "Create src/backup/types.ts defining TypeScript interfaces for DatabaseConfig, DumpResult, UploadResult, and BackupResult used by both dumper and uploader modules.",
+            "dependencies": [],
+            "details": "Create the src/backup directory structure and types.ts file. Define DatabaseConfig interface with fields: user, password, host, port (number), database (all strings except port). Define DumpResult with filePath, fileName, sizeBytes (number), durationMs (number). Define UploadResult with driveFileId, driveFileName, webViewLink (all strings). Define BackupResult combining dump and upload results with timestamp and success status. Follow the existing patterns from backend/src/types/express.d.ts for type definitions. Export all interfaces for use in dumper.ts and uploader.ts modules.",
+            "status": "done",
+            "testStrategy": "Compile TypeScript to verify no type errors. Import types in a test file and create mock objects conforming to each interface. Verify all required fields are enforced by attempting to create incomplete objects (should fail compilation).",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-21T07:11:03.527Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement DATABASE_URL parser and validation",
+            "description": "Create src/backup/dumper.ts with parseDatabaseUrl function that extracts MySQL connection parameters from DATABASE_URL environment variable.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create dumper.ts file importing DatabaseConfig from ./types. Implement parseDatabaseUrl(url: string): DatabaseConfig function using regex pattern /mysql:\\/\\/([^:]+):([^@]+)@([^:]+):(\\d+)\\/(.+)/ to parse mysql://user:password@host:port/database format. Throw descriptive Error if DATABASE_URL is not set or format is invalid. Handle URL-encoded special characters in password using decodeURIComponent. Add validation for port number (must be numeric, 1-65535 range). Follow existing error handling patterns from backend/src/lib/logger.ts for consistency. Export parseDatabaseUrl for testing purposes.",
+            "status": "done",
+            "testStrategy": "Test parseDatabaseUrl with valid MySQL URL (should return correct DatabaseConfig). Test with missing/invalid DATABASE_URL (should throw Error with descriptive message). Test with URL-encoded passwords containing special characters (@, :, #). Test with invalid port numbers. Test edge cases: IPv6 hosts, database names with hyphens/underscores.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-21T07:11:55.618Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement mysqldump execution with gzip compression",
+            "description": "Complete src/backup/dumper.ts by implementing dumpDatabase function using child_process spawn to execute mysqldump and pipe output through gzip to create compressed backup files.",
+            "dependencies": [
+              2
+            ],
+            "details": "Import spawn from child_process, fs and path modules. Implement async dumpDatabase(): Promise<DumpResult> function. Create backups directory using path.join(__dirname, '../../backups') with fs.mkdirSync recursive:true for Railway compatibility. Generate timestamp filename format: {database}_{YYYY-MM-DDTHH-mm-ss}.sql.gz using ISO string with colons/dots replaced by dashes. Spawn mysqldump with flags: -h{host}, -P{port}, -u{user}, -p{password}, --single-transaction, --quick, --routines, --triggers, {database}. Pipe mysqldump.stdout to gzip.stdin, then gzip.stdout to fs.createWriteStream. Handle stderr for error logging using existing log() from lib/logger.ts. Verify output file size > 0 before resolving. Return DumpResult with filePath, fileName, sizeBytes, durationMs. Add cleanup on failure to remove partial files.",
+            "status": "done",
+            "testStrategy": "Mock child_process spawn to verify mysqldump is called with correct flags (--single-transaction, --quick, --routines, --triggers). Test DATABASE_URL parsing integration. Verify backups directory creation with recursive option. Test .sql.gz file creation and validate file size > 0 check rejects empty files. Test error handling when mysqldump fails (non-zero exit). Verify durationMs is calculated correctly. Test cleanup of partial files on failure.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-21T07:11:57.566Z"
+          },
+          {
+            "id": 4,
+            "title": "Implement Google Drive Service Account authentication",
+            "description": "Create src/backup/uploader.ts with Google Drive API authentication using Service Account credentials from GOOGLE_SERVICE_ACCOUNT_PATH environment variable.",
+            "dependencies": [
+              1
+            ],
+            "details": "Install googleapis package: npm install googleapis @types/google-auth-library. Create uploader.ts importing google from googleapis, fs and path modules, UploadResult from ./types. Implement initDriveClient() helper function that: reads GOOGLE_SERVICE_ACCOUNT_PATH env var (throw Error if not set), creates GoogleAuth with keyFile using path.resolve for relative/absolute path handling, sets scope to 'https://www.googleapis.com/auth/drive.file', returns google.drive({version: 'v3', auth}). Add validation for service account JSON structure (should contain client_email, private_key). Use lazy initialization pattern to avoid loading credentials on module import. Log authentication success/failure using existing log() function pattern.",
+            "status": "done",
+            "testStrategy": "Mock googleapis to verify GoogleAuth is initialized with correct keyFile path and scope. Test with missing GOOGLE_SERVICE_ACCOUNT_PATH (should throw descriptive Error). Test with invalid JSON file path (should throw file not found Error). Test path.resolve handles both relative and absolute paths correctly. Verify drive client is created with v3 version and correct auth object.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-21T07:11:59.528Z"
+          },
+          {
+            "id": 5,
+            "title": "Implement Google Drive upload with retry logic",
+            "description": "Complete src/backup/uploader.ts by implementing uploadToDrive function that uploads gzipped backup files to Google Drive folder with automatic retry on failure and local file cleanup.",
+            "dependencies": [
+              4
+            ],
+            "details": "Implement async uploadToDrive(filePath: string, fileName: string): Promise<UploadResult> function. Get drive client from initDriveClient(). Read GOOGLE_DRIVE_BACKUP_FOLDER_ID env var (optional - uploads to root if not set). Determine upload method based on file size: use 'resumable' for files > 5MB, 'multipart' for smaller files using fs.statSync. Call drive.files.create with requestBody: {name: fileName, parents: [folderId] if set}, media: {mimeType: 'application/gzip', body: fs.createReadStream(filePath)}, fields: 'id,name,webViewLink'. Implement single retry on failure with console.warn logging before retry. On successful upload (or successful retry), delete local file using fs.unlinkSync(filePath). Return UploadResult with driveFileId, driveFileName, webViewLink. Preserve local file if both attempts fail for manual recovery.",
+            "status": "done",
+            "testStrategy": "Mock googleapis drive.files.create to verify correct request structure. Test resumable vs multipart selection based on 5MB threshold. Verify GOOGLE_DRIVE_BACKUP_FOLDER_ID is used as parent when set, omitted when not set. Test retry logic: first call fails, second succeeds - verify single retry. Test local file deletion after successful upload using fs.unlinkSync. Test file is preserved when both attempts fail. Verify UploadResult contains correct driveFileId, driveFileName, webViewLink from API response.",
+            "parentId": "undefined",
+            "updatedAt": "2026-05-21T07:12:01.450Z"
+          }
+        ],
+        "updatedAt": "2026-05-21T07:12:01.450Z"
+      },
+      {
+        "id": "77",
+        "title": "Implement Storage, Reporter, Emailer, and Cleaner Modules",
+        "description": "Build src/security-agent/storage.ts for scan history, reporter.ts for merging results, emailer.ts for HTML emails, and src/backup/cleaner.ts for file rotation",
+        "details": "Create storage.ts:\n\nimport * as fs from 'fs';\nimport * as path from 'path';\nimport { ScanResult } from './types';\n\nconst HISTORY_DIR = path.join(__dirname, '../../.security-scans');\nconst HISTORY_FILE = path.join(HISTORY_DIR, 'history.json');\nconst MAX_SCANS = 20;\n\nfunction ensureDir() {\n  fs.mkdirSync(HISTORY_DIR, { recursive: true });\n}\n\nexport function saveResult(result: ScanResult): void {\n  ensureDir();\n  let history: ScanResult[] = [];\n  try {\n    if (fs.existsSync(HISTORY_FILE)) {\n      history = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));\n    }\n  } catch (err) {\n    console.warn('Corrupted history.json, starting fresh');\n  }\n  history.unshift(result);\n  if (history.length > MAX_SCANS) history = history.slice(0, MAX_SCANS);\n  fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));\n}\n\nexport function getLatest(): ScanResult | null {\n  ensureDir();\n  try {\n    if (fs.existsSync(HISTORY_FILE)) {\n      const history = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));\n      return history[0] || null;\n    }\n  } catch (err) {\n    console.error('Failed to read history:', err);\n  }\n  return null;\n}\n\nexport function getHistory(): ScanResult[] {\n  ensureDir();\n  try {\n    if (fs.existsSync(HISTORY_FILE)) {\n      return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));\n    }\n  } catch (err) {\n    console.error('Failed to read history:', err);\n  }\n  return [];\n}\n\nexport function markResolved(vulnId: string): boolean {\n  ensureDir();\n  const history = getHistory();\n  let found = false;\n  for (const scan of history) {\n    const vuln = scan.vulnerabilities.find(v => v.id === vulnId);\n    if (vuln) {\n      vuln.resolved = true;\n      vuln.resolved_at = new Date().toISOString();\n      found = true;\n      break;\n    }\n  }\n  if (found) fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));\n  return found;\n}\n\nCreate reporter.ts:\n\nimport { ScanResult, Vulnerability } from './types';\nimport { v4 as uuidv4 } from 'uuid'; // npm install uuid @types/uuid\n\nexport function mergeChunkResults(chunkResults: Array<{ vulnerabilities: Vulnerability[]; security_score: number; scan_summary: string }>, filesScanned: number, durationMs: number): ScanResult {\n  const allVulns = chunkResults.flatMap(r => r.vulnerabilities);\n  const avgScore = Math.round(chunkResults.reduce((sum, r) => sum + r.security_score, 0) / chunkResults.length);\n  const summaries = chunkResults.map(r => r.scan_summary).filter(s => s !== 'Analysis failed');\n  \n  return {\n    scan_id: uuidv4(),\n    timestamp: new Date().toISOString(),\n    project_name: process.env.PROJECT_NAME || 'Unknown',\n    files_scanned: filesScanned,\n    security_score: avgScore,\n    vulnerabilities: allVulns.map((v, i) => ({ ...v, id: v.id || `vuln-${i}` })),\n    scan_summary: summaries.join(' ') || 'Scan completed.',\n    status: 'COMPLETED',\n    duration_ms: durationMs\n  };\n}\n\nCreate emailer.ts:\n\nimport * as nodemailer from 'nodemailer';\nimport { ScanResult } from './types';\n\nexport async function sendSecurityEmail(result: ScanResult): Promise<{ success: boolean; error?: string }> {\n  const transport = nodemailer.createTransport({\n    host: process.env.SMTP_HOST,\n    port: parseInt(process.env.SMTP_PORT || '587'),\n    secure: false,\n    auth: {\n      user: process.env.SMTP_USER,\n      pass: process.env.SMTP_PASS\n    }\n  });\n  \n  const criticalHigh = result.vulnerabilities.filter(v => v.severity === 'CRITICAL' || v.severity === 'HIGH');\n  const scoreColor = result.security_score >= 80 ? '#22c55e' : result.security_score >= 50 ? '#eab308' : '#ef4444';\n  \n  const html = `\n<!DOCTYPE html>\n<html>\n<head><style>body{font-family:Arial,sans-serif;background:#f3f4f6;padding:20px}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:30px;text-align:center}.score{font-size:48px;font-weight:bold;color:${scoreColor}}.table{width:100%;border-collapse:collapse}.table td,.table th{padding:12px;text-align:left;border-bottom:1px solid #e5e7eb}.footer{background:#f9fafb;padding:20px;text-align:center;font-size:12px;color:#6b7280}</style></head>\n<body>\n<div class=\"container\">\n  <div class=\"header\">\n    <h1>🛡️ Security Scan Report</h1>\n    <p>${new Date(result.timestamp).toLocaleString()}</p>\n  </div>\n  <div style=\"padding:30px\">\n    <div style=\"text-align:center;margin-bottom:30px\">\n      <div class=\"score\">${result.security_score}</div>\n      <p style=\"color:#6b7280\">Security Score</p>\n    </div>\n    <h2>Executive Summary</h2>\n    <p>${result.scan_summary}</p>\n    <h2>Critical & High Severity Vulnerabilities</h2>\n    ${criticalHigh.length === 0 ? '<p style=\"color:#22c55e\">✓ No critical or high severity issues found</p>' : `\n    <table class=\"table\">\n      <thead><tr><th>Severity</th><th>Title</th><th>File</th></tr></thead>\n      <tbody>\n        ${criticalHigh.map(v => `<tr><td style=\"color:${v.severity === 'CRITICAL' ? '#ef4444' : '#f97316'}\">${v.severity}</td><td>${v.title}</td><td>${v.file}</td></tr>`).join('')}\n      </tbody>\n    </table>\n    `}\n    <div style=\"text-align:center;margin-top:30px\">\n      <a href=\"${process.env.FRONTEND_URL}/security?key=${process.env.SECURITY_DASHBOARD_SECRET}\" style=\"display:inline-block;background:#3b82f6;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px\">View Full Report</a>\n    </div>\n  </div>\n  <div class=\"footer\">\n    <p>Automated Security Scan | ${result.files_scanned} files scanned in ${Math.round(result.duration_ms / 1000)}s</p>\n  </div>\n</div>\n</body>\n</html>\n  `;\n  \n  try {\n    await transport.sendMail({\n      from: process.env.SECURITY_EMAIL_FROM,\n      to: process.env.SECURITY_EMAIL_TO,\n      subject: `Security Scan Report - Score: ${result.security_score}`,\n      html\n    });\n    return { success: true };\n  } catch (err) {\n    console.error('Email failed:', err);\n    return { success: false, error: String(err) };\n  }\n}\n\nCreate cleaner.ts:\n\nimport * as fs from 'fs';\nimport * as path from 'path';\nimport { google } from 'googleapis';\n\nexport async function cleanupOldBackups(): Promise<void> {\n  const backupDir = path.join(__dirname, '../../backups');\n  const localKeep = parseInt(process.env.BACKUP_LOCAL_KEEP_COUNT || '3');\n  const driveKeep = parseInt(process.env.BACKUP_DRIVE_KEEP_COUNT || '30');\n  \n  // Clean local backups\n  if (fs.existsSync(backupDir)) {\n    const files = fs.readdirSync(backupDir)\n      .filter(f => f.endsWith('.sql.gz'))\n      .map(f => ({ name: f, time: fs.statSync(path.join(backupDir, f)).mtime.getTime() }))\n      .sort((a, b) => b.time - a.time);\n    \n    files.slice(localKeep).forEach(f => {\n      fs.unlinkSync(path.join(backupDir, f.name));\n      console.log(`Deleted old local backup: ${f.name}`);\n    });\n  }\n  \n  // Clean Drive backups\n  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;\n  if (!serviceAccountPath) return;\n  \n  const auth = new google.auth.GoogleAuth({\n    keyFile: path.resolve(serviceAccountPath),\n    scopes: ['https://www.googleapis.com/auth/drive.file']\n  });\n  \n  const drive = google.drive({ version: 'v3', auth });\n  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;\n  \n  const res = await drive.files.list({\n    q: folderId ? `'${folderId}' in parents and trashed=false` : 'trashed=false',\n    orderBy: 'createdTime desc',\n    fields: 'files(id,name,createdTime)'\n  });\n  \n  const filesToDelete = (res.data.files || []).slice(driveKeep);\n  for (const file of filesToDelete) {\n    await drive.files.delete({ fileId: file.id! });\n    console.log(`Deleted old Drive backup: ${file.name}`);\n  }\n}\n\nAll modules use path.join(__dirname, ...) for Railway compatibility. Install uuid if not present.",
+        "testStrategy": "storage.ts: Test saveResult creates directory and limits to 20 scans, verify markResolved updates correct vulnerability and adds timestamp. reporter.ts: Mock chunk results and verify average score calculation, UUID generation for scan_id. emailer.ts: Mock nodemailer transport, verify HTML template includes score with correct color, critical/high vulns table. cleaner.ts: Mock fs and googleapis, verify local files sorted by mtime and oldest deleted beyond limit, Drive files sorted by createdTime and deleted correctly",
+        "priority": "medium",
+        "dependencies": [
+          "72",
+          "73",
+          "75",
+          "76"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "78",
+        "title": "Implement Backup Scheduler and Middleware",
+        "description": "Build src/backup/scheduler.ts using node-cron for automated backups and src/security-agent/middleware.ts for X-Security-Key authentication",
+        "details": "Create scheduler.ts:\n\nimport * as cron from 'node-cron';\nimport { dumpDatabase } from './dumper';\nimport { uploadToDrive } from './uploader';\nimport { cleanupOldBackups } from './cleaner';\nimport { BackupResult } from './types';\n\nlet lastBackupResult: BackupResult | null = null;\n\nexport function getLastBackupResult(): BackupResult | null {\n  return lastBackupResult;\n}\n\nexport async function runBackup(): Promise<BackupResult> {\n  const startTime = Date.now();\n  try {\n    const dump = await dumpDatabase();\n    const upload = await uploadToDrive(dump.filePath, dump.fileName);\n    await cleanupOldBackups();\n    \n    const result: BackupResult = {\n      success: true,\n      timestamp: new Date().toISOString(),\n      dump,\n      upload\n    };\n    lastBackupResult = result;\n    console.log(`Backup completed in ${Date.now() - startTime}ms`);\n    return result;\n  } catch (err) {\n    const result: BackupResult = {\n      success: false,\n      timestamp: new Date().toISOString(),\n      error: String(err)\n    };\n    lastBackupResult = result;\n    console.error('Backup failed:', err);\n    return result;\n  }\n}\n\nexport function startScheduler(): void {\n  const schedule = process.env.BACKUP_CRON_SCHEDULE || '0 2 * * *';\n  cron.schedule(schedule, () => {\n    console.log('Running scheduled backup...');\n    runBackup();\n  });\n  console.log(`Backup scheduler started: ${schedule}`);\n}\n\nCreate middleware.ts:\n\nimport { Request, Response, NextFunction } from 'express';\n\nexport function securityKeyMiddleware(req: Request, res: Response, next: NextFunction): void {\n  const keyFromHeader = req.headers['x-security-key'] as string | undefined;\n  const keyFromQuery = req.query.key as string | undefined;\n  const expectedKey = process.env.SECURITY_DASHBOARD_SECRET;\n  \n  if (!expectedKey) {\n    res.status(500).json({ error: 'SECURITY_DASHBOARD_SECRET not configured' });\n    return;\n  }\n  \n  if (keyFromHeader === expectedKey || keyFromQuery === expectedKey) {\n    next();\n  } else {\n    res.status(403).json({ error: 'Invalid or missing security key' });\n  }\n}\n\nScheduler starts on server boot, middleware protects all security/backup routes.",
+        "testStrategy": "scheduler.ts: Mock cron.schedule and verify it's called with correct schedule string, test runBackup flow (dump -> upload -> cleanup), verify lastBackupResult is updated on success and failure. middleware.ts: Test with valid X-Security-Key header returns next(), valid ?key= query param returns next(), missing/invalid key returns 403, missing env var returns 500",
+        "priority": "medium",
+        "dependencies": [
+          "76",
+          "77"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T14:59:18.025Z"
+      },
+      {
+        "id": "79",
+        "title": "Implement Security and Backup API Routes",
+        "description": "Build src/routes/security.routes.ts and src/routes/backup.routes.ts with all endpoints for scanning, results, email, backup trigger, and status",
+        "details": "Create security.routes.ts:\n\nimport { Router, Request, Response } from 'express';\nimport * as path from 'path';\nimport { scanCodebase } from '../security-agent/scanner';\nimport { analyzeChunk } from '../security-agent/analyzer';\nimport { mergeChunkResults } from '../security-agent/reporter';\nimport { saveResult, getLatest, getHistory, markResolved } from '../security-agent/storage';\nimport { sendSecurityEmail } from '../security-agent/emailer';\nimport { securityKeyMiddleware } from '../security-agent/middleware';\nimport { v4 as uuidv4 } from 'uuid';\n\nconst router = Router();\n\n// Serve dashboard assets\nrouter.get('/security', securityKeyMiddleware, (_req, res) => {\n  res.sendFile(path.join(__dirname, '../security-agent/dashboard/index.html'));\n});\n\nrouter.get('/security/assets/styles.css', securityKeyMiddleware, (_req, res) => {\n  res.sendFile(path.join(__dirname, '../security-agent/dashboard/styles.css'));\n});\n\nrouter.get('/security/assets/app.js', securityKeyMiddleware, (_req, res) => {\n  res.sendFile(path.join(__dirname, '../security-agent/dashboard/app.js'));\n});\n\n// API endpoints\nconst scanStates = new Map<string, { status: string; progress?: number; log?: string[] }>();\n\nrouter.post('/api/security/scan', securityKeyMiddleware, async (req: Request, res: Response) => {\n  const scanId = uuidv4();\n  scanStates.set(scanId, { status: 'PENDING', log: [] });\n  \n  res.json({ scan_id: scanId, status: 'PENDING' });\n  \n  // Run scan asynchronously\n  (async () => {\n    try {\n      scanStates.set(scanId, { status: 'RUNNING', progress: 0, log: ['Starting scan...'] });\n      const startTime = Date.now();\n      const chunks = await scanCodebase();\n      const totalChunks = chunks.length;\n      \n      const results = [];\n      for (let i = 0; i < chunks.length; i++) {\n        const chunk = chunks[i];\n        const chunkContent = chunk.files.map(f => `FILE: ${f.path}\\n${f.content}`).join('\\n\\n');\n        const analysis = await analyzeChunk(chunkContent);\n        results.push(analysis);\n        scanStates.get(scanId)!.progress = Math.round(((i + 1) / totalChunks) * 100);\n        scanStates.get(scanId)!.log!.push(`Analyzed chunk ${i + 1}/${totalChunks}`);\n      }\n      \n      const totalFiles = chunks.reduce((sum, c) => sum + c.files.length, 0);\n      const result = mergeChunkResults(results, totalFiles, Date.now() - startTime);\n      result.scan_id = scanId;\n      saveResult(result);\n      scanStates.set(scanId, { status: 'COMPLETED' });\n    } catch (err) {\n      console.error('Scan failed:', err);\n      scanStates.set(scanId, { status: 'FAILED', log: [String(err)] });\n    }\n  })();\n});\n\nrouter.get('/api/security/status/:scan_id', securityKeyMiddleware, (req: Request, res: Response) => {\n  const state = scanStates.get(req.params.scan_id);\n  if (!state) {\n    res.status(404).json({ error: 'Scan not found' });\n    return;\n  }\n  res.json(state);\n});\n\nrouter.get('/api/security/results', securityKeyMiddleware, (_req, res) => {\n  const latest = getLatest();\n  if (!latest) {\n    res.status(404).json({ error: 'No scans found' });\n    return;\n  }\n  res.json(latest);\n});\n\nrouter.get('/api/security/history', securityKeyMiddleware, (_req, res) => {\n  res.json(getHistory());\n});\n\nrouter.post('/api/security/email', securityKeyMiddleware, async (_req, res) => {\n  const latest = getLatest();\n  if (!latest) {\n    res.status(404).json({ error: 'No scan results to email' });\n    return;\n  }\n  const result = await sendSecurityEmail(latest);\n  res.json(result);\n});\n\nrouter.patch('/api/security/vuln/:id/resolve', securityKeyMiddleware, (req: Request, res: Response) => {\n  const success = markResolved(req.params.id);\n  if (!success) {\n    res.status(404).json({ error: 'Vulnerability not found' });\n    return;\n  }\n  res.json({ success: true });\n});\n\nexport default router;\n\nCreate backup.routes.ts:\n\nimport { Router, Request, Response } from 'express';\nimport { runBackup, getLastBackupResult } from '../backup/scheduler';\nimport { securityKeyMiddleware } from '../security-agent/middleware';\nimport { google } from 'googleapis';\nimport * as path from 'path';\n\nconst router = Router();\n\nrouter.post('/api/backup/trigger', securityKeyMiddleware, async (_req, res) => {\n  const result = await runBackup();\n  res.json(result);\n});\n\nrouter.get('/api/backup/status', securityKeyMiddleware, (_req, res) => {\n  const last = getLastBackupResult();\n  if (!last) {\n    res.status(404).json({ error: 'No backup history' });\n    return;\n  }\n  res.json(last);\n});\n\nrouter.get('/api/backup/history', securityKeyMiddleware, async (_req, res) => {\n  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;\n  if (!serviceAccountPath) {\n    res.status(500).json({ error: 'Google Service Account not configured' });\n    return;\n  }\n  \n  const auth = new google.auth.GoogleAuth({\n    keyFile: path.resolve(serviceAccountPath),\n    scopes: ['https://www.googleapis.com/auth/drive.file']\n  });\n  \n  const drive = google.drive({ version: 'v3', auth });\n  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;\n  \n  const driveRes = await drive.files.list({\n    q: folderId ? `'${folderId}' in parents and trashed=false` : 'trashed=false',\n    orderBy: 'createdTime desc',\n    fields: 'files(id,name,createdTime,size,webViewLink)',\n    pageSize: 50\n  });\n  \n  res.json(driveRes.data.files || []);\n});\n\nexport default router;\n\nBoth routers use securityKeyMiddleware for all routes.",
+        "testStrategy": "security.routes.ts: Test POST /api/security/scan returns scan_id and PENDING status, verify async scan updates scanStates map, test GET /api/security/status/:scan_id returns correct state, verify GET /api/security/results returns latest scan, test PATCH /api/security/vuln/:id/resolve marks vulnerability resolved. backup.routes.ts: Test POST /api/backup/trigger calls runBackup and returns result, verify GET /api/backup/status returns last backup, test GET /api/backup/history fetches Drive files with correct query. All routes should return 403 without valid security key.",
+        "priority": "medium",
+        "dependencies": [
+          "74",
+          "75",
+          "77",
+          "78"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create security.routes.ts with dashboard asset serving endpoints",
+            "description": "Implement the security routes file with static dashboard assets serving (HTML, CSS, JS) protected by securityKeyMiddleware.",
+            "dependencies": [],
+            "details": "Create src/routes/security.routes.ts with Express Router. Import Router, Request, Response from express, path module, and securityKeyMiddleware from ../security-agent/middleware. Define three GET routes for dashboard assets: GET /security serves index.html, GET /security/assets/styles.css serves CSS, GET /security/assets/app.js serves JavaScript. All routes use securityKeyMiddleware for authentication via X-Security-Key header or ?key query param. Use res.sendFile with path.join(__dirname, '../security-agent/dashboard/...') for each asset. Export default router.",
+            "status": "pending",
+            "testStrategy": "Test GET /security without key returns 401. Test with valid X-Security-Key header returns 200 and HTML content. Test ?key= query param works. Verify CSS and JS assets are served correctly with proper content-type headers.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement security scan API endpoints with async scan management",
+            "description": "Add POST /api/security/scan endpoint that triggers async codebase scanning and GET /api/security/status/:scan_id for tracking scan progress.",
+            "dependencies": [
+              1
+            ],
+            "details": "In security.routes.ts, import uuid v4, scanCodebase, analyzeChunk, mergeChunkResults, saveResult from security-agent modules. Create scanStates Map<string, {status, progress?, log?}> for tracking in-memory scan states. Implement POST /api/security/scan: generate uuid scan_id, set initial PENDING state, return immediately with {scan_id, status}, then run async IIFE that: sets RUNNING status with progress 0, calls scanCodebase() to get chunks, iterates chunks calling analyzeChunk, updates progress percentage after each, merges results with mergeChunkResults, saves via saveResult, sets COMPLETED or FAILED status. Implement GET /api/security/status/:scan_id: lookup state in scanStates Map, return 404 if not found, otherwise return current state object.",
+            "status": "pending",
+            "testStrategy": "Test POST /api/security/scan returns scan_id and PENDING status within 1 second. Poll GET /api/security/status/:scan_id and verify status transitions PENDING -> RUNNING (with progress 0-100) -> COMPLETED. Test with invalid scan_id returns 404. Verify scanStates map correctly tracks multiple concurrent scans.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement security results, history, email, and resolve endpoints",
+            "description": "Add GET /api/security/results, GET /api/security/history, POST /api/security/email, and PATCH /api/security/vuln/:id/resolve endpoints.",
+            "dependencies": [
+              2
+            ],
+            "details": "In security.routes.ts, import getLatest, getHistory, markResolved from storage and sendSecurityEmail from emailer. Implement GET /api/security/results: call getLatest(), return 404 if null, else return JSON result. Implement GET /api/security/history: call getHistory(), return JSON array. Implement POST /api/security/email: get latest result, return 404 if none, call sendSecurityEmail(latest) and return result object with success/error. Implement PATCH /api/security/vuln/:id/resolve: call markResolved(req.params.id), return 404 if false, else return {success: true}. All endpoints use securityKeyMiddleware.",
+            "status": "pending",
+            "testStrategy": "Test GET /api/security/results returns 404 when no scans exist, returns latest scan result after scan completes. Test GET /api/security/history returns array ordered by timestamp descending. Test POST /api/security/email sends email and returns success status. Test PATCH resolve endpoint marks vulnerability as resolved. Verify all endpoints return 401 without security key.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Create backup.routes.ts with trigger, status, and history endpoints",
+            "description": "Implement backup routes file with POST /api/backup/trigger, GET /api/backup/status, and GET /api/backup/history endpoints using Google Drive API.",
+            "dependencies": [],
+            "details": "Create src/routes/backup.routes.ts with Express Router. Import Router, Request, Response from express, runBackup and getLastBackupResult from ../backup/scheduler, securityKeyMiddleware from ../security-agent/middleware, google from googleapis, path module. Implement POST /api/backup/trigger: call await runBackup(), return result JSON with status, filename, driveFileId, timestamp. Implement GET /api/backup/status: call getLastBackupResult(), return 404 if null, else return last backup result. Implement GET /api/backup/history: check GOOGLE_SERVICE_ACCOUNT_PATH env var (500 if missing), create GoogleAuth with keyFile and drive.file scope, instantiate drive v3 client, call drive.files.list with GOOGLE_DRIVE_BACKUP_FOLDER_ID folder filter, orderBy createdTime desc, fields for id/name/createdTime/size/webViewLink, pageSize 50, return files array. All routes use securityKeyMiddleware. Export default router.",
+            "status": "pending",
+            "testStrategy": "Test POST /api/backup/trigger initiates backup and returns result with filename and status. Test GET /api/backup/status returns 404 initially, then last backup result after trigger. Test GET /api/backup/history returns Google Drive files list ordered by date. Test 401 response without X-Security-Key header. Verify error handling when Google credentials missing.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Register security and backup routes in main Express application",
+            "description": "Import and mount security.routes.ts and backup.routes.ts in src/index.ts with appropriate path prefixes.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "In src/index.ts, add imports for securityRouter from ./routes/security.routes and backupRouter from ./routes/backup.routes alongside existing route imports. Mount the routers after existing routes: app.use('/', securityRouter) for security dashboard at /security and API at /api/security/*, and app.use('/api/backup', backupRouter) for backup endpoints. Place these mounts after the json parser middleware but before the app.listen call. The security router handles both dashboard paths (/security) and API paths (/api/security/*) internally, so mount at root. Ensure both routers are registered with their securityKeyMiddleware protection applied per-route as defined in the route files.",
+            "status": "pending",
+            "testStrategy": "Test full integration: verify /security dashboard loads with valid key, /api/security/scan triggers scan, /api/security/results returns data, /api/backup/trigger creates backup, /api/backup/history lists Drive files. Test all endpoints return 401 without auth. Verify no conflicts with existing routes. Check server starts without errors after adding new routes.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-21T15:01:43.596Z"
+      },
+      {
+        "id": "80",
+        "title": "Build Security Dashboard UI (HTML, CSS, JS)",
+        "description": "Create src/security-agent/dashboard/index.html, styles.css, and app.js with cybersecurity dark theme, vulnerability cards, scan progress, and backup section",
+        "details": "Create index.html with structure:\n- Header with security score, CRITICAL/HIGH/MEDIUM/LOW counters, Scan/Email buttons\n- Vulnerability list with severity filters, search bar\n- Detail modal with 3 tabs (Description, Fix Guide, References), code diff, Mark Resolved button\n- Scan progress overlay with terminal-style progress bar and file log\n- Scan history table with score trend, Canvas line chart\n- Backup section with last backup info, Run Backup button, Drive history table, countdown timer\n\nCreate styles.css with:\n- Dark theme: background #0f172a, cards #1e293b, text #e2e8f0\n- Severity colors: CRITICAL #ef4444, HIGH #f97316, MEDIUM #eab308, LOW #3b82f6\n- Terminal font for logs: monospace\n- Modal with backdrop blur\n- Responsive grid layout\n\nCreate app.js with:\n- sessionStorage for security key\n- Poll /api/security/status/:scan_id every 2s during scan\n- Add X-Security-Key to all fetch headers\n- Toast notifications for success/error\n- Canvas chart for security score trend over time\n- Backup countdown using setInterval to next scheduled backup (2:00 AM daily)\n- Filter/search vulnerabilities client-side\n- Code diff highlighting in Fix Guide tab\n\nAll assets served via security.routes.ts. UI is vanilla JS (no frameworks).",
+        "testStrategy": "Manual UI testing: verify dashboard loads at /security?key=SECRET, test scan button triggers POST /api/security/scan and shows progress overlay, verify vulnerability cards display with correct severity colors, test modal opens with all 3 tabs, verify Mark Resolved button calls PATCH endpoint, test email button, verify backup section shows last backup and Drive history, test countdown timer updates every second",
+        "priority": "medium",
+        "dependencies": [
+          "79"
+        ],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create dashboard directory and index.html base structure",
+            "description": "Create src/security-agent/dashboard/ directory and build index.html with complete semantic HTML structure including header, main sections, and modal containers.",
+            "dependencies": [],
+            "details": "Create backend/src/security-agent/dashboard/ directory. Build index.html with:\n- DOCTYPE and HTML5 boilerplate with viewport meta, charset utf-8\n- Link to styles.css and script src app.js (defer)\n- Header section: security score badge (large number + color), severity counters row (CRITICAL/HIGH/MEDIUM/LOW with counts), Scan Now button, Send Email button\n- Main container with vulnerability list section: severity filter buttons (All/CRITICAL/HIGH/MEDIUM/LOW), search input, empty state placeholder, vulnerability cards container\n- Detail modal structure: close button, vulnerability title, 3-tab navigation (Description, Fix Guide, References), tab content containers, code block with diff placeholder, Mark Resolved button\n- Scan progress overlay (hidden by default): terminal-style container, progress bar, current file log, percentage text\n- Scan history section: table with columns (Date, Score, Duration, Vulns), Canvas element for trend chart\n- Backup section: last backup info box (timestamp, filename, status), Run Backup Now button, Drive history table (Name, Date, Size, Link), countdown timer to next 2 AM backup\n- Toast notification container (positioned fixed top-right)",
+            "status": "pending",
+            "testStrategy": "Open index.html in browser directly (file://) to verify all structural elements render. Check all sections exist: header with score area, vulnerability list with filters, modal with 3 tabs, scan overlay, history table with canvas, backup section. Validate HTML with W3C validator for semantic correctness.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement cybersecurity dark theme styles.css",
+            "description": "Create styles.css with complete cybersecurity-themed dark styling including color scheme, typography, layout grid, and component styles.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create backend/src/security-agent/dashboard/styles.css with:\n- CSS reset and box-sizing border-box\n- Root variables: --bg-primary: #0f172a, --bg-card: #1e293b, --text-primary: #e2e8f0, --text-secondary: #94a3b8, --critical: #ef4444, --high: #f97316, --medium: #eab308, --low: #3b82f6, --success: #22c55e\n- Body: background var(--bg-primary), color var(--text-primary), font-family system-ui\n- Header: flexbox row, space-between, gap for buttons\n- Security score badge: large font (3rem), rounded circle, dynamic color class (.score-critical, .score-high, .score-medium, .score-good)\n- Severity counter pills: inline-flex with colored left border matching severity\n- Buttons: primary (blue), danger (red), outline variants, hover states\n- Vulnerability cards: bg-card, border-left 4px colored by severity, padding, border-radius 8px, hover shadow\n- Filter buttons: toggle active state with underline/background change\n- Search input: dark input style, border on focus\n- Modal: fixed inset-0, flex center, backdrop-filter blur(4px), bg rgba(0,0,0,0.5)\n- Modal content: max-width 800px, max-height 90vh, overflow-y auto, bg-card, rounded-lg\n- Tabs: horizontal flex, tab buttons with active underline\n- Code block: monospace font, bg #0d1117, padding, overflow-x auto, white-space pre\n- Code diff: .diff-add green bg, .diff-remove red bg styles\n- Progress overlay: fixed inset-0, flex center, terminal-style box with monospace font\n- Progress bar: height 8px, rounded, bg-gray-700, inner fill with gradient animation\n- Table styles: full-width, striped rows, hover highlight\n- Toast notifications: position fixed top-4 right-4, slide-in animation, severity colored left border\n- Responsive: media queries for mobile (stack layout below 768px)",
+            "status": "pending",
+            "testStrategy": "Open index.html with styles.css linked. Verify dark theme applies correctly - background should be #0f172a, cards #1e293b. Test severity colors by adding test classes. Check modal backdrop blur works. Test responsive layout by resizing browser below 768px width. Verify all interactive elements have visible hover states.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Build app.js core functionality with API integration",
+            "description": "Create app.js with security key management, API fetch helpers with authentication headers, scan triggering with polling, and vulnerability data loading.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create backend/src/security-agent/dashboard/app.js with:\n- DOMContentLoaded wrapper\n- Security key management: getSecurityKey() reads from URL ?key= param first, falls back to sessionStorage, setSecurityKey() saves to sessionStorage\n- API helper: async fetchAPI(endpoint, options) that adds X-Security-Key header to all requests, handles JSON parsing, throws on non-ok responses\n- State object: { vulnerabilities: [], scanHistory: [], currentScan: null, backupHistory: [], lastBackup: null }\n- loadResults(): GET /api/security/results, populate state.vulnerabilities, call renderVulnerabilities()\n- loadHistory(): GET /api/security/history, populate state.scanHistory, call renderHistoryTable(), renderChart()\n- startScan(): POST /api/security/scan, show progress overlay, call pollScanStatus(scan_id)\n- pollScanStatus(scan_id): setInterval 2000ms, GET /api/security/status/:scan_id, update progress bar/file log, clear interval on COMPLETED/FAILED, call loadResults() on complete\n- sendEmail(): POST /api/security/email, show toast on success/error\n- markResolved(vulnId): PATCH /api/security/vuln/:vulnId/resolve, update local state, re-render\n- Event listeners: Scan button click -> startScan(), Email button click -> sendEmail()\n- Init function: if no key show prompt/redirect message, else loadResults(), loadHistory(), loadBackupStatus()\n- loadBackupStatus(): GET /api/backup/status, GET /api/backup/history, populate state, render backup section",
+            "status": "pending",
+            "testStrategy": "Open dashboard with valid ?key=SECRET param. Check browser console for no JS errors. Verify security key stored in sessionStorage. Mock API responses (or with backend running) to test: loadResults populates vulnerability list, startScan shows overlay and polls, sendEmail triggers POST and shows toast. Test without key param shows appropriate message.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement UI rendering functions and interactivity",
+            "description": "Add DOM rendering functions for vulnerability cards, modal with tabs, filters, search, and toast notifications to app.js.",
+            "dependencies": [
+              3
+            ],
+            "details": "Extend app.js with rendering and interaction functions:\n- renderVulnerabilities(filter='ALL', searchQuery=''): clear container, filter by severity and search text, create card elements with severity badge, title, file:line location, short description, click handler to openModal(vuln)\n- openModal(vuln): populate modal title, render tab content (Description tab: full description text; Fix Guide tab: fix_recommendation text + code diff with before/after using .diff-add/.diff-remove classes; References tab: list of reference links as clickable anchors), show modal, bind close handlers (X button, backdrop click, Escape key)\n- closeModal(): hide modal, clear content\n- renderHistoryTable(): clear table body, iterate scanHistory, create rows with formatted date, score (colored), duration, vuln count\n- showToast(message, type='success'): create toast element with icon, message, auto-dismiss after 3s with fade animation\n- Filter buttons: click handlers that call renderVulnerabilities(severity)\n- Search input: debounced input handler (300ms) that calls renderVulnerabilities(currentFilter, searchValue)\n- Code diff rendering: renderCodeDiff(before, after) function that creates side-by-side or unified diff display with syntax highlighting classes\n- Tab switching: click handlers on tab buttons that show/hide tab content, update active tab styling\n- Mark Resolved button in modal: click handler calls markResolved(), closes modal, shows success toast, re-renders list",
+            "status": "pending",
+            "testStrategy": "Test with mock vulnerability data: verify cards render with correct severity colors and positioning. Click card to open modal - verify all 3 tabs work and content switches. Test filter buttons filter the list correctly. Test search filters by title/description text. Test Mark Resolved updates UI. Test toast appears and auto-dismisses. Test modal closes on backdrop click and Escape key.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Add Canvas chart, backup section functionality, and countdown timer",
+            "description": "Implement Canvas-based security score trend chart, backup section rendering with Drive history, and countdown timer to next scheduled backup.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Extend app.js with chart and backup features:\n- renderChart(): get Canvas 2d context, clear canvas, calculate chart dimensions with padding, draw axes (white lines), plot scanHistory scores as connected line graph with colored points (score color), add date labels on x-axis, score scale (0-100) on y-axis, fill area under line with gradient, add grid lines for readability\n- calculateScoreColor(score): return color based on score ranges (0-40 critical red, 41-60 high orange, 61-80 medium yellow, 81-100 good green)\n- Backup section rendering: renderBackupSection() - show last backup timestamp (formatted), filename, success/fail status with colored indicator, update countdown timer text\n- loadBackupHistory(): GET /api/backup/history, render table rows with Name (link to webViewLink), Created date formatted, file size if available\n- triggerBackup(): POST /api/backup/trigger, show loading state on button, on success refresh backup status and history, show toast\n- Backup countdown timer: calculateNextBackup() returns Date for next 2:00 AM, startCountdownTimer() uses setInterval(1000ms) to update countdown display (HH:MM:SS format), recalculate when crossing midnight\n- Run Backup Now button: click handler calls triggerBackup()\n- Canvas responsive handling: resize observer or window resize handler to redraw chart at correct size\n- Polish: loading spinners during API calls, empty states for no vulnerabilities/no history, error states with retry buttons",
+            "status": "pending",
+            "testStrategy": "Test chart renders with mock history data showing score trend line. Verify chart redraws on window resize. Test backup section shows last backup info when available. Click Run Backup Now and verify loading state, API call, and refresh. Verify countdown timer counts down every second. Test timer recalculates correctly after midnight. Test empty states display when no data. Test all loading spinners appear during API calls.",
+            "parentId": "undefined"
+          }
+        ],
+        "updatedAt": "2026-05-21T15:02:30.467Z"
+      },
+      {
+        "id": "81",
+        "title": "Integrate Security and Backup Routers into Main Server",
+        "description": "Mount security and backup routers in src/index.ts, call startScheduler() on boot, update .gitignore and .env.example",
+        "details": "In src/index.ts after line 18 (marketingRouter import), add:\n\nimport securityRouter from './routes/security.routes';\nimport backupRouter from './routes/backup.routes';\nimport { startScheduler as startBackupScheduler } from './backup/scheduler';\n\nAfter line 67 (app.use('/api/marketing')), add:\n\n// === Security Agent & Backup System ===\napp.use('/', securityRouter);\napp.use('/', backupRouter);\n\nIn app.listen callback after startScheduler() line 94, add:\n\nstartBackupScheduler();\n\nUpdate .gitignore, add:\n\n.security-scans/\nbackups/\ngoogle-service-account.json\n\nUpdate .env.example, add:\n\n# Security Agent\nANTHROPIC_API_KEY=sk-ant-your-key-here\nSECURITY_DASHBOARD_SECRET=change-this-32-char-minimum-secret\nSECURITY_SCAN_PATHS=./src\nSECURITY_EMAIL_TO=you@email.com\nSECURITY_EMAIL_FROM=security@yourdomain.com\n\n# SMTP\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=587\nSMTP_USER=you@gmail.com\nSMTP_PASS=xxxx-xxxx-xxxx-xxxx\n\n# Database Backup\nGOOGLE_SERVICE_ACCOUNT_PATH=./google-service-account.json\nGOOGLE_DRIVE_BACKUP_FOLDER_ID=your-folder-id-from-drive-url\nBACKUP_CRON_SCHEDULE=0 2 * * *\nBACKUP_LOCAL_KEEP_COUNT=3\nBACKUP_DRIVE_KEEP_COUNT=30\n\nDo NOT modify existing routes or middleware.",
+        "testStrategy": "Run npm run build (tsc), verify dist/ compiles without errors, check .gitignore includes new directories, verify .env.example has all new variables, start server and confirm backup scheduler logs appear, test GET /health still returns 200, verify existing routes (/api/cursos, /api/auth) still work",
+        "priority": "high",
+        "dependencies": [
+          "79",
+          "78"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-21T15:27:14.821Z"
+      },
+      {
+        "id": "82",
+        "title": "Create SECURITY_AGENT.md Documentation",
+        "description": "Write comprehensive setup guide covering installation, Google Drive setup, SMTP config, Railway deployment, and usage instructions",
+        "details": "Create SECURITY_AGENT.md in backend/ directory with sections:\n\n1. Overview: Explain both systems (Security Agent + Backup)\n2. Prerequisites: Node 18+, MySQL, Google Cloud project, SMTP credentials\n3. Installation: npm install commands (already done)\n4. Google Drive Setup:\n   - Create Service Account in GCP Console\n   - Download JSON key file\n   - Share Drive folder with service account email\n   - Copy folder ID from Drive URL\n5. Environment Variables: Complete .env reference with all required vars\n6. SMTP Configuration: Gmail app passwords, other providers\n7. Railway Deployment:\n   - Add SERVICE_ACCOUNT_JSON as env var (base64 encoded)\n   - Decode at runtime if needed\n   - Explain ephemeral filesystem implications\n8. Usage:\n   - Access dashboard: https://your-app.railway.app/security?key=SECRET\n   - Run manual scan: POST /api/security/scan\n   - Trigger backup: POST /api/backup/trigger\n   - Email reports: POST /api/security/email\n9. Troubleshooting:\n   - ANTHROPIC_API_KEY invalid\n   - mysqldump not found in Railway\n   - Google Drive permission denied\n   - SMTP authentication failed\n10. Security Considerations:\n    - Keep SECURITY_DASHBOARD_SECRET complex (32+ chars)\n    - Use HTTPS in production\n    - Rotate service account keys regularly\n11. Architecture: Brief explanation of scanner -> analyzer -> storage flow and dumper -> uploader -> cleaner flow\n\nInclude code examples for common tasks.",
+        "testStrategy": "Manual review: verify all setup steps are complete and accurate, test following the guide from scratch in a new environment, confirm all env vars documented, validate Google Drive setup instructions work, verify Railway-specific notes are clear",
+        "priority": "low",
+        "dependencies": [
+          "81"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "83",
+        "title": "End-to-End Testing and Validation",
+        "description": "Perform comprehensive testing of both systems: run full scan, verify vulnerabilities detected, test email delivery, trigger backup, verify Drive upload, validate all success criteria",
+        "details": "Test checklist:\n\n1. TypeScript Compilation:\n   - Run: npx tsc --noEmit\n   - Verify: 0 errors\n\n2. Security Agent:\n   - Start server: npm run dev\n   - Access: GET /security?key=SECRET\n   - Verify: Dashboard HTML loads\n   - Trigger scan: POST /api/security/scan with X-Security-Key header\n   - Verify: Returns { scan_id, status: \"PENDING\" }\n   - Poll status: GET /api/security/status/:scan_id\n   - Verify: Progress updates, eventually COMPLETED\n   - Get results: GET /api/security/results\n   - Verify: Returns ScanResult matching schema with vulnerabilities array, security_score, scan_summary\n   - Send email: POST /api/security/email\n   - Verify: Email received with HTML template, score color correct, CRITICAL/HIGH vulns listed\n   - Test UI: Load dashboard, verify scan progress overlay, vulnerability cards, modal tabs, Mark Resolved\n\n3. Database Backup:\n   - Trigger: POST /api/backup/trigger with X-Security-Key\n   - Verify: .sql.gz file created in ./backups/\n   - Verify: File uploaded to Google Drive\n   - Verify: Local file deleted after upload\n   - Check Drive: GET /api/backup/history\n   - Verify: Returns array of Drive files with name, createdTime, webViewLink\n   - Check status: GET /api/backup/status\n   - Verify: Returns last backup metadata with success: true\n   - Test scheduler: Change BACKUP_CRON_SCHEDULE to \"* * * * *\" (every minute), wait 1 min, verify backup runs\n   - Test cleanup: Create 5 local backups, verify only 3 kept (BACKUP_LOCAL_KEEP_COUNT=3)\n\n4. Dashboard Backup Section:\n   - Verify last backup info displays\n   - Click Run Backup Now, verify triggers POST /api/backup/trigger\n   - Verify Drive history table populates\n   - Verify countdown timer counts down to next 2:00 AM\n\n5. Security:\n   - Test without X-Security-Key: Verify 403 Forbidden\n   - Test with invalid key: Verify 403\n   - Test with ?key= query param: Verify 200 OK\n\n6. Integration:\n   - Verify existing routes still work: GET /api/cursos, POST /api/auth/login\n   - Verify scheduler starts on boot (check logs)\n   - Verify .security-scans/ and ./backups/ in .gitignore\n\n7. Railway Compatibility:\n   - Deploy to Railway\n   - Verify mysqldump available (Railway MySQL buildpack includes it)\n   - Verify backups upload to Drive (local files ephemeral)\n   - Verify scheduler runs on deployed instance\n\nDocument any failures and fix before marking complete.",
+        "testStrategy": "Create detailed test report documenting each criterion with PASS/FAIL status, include screenshots of dashboard UI, email screenshot, Drive folder screenshot, logs showing scheduler execution, TypeScript compilation output, and API response examples for all endpoints",
+        "priority": "high",
+        "dependencies": [
+          "80",
+          "81",
+          "82"
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-18T03:05:54.186Z",
-      "taskCount": 68,
-      "completedCount": 63,
+      "lastModified": "2026-05-21T15:27:14.822Z",
+      "taskCount": 83,
+      "completedCount": 74,
       "tags": [
         "master"
       ]

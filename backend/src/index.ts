@@ -17,7 +17,10 @@ import certificadosRouter from "./routes/certificados";
 import finanzasRouter from "./routes/finanzas";
 import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
+import securityRouter from "./routes/security.routes";
+import backupRouter from "./routes/backup.routes";
 import { startScheduler } from "./scheduler";
+import { startBackupScheduler } from "./backup/scheduler";
 
 dotenv.config();
 
@@ -66,6 +69,10 @@ app.use("/api/certificados", certificadosRouter);
 app.use("/api/finanzas", finanzasRouter);
 app.use("/api/marketing", marketingRouter);
 
+// Security dashboard + backup (protected by X-Security-Key middleware)
+app.use(securityRouter);
+app.use(backupRouter);
+
 // Endpoint temporal de prueba — remover antes de producción real
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
   const { responderMensaje } = require("./lib/claude");
@@ -92,6 +99,7 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT ==
 app.listen(PORT, () => {
   if (process.env.NODE_ENV !== "production") console.log(`MEA Backend corriendo en puerto ${PORT}`);
   startScheduler();
+  startBackupScheduler();
 });
 
 export default app;

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security Dashboard — MEA International</title>
+  <link rel="stylesheet" href="/security/assets/styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">🛡️ Security Dashboard</div>
+      <span class="project-name">MEA International</span>
+    </div>
+    <div class="header-right">
+      <span class="last-scan-label">Last scan: <span id="lastScanTime">—</span></span>
+      <button id="btnScan" class="btn btn-primary">▶ Run Scan</button>
+      <button id="btnEmail" class="btn btn-secondary">✉ Email Report</button>
+    </div>
+  </header>
+
+  <!-- Score Bar -->
+  <div class="score-bar">
+    <div class="score-block">
+      <div id="scoreValue" class="score-value">—</div>
+      <div class="score-label">Security Score</div>
+    </div>
+    <div class="severity-counters">
+      <div class="counter counter-critical"><span id="countCritical">0</span><span class="counter-label">CRITICAL</span></div>
+      <div class="counter counter-high"><span id="countHigh">0</span><span class="counter-label">HIGH</span></div>
+      <div class="counter counter-medium"><span id="countMedium">0</span><span class="counter-label">MEDIUM</span></div>
+      <div class="counter counter-low"><span id="countLow">0</span><span class="counter-label">LOW</span></div>
+    </div>
+    <div class="scan-summary" id="scanSummary">No scan results yet. Run a scan to get started.</div>
+  </div>
+
+  <!-- Main Grid -->
+  <main class="main-grid">
+
+    <!-- Vulnerabilities Panel -->
+    <section class="panel panel-vulns">
+      <div class="panel-header">
+        <h2>Vulnerabilities</h2>
+        <div class="filters">
+          <input id="searchInput" type="text" class="search-input" placeholder="Search…" />
+          <button class="filter-btn active" data-severity="ALL">All</button>
+          <button class="filter-btn critical" data-severity="CRITICAL">Critical</button>
+          <button class="filter-btn high" data-severity="HIGH">High</button>
+          <button class="filter-btn medium" data-severity="MEDIUM">Medium</button>
+          <button class="filter-btn low" data-severity="LOW">Low</button>
+          <label class="filter-toggle"><input type="checkbox" id="hideResolved" /> Hide resolved</label>
+        </div>
+      </div>
+      <div id="vulnList" class="vuln-list">
+        <div class="empty-state">No vulnerabilities found.</div>
+      </div>
+    </section>
+
+    <!-- Right Column -->
+    <aside class="right-col">
+
+      <!-- Backup Section -->
+      <section class="panel panel-backup">
+        <div class="panel-header">
+          <h2>💾 Backup</h2>
+          <button id="btnBackup" class="btn btn-secondary btn-sm">▶ Run Now</button>
+        </div>
+        <div class="backup-info">
+          <div class="info-row"><span class="info-label">Last backup</span><span id="lastBackupTime">—</span></div>
+          <div class="info-row"><span class="info-label">Status</span><span id="backupStatus">—</span></div>
+          <div class="info-row"><span class="info-label">File</span><span id="backupFile">—</span></div>
+          <div class="info-row"><span class="info-label">Size</span><span id="backupSize">—</span></div>
+          <div class="info-row"><span class="info-label">Next (2:00 AM)</span><span id="backupCountdown" class="countdown">—</span></div>
+        </div>
+        <div class="drive-history">
+          <h3>Drive History</h3>
+          <div id="driveList" class="drive-list"><span class="empty-state-sm">Loading…</span></div>
+        </div>
+      </section>
+
+      <!-- Scan History -->
+      <section class="panel panel-history">
+        <div class="panel-header"><h2>📊 Scan History</h2></div>
+        <canvas id="scoreChart" height="120"></canvas>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+    </aside>
+  </main>
+
+  <!-- Scan Progress Overlay -->
+  <div id="progressOverlay" class="overlay hidden">
+    <div class="overlay-box">
+      <div class="overlay-title">🔍 Scanning codebase…</div>
+      <div class="progress-bar-wrap">
+        <div id="progressBar" class="progress-bar" style="width:0%"></div>
+      </div>
+      <div id="progressPct" class="progress-pct">0%</div>
+      <div id="progressLog" class="progress-log"></div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-box">
+      <button id="modalClose" class="modal-close">✕</button>
+      <div class="modal-header">
+        <span id="modalSeverity" class="severity-badge"></span>
+        <h2 id="modalTitle"></h2>
+        <span id="modalFile" class="modal-file"></span>
+      </div>
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="desc">Description</button>
+        <button class="tab-btn" data-tab="fix">Fix Guide</button>
+        <button class="tab-btn" data-tab="refs">References</button>
+      </div>
+      <div id="tabDesc" class="tab-content active">
+        <p id="modalDescription"></p>
+        <h4>Attack Scenario</h4><p id="modalAttack"></p>
+        <h4>Business Impact</h4><p id="modalImpact"></p>
+      </div>
+      <div id="tabFix" class="tab-content hidden">
+        <p class="fix-meta"><strong>Difficulty:</strong> <span id="fixDifficulty"></span> &nbsp;·&nbsp; <strong>Est. time:</strong> <span id="fixTime"></span></p>
+        <ol id="fixSteps" class="fix-steps"></ol>
+        <div class="code-diff">
+          <div class="code-block"><div class="code-label code-label-before">Before</div><pre id="codeBefore"></pre></div>
+          <div class="code-block"><div class="code-label code-label-after">After</div><pre id="codeAfter"></pre></div>
+        </div>
+      </div>
+      <div id="tabRefs" class="tab-content hidden">
+        <p><strong>OWASP:</strong> <span id="refOwasp"></span></p>
+        <p><strong>CVE:</strong> <span id="refCve"></span></p>
+        <p class="code-snippet-label">Vulnerable snippet</p>
+        <pre id="codeSnippet" class="code-snippet"></pre>
+      </div>
+      <div class="modal-footer">
+        <button id="btnResolve" class="btn btn-success">✓ Mark Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/security/assets/app.js"></script>
+</body>
+</html>

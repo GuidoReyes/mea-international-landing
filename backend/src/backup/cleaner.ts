@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { google } from "googleapis";
 import { log } from "../lib/logger";
+import { buildDriveClient } from "./drive-auth";
 
 const BACKUP_DIR = path.join(__dirname, "../../backups");
 
@@ -28,17 +28,13 @@ export async function cleanupOldBackups(): Promise<void> {
   }
 
   // Google Drive cleanup
-  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
-  if (!serviceAccountPath) {
-    log("warn", "[Cleaner] GOOGLE_SERVICE_ACCOUNT_PATH not set — skipping Drive cleanup");
+  const hasCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
+  if (!hasCredentials) {
+    log("warn", "[Cleaner] No Google credentials set — skipping Drive cleanup");
     return;
   }
 
-  const auth = new google.auth.GoogleAuth({
-    keyFile: path.resolve(serviceAccountPath),
-    scopes: ["https://www.googleapis.com/auth/drive.file"],
-  });
-  const drive = google.drive({ version: "v3", auth });
+  const drive = buildDriveClient();
   const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
 
   const res = await drive.files.list({

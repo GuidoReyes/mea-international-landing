@@ -1,19 +1,8 @@
-import { google } from "googleapis";
 import * as fs from "fs";
-import * as path from "path";
+import { google } from "googleapis";
 import { log } from "../lib/logger";
+import { buildDriveClient } from "./drive-auth";
 import type { UploadResult, DriveFile } from "./types";
-
-function buildDriveClient() {
-  const serviceAccountPath = process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
-  if (!serviceAccountPath) throw new Error("GOOGLE_SERVICE_ACCOUNT_PATH not set");
-
-  const auth = new google.auth.GoogleAuth({
-    keyFile: path.resolve(serviceAccountPath),
-    scopes: ["https://www.googleapis.com/auth/drive.file"],
-  });
-  return google.drive({ version: "v3", auth });
-}
 
 async function createFile(
   drive: ReturnType<typeof google.drive>,

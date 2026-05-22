@@ -27,11 +27,11 @@ router.get("/security", securityKeyMiddleware, (_req, res) => {
   res.sendFile(path.join(DASHBOARD_DIR, "index.html"));
 });
 
-router.get("/security/assets/styles.css", securityKeyMiddleware, (_req, res) => {
+router.get("/security/assets/styles.css", (_req, res) => {
   res.sendFile(path.join(DASHBOARD_DIR, "styles.css"));
 });
 
-router.get("/security/assets/app.js", securityKeyMiddleware, (_req, res) => {
+router.get("/security/assets/app.js", (_req, res) => {
   res.sendFile(path.join(DASHBOARD_DIR, "app.js"));
 });
 

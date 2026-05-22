@@ -2,3 +2,9 @@ node_modules/
 dist/
 .env
 *.log
+
+# Security agent scan history (ephemeral, not versioned)
+.security-scans/
+
+# Local backup dumps
+backups/

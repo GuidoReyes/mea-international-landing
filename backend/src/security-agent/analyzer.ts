@@ -59,14 +59,20 @@ async function analyzeChunk(
       const response = await client.messages.create(
         {
           model: "claude-sonnet-4-6",
-          max_tokens: 4096,
+          // 16k: at 4096 the vulnerability JSON was truncated mid-string and
+          // failed to parse, silently discarding every chunk's findings
+          max_tokens: 16384,
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: userMessage }],
         },
-        // 5 min per attempt; maxRetries: 0 because this loop already retries
+        // 10 min per attempt; maxRetries: 0 because this loop already retries
         // (SDK default of 2 internal retries tripled the effective scan time)
-        { timeout: 300000, maxRetries: 0 }
+        { timeout: 600000, maxRetries: 0 }
       );
+
+      if (response.stop_reason === "max_tokens") {
+        throw new Error("Response truncated at max_tokens — chunk too large or too many findings");
+      }
 
       const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
 

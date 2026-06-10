@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { runBackup, getLastBackupResult } from "../backup/scheduler";
 import { listDriveBackups } from "../backup/uploader";
+import { isDriveConfigured } from "../backup/drive-auth";
 import { securityKeyMiddleware } from "../security-agent/middleware";
 import { log } from "../lib/logger";
 
@@ -28,7 +29,7 @@ router.get("/api/backup/status", securityKeyMiddleware, (_req, res) => {
 });
 
 router.get("/api/backup/history", securityKeyMiddleware, async (_req, res) => {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON && !process.env.GOOGLE_SERVICE_ACCOUNT_PATH) {
+  if (!isDriveConfigured()) {
     res.status(500).json({ error: "Google Service Account not configured" });
     return;
   }

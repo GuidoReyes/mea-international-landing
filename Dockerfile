@@ -1,6 +1,7 @@
 FROM node:20-slim
 
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# default-mysql-client provides mysqldump, required by the backup system
+RUN apt-get update -y && apt-get install -y openssl default-mysql-client && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

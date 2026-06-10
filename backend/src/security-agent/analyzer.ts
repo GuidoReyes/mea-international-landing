@@ -48,7 +48,7 @@ async function analyzeChunk(
   client: Anthropic,
   chunk: FileChunk,
   chunkIndex: number
-): Promise<ChunkAnalysis> {
+): Promise<ChunkAnalysis | null> {
   const fileList = chunk.files.map((f) => f.path).join(", ");
   log("info", `[Analyzer] Chunk ${chunkIndex + 1}: analyzing ${chunk.files.length} files (${Math.round(chunk.size_bytes / 1024)}KB) — ${fileList}`);
 
@@ -63,7 +63,9 @@ async function analyzeChunk(
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: userMessage }],
         },
-        { timeout: 60000 }
+        // 5 min per attempt; maxRetries: 0 because this loop already retries
+        // (SDK default of 2 internal retries tripled the effective scan time)
+        { timeout: 300000, maxRetries: 0 }
       );
 
       const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "";
@@ -83,7 +85,7 @@ async function analyzeChunk(
     }
   }
 
-  return { vulnerabilities: [], security_score: 100, scan_summary: "analysis_failed" };
+  return null;
 }
 
 export async function analyzeChunks(
@@ -98,14 +100,26 @@ export async function analyzeChunks(
   const scores: number[] = [];
   const summaries: string[] = [];
 
+  let failedChunks = 0;
   for (let i = 0; i < chunks.length; i++) {
     const result = await analyzeChunk(client, chunks[i], i);
-    allVulnerabilities.push(...result.vulnerabilities);
-    if (result.security_score !== undefined) scores.push(result.security_score);
-    if (result.scan_summary && result.scan_summary !== "analysis_failed") {
-      summaries.push(result.scan_summary);
+    if (result === null) {
+      failedChunks++;
+    } else {
+      allVulnerabilities.push(...result.vulnerabilities);
+      if (result.security_score !== undefined) scores.push(result.security_score);
+      if (result.scan_summary) summaries.push(result.scan_summary);
     }
     onProgress?.(i + 1, chunks.length);
+  }
+
+  // If every chunk failed, the scan produced no real analysis — fail loudly
+  // instead of reporting a misleading perfect score.
+  if (failedChunks === chunks.length) {
+    throw new Error(`Analysis failed for all ${chunks.length} chunks`);
+  }
+  if (failedChunks > 0) {
+    summaries.push(`Warning: ${failedChunks} of ${chunks.length} chunks failed analysis and were skipped.`);
   }
 
   // Deduplicate by file+line+title

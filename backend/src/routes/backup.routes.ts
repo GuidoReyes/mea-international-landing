@@ -28,7 +28,7 @@ router.get("/api/backup/status", securityKeyMiddleware, (_req, res) => {
 });
 
 router.get("/api/backup/history", securityKeyMiddleware, async (_req, res) => {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_PATH) {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON && !process.env.GOOGLE_SERVICE_ACCOUNT_PATH) {
     res.status(500).json({ error: "Google Service Account not configured" });
     return;
   }

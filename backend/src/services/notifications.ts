@@ -54,11 +54,11 @@ async function getMsGraphToken(): Promise<string> {
 }
 
 // --- 34.3: Email transaccional via MS Graph sendMail ---
-export async function sendTransactionalEmail(to: string, subject: string, html: string): Promise<void> {
+export async function sendTransactionalEmail(to: string, subject: string, html: string): Promise<boolean> {
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) {
     log("error", "[Notifications] ADMIN_EMAIL no configurado");
-    return;
+    return false;
   }
 
   try {
@@ -83,12 +83,14 @@ export async function sendTransactionalEmail(to: string, subject: string, html: 
     if (!response.ok) {
       const text = await response.text();
       log("error", `[Notifications] Error enviando email: HTTP ${response.status} — ${text}`);
-      return;
+      return false;
     }
 
     log("info", `[Notifications] Email enviado a ${to}: "${subject}"`);
+    return true;
   } catch (err) {
     log("error", "[Notifications] Error en sendTransactionalEmail:", err);
+    return false;
   }
 }
 

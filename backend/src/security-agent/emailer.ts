@@ -1,5 +1,5 @@
-import * as nodemailer from "nodemailer";
 import { log } from "../lib/logger";
+import { sendTransactionalEmail } from "../services/notifications";
 import type { ScanResult } from "./types";
 
 function scoreColor(score: number): string {
@@ -13,7 +13,9 @@ function buildHtml(result: ScanResult): string {
     (v) => v.severity === "CRITICAL" || v.severity === "HIGH"
   );
   const color = scoreColor(result.security_score);
-  const dashboardUrl = `${process.env.FRONTEND_URL ?? ""}/security?key=${process.env.SECURITY_DASHBOARD_SECRET ?? ""}`;
+  // No key in the URL: the dashboard gate prompts for it (a secret embedded
+  // in an email link leaks via forwards, previews and mail-server logs)
+  const dashboardUrl = `${process.env.API_PUBLIC_URL ?? "https://api.mea.edu.gt"}/security`;
 
   const vulnRows = criticalHigh.length === 0
     ? `<tr><td colspan="3" style="color:#22c55e;padding:12px">✓ No critical or high severity issues found</td></tr>`
@@ -68,36 +70,20 @@ function buildHtml(result: ScanResult): string {
 export async function sendSecurityEmail(
   result: ScanResult
 ): Promise<{ success: boolean; error?: string }> {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const emailFrom = process.env.SECURITY_EMAIL_FROM;
+  // Sent via MS Graph (HTTP) — Railway blocks outbound SMTP ports
   const emailTo = process.env.SECURITY_EMAIL_TO;
 
-  if (!smtpHost || !smtpUser || !smtpPass || !emailFrom || !emailTo) {
-    log("warn", "[Emailer] SMTP not configured — skipping email notification");
-    return { success: false, error: "SMTP not configured" };
+  if (!emailTo) {
+    log("warn", "[Emailer] SECURITY_EMAIL_TO not configured — skipping email notification");
+    return { success: false, error: "SECURITY_EMAIL_TO not configured" };
   }
 
-  const transport = nodemailer.createTransport({
-    host: smtpHost,
-    port: parseInt(process.env.SMTP_PORT ?? "587"),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: { user: smtpUser, pass: smtpPass },
-  });
+  const subject = `[Security Scan] Score: ${result.security_score} · ${result.vulnerabilities.filter((v) => v.severity === "CRITICAL").length} critical`;
+  const ok = await sendTransactionalEmail(emailTo, subject, buildHtml(result));
 
-  try {
-    await transport.sendMail({
-      from: emailFrom,
-      to: emailTo,
-      subject: `[Security Scan] Score: ${result.security_score} · ${result.vulnerabilities.filter((v) => v.severity === "CRITICAL").length} critical`,
-      html: buildHtml(result),
-    });
+  if (ok) {
     log("info", `[Emailer] Report sent to ${emailTo}`);
     return { success: true };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    log("error", `[Emailer] Failed: ${msg}`);
-    return { success: false, error: msg };
   }
+  return { success: false, error: "MS Graph send failed — see logs" };
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { api, type Campana, type CampanaStatus, type Lead } from "@/lib/api";
 import { Plus, Send, X, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -139,7 +138,6 @@ interface EnviarModalProps {
 }
 
 function EnviarModal({ campana, onClose, onSent }: EnviarModalProps) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("mea_admin_token") : null;
   const [leads, setLeads] = useState<Lead[]>([]);
   const [estadoFilter, setEstadoFilter] = useState("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -156,14 +154,14 @@ function EnviarModal({ campana, onClose, onSent }: EnviarModalProps) {
       const params = new URLSearchParams({ limit: "200" });
       if (estadoFilter) params.set("estado", estadoFilter);
       const res = await fetch(`${API_URL}/api/leads?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       const data = await res.json() as { data: Lead[] };
       setLeads(data.data);
     } finally {
       setLoading(false);
     }
-  }, [estadoFilter, token]);
+  }, [estadoFilter]);
 
   useEffect(() => { loadLeads(); }, [loadLeads]);
 
@@ -397,17 +395,11 @@ function EnviarModal({ campana, onClose, onSent }: EnviarModalProps) {
 }
 
 export default function MarketingPage() {
-  const router = useRouter();
   const [campanas, setCampanas] = useState<Campana[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
   const [enviar, setEnviar] = useState<Campana | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("mea_admin_token")) {
-      router.replace("/admin/login");
-    }
-  }, [router]);
 
   const loadCampanas = useCallback(async () => {
     setLoading(true);

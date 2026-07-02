@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cursosRouter from "./routes/cursos";
 import leadsRouter from "./routes/leads";
@@ -27,16 +28,25 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Detrás del proxy de Railway: sin esto req.ip es la IP del proxy y el
+// rate-limit del login contaría a todos los clientes como uno solo.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(
   cors({
+    // Con credentials, cors echa el origin exacto (no se permite "*").
+    // Se filtra el "" para que un FRONTEND_URL sin setear no habilite
+    // requests sin header Origin.
     origin: [
-      process.env.FRONTEND_URL ?? "",
+      process.env.FRONTEND_URL,
       "https://www.mea.edu.gt",
       "http://localhost:3000",
-    ],
+    ].filter((o): o is string => Boolean(o)),
+    credentials: true,
   })
 );
+app.use(cookieParser());
 
 // Twilio envía form-urlencoded — montar ANTES del json parser y del router Twilio
 app.use("/api/twilio/webhook", express.urlencoded({ extended: false }), twilioWebhookRouter);

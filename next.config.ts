@@ -38,6 +38,27 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // El panel admin no usa Spline/unpkg/Turnstile: CSP mucho más estricta
+      // (sin 'unsafe-eval' ni CDNs). Va después de "/:path*" porque en Next
+      // la última entrada que coincide gana para la misma key.
+      {
+        source: "/admin/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "connect-src 'self' https://api.mea.edu.gt http://localhost:4000",
+              "font-src 'self' data:",
+              "worker-src 'self' blob:",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
+        ],
+      },
     ];
   },
 };

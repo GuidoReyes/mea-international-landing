@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { api, type Egreso, type Reconciliacion } from "@/lib/api";
 import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -419,14 +418,8 @@ function ReconciliacionTab() {
 type Tab = "egresos" | "reconciliacion";
 
 export default function FinanzasPage() {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("egresos");
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("mea_admin_token")) {
-      router.replace("/admin/login");
-    }
-  }, [router]);
 
   return (
     <div className="p-8 space-y-6">

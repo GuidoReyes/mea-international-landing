@@ -83,13 +83,17 @@ app.use("/api/marketing", marketingRouter);
 app.use(securityRouter);
 app.use(backupRouter);
 
-// Endpoint temporal de prueba — remover antes de producción real
+// Endpoint temporal de prueba — remover antes de producción real.
+// Protegido con la key del security dashboard: envía WhatsApp REAL y gasta
+// tokens de Anthropic, así que aunque el flag quede activo por accidente
+// nadie sin la key puede usarlo.
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
   const { responderMensaje } = require("./lib/claude");
   const { guardarMensajes } = require("./lib/persistence");
   const { sendWhatsAppMessage } = require("./lib/whatsapp-send");
+  const { securityKeyMiddleware } = require("./security-agent/middleware");
 
-  app.post("/api/test-bot", async (req: Request, res: Response) => {
+  app.post("/api/test-bot", securityKeyMiddleware, async (req: Request, res: Response) => {
     const { telefono, mensaje } = req.body as { telefono?: string; mensaje?: string };
     if (!telefono || !mensaje) {
       res.status(400).json({ error: "Se requiere telefono y mensaje" });

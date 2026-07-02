@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // El backend tiene su propio tsconfig — excluirlo del build de Next.js
-    ignoreBuildErrors: true,
-  },
+  // El backend ya está excluido en tsconfig.json ("exclude": ["backend"]),
+  // así que no hace falta ignorar errores de tipos: si algo truena acá,
+  // debe frenar el build y no llegar mudo a producción.
 
   async headers() {
     return [

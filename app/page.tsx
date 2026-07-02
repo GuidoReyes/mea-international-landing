@@ -12,6 +12,7 @@ import { WorldMap } from "@/components/ui/world-map";
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
 import { FaqsSection } from "@/components/ui/faqs-1";
 import { LegalModal } from "@/components/ui/legal-modal";
+import site from "@/content/site.json";
 import {
   Users,
   Star,
@@ -112,53 +113,10 @@ const stats = [
 ];
 
 // ─── Courses ──────────────────────────────────────────────────────────────────
-const courses = [
-  {
-    text: "Pre A",
-    title: "Inglés Pre A",
-    price: "Q300",
-    features: [
-      "8 clases al mes (2 x Semana)",
-      "Material de estudio digital",
-      "Acceso a clases grabadas",
-      "Soporte vía WhatsApp",
-      "Clases grupales",
-      "Certificado de nivel por la academia",
-    ],
-    highlighted: true,
-    badge: "Más popular",
-  },
-  {
-    text: "B1 B2",
-    title: "Inglés intermedio-Avanzado Conversacional",
-    price: "Q250",
-    features: [
-      "8 clases al mes (2 x Semana)",
-      "Plan de estudio especializado",
-      "Acceso a clases grabadas",
-      "Soporte vía WhatsApp",
-      "Clases grupales conversacionales",
-      "Certificado de nivel por la academia",
-    ],
-    highlighted: false,
-    badge: "Para todos los niveles",
-  },
-  {
-    text: "VIP",
-    title: "Inglés personalizado",
-    price: "Q1,600",
-    features: [
-      "Clases privadas 1 a 1",
-      "Horario 100% flexible",
-      "Plan de estudio a tu medida",
-      "Material de estudio digital",
-      "Acceso a clases grabadas",
-      "Certificado de nivel por la academia",
-    ],
-    highlighted: false,
-    badge: "Premium",
-  },
-];
+// Precios, badges y oferta viven en content/site.json — JARVIS los edita por
+// GitHub API y Vercel redeploya solo. No hardcodear precios acá.
+const courses = site.cursos;
+const oferta = site.oferta;
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCounter({ end, duration = 2 }: { end: number; duration?: number }) {
@@ -271,6 +229,15 @@ export default function Home() {
 
       {/* 2. HERO */}
       <section id="inicio" className="relative min-h-screen bg-[#0A2540] overflow-hidden">
+        {/* Banner de oferta — controlado desde content/site.json (JARVIS) */}
+        {oferta.activa && oferta.texto && (
+          <div className="absolute top-24 inset-x-0 z-30 flex justify-center px-4">
+            <div className="flex items-center gap-2 bg-[#00C4B4] text-[#0A2540] rounded-full px-5 py-2 text-sm font-bold shadow-lg shadow-[#00C4B4]/30">
+              <Flame className="w-4 h-4 shrink-0" />
+              {oferta.texto}
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0A2540] via-[#0d3060] to-[#0A2540]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#00C4B420,_transparent_60%)]" />
         <div

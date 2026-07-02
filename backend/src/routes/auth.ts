@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 
@@ -18,7 +18,11 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  keyGenerator: (req) => `${req.ip}:${String((req.body as { email?: string })?.email ?? "").toLowerCase()}`,
+  // ipKeyGenerator normaliza IPv6 a su prefijo /64 — sin esto, un cliente
+  // IPv6 rota la parte baja de su dirección y evade el límite (así pasaba
+  // en producción: 6 intentos daban 401 y nunca 429).
+  keyGenerator: (req) =>
+    `${ipKeyGenerator(req.ip ?? "")}:${String((req.body as { email?: string })?.email ?? "").toLowerCase()}`,
   message: { error: "Demasiados intentos fallidos. Esperá 15 minutos." },
 });
 

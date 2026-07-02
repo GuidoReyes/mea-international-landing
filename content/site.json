@@ -1,0 +1,57 @@
+{
+  "_doc": "Contenido editable de la landing. JARVIS (agents/dev/modules/mea_landing_updater.py) edita este archivo vía GitHub API; cada push a main redeploya en Vercel. No renombrar claves sin actualizar app/page.tsx y el módulo de JARVIS.",
+  "cursos": [
+    {
+      "id": "prea",
+      "text": "Pre A",
+      "title": "Inglés Pre A",
+      "price": "Q300",
+      "features": [
+        "8 clases al mes (2 x Semana)",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp",
+        "Clases grupales",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": true,
+      "badge": "Más popular"
+    },
+    {
+      "id": "b1b2",
+      "text": "B1 B2",
+      "title": "Inglés intermedio-Avanzado Conversacional",
+      "price": "Q250",
+      "features": [
+        "8 clases al mes (2 x Semana)",
+        "Plan de estudio especializado",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp",
+        "Clases grupales conversacionales",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": false,
+      "badge": "Para todos los niveles"
+    },
+    {
+      "id": "vip",
+      "text": "VIP",
+      "title": "Inglés personalizado",
+      "price": "Q1,600",
+      "features": [
+        "Clases privadas 1 a 1",
+        "Horario 100% flexible",
+        "Plan de estudio a tu medida",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": false,
+      "badge": "Premium"
+    }
+  ],
+  "oferta": {
+    "activa": false,
+    "texto": ""
+  }
+}

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, type Edicion, type Curso } from "@/lib/api";
-import { getToken } from "@/lib/api";
 import { BookOpen, Plus, X, Calendar, Users, DollarSign } from "lucide-react";
 
 function Skeleton({ className }: { className?: string }) {
@@ -154,7 +153,6 @@ export default function EdicionesPage() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) { router.push("/admin/login"); return; }
     api.getCursos().then((data) => setCursos(data)).catch(() => {});
   }, [router]);
 

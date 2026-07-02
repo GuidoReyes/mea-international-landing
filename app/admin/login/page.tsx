@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, setToken } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,8 +16,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const { token } = await api.login(email, password);
-      setToken(token);
+      // El backend deja la sesión en una cookie httpOnly — nada que guardar acá.
+      await api.login(email, password);
       router.push("/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Credenciales inválidas");

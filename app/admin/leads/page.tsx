@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, type Lead, type LeadsResponse } from "@/lib/api";
 import { Users, MessageSquare, UserCheck, UserPlus, Download } from "lucide-react";
-import { getToken } from "@/lib/api";
 
 const ESTADO_LABELS: Record<string, string> = {
   nuevo: "Nuevo",
@@ -114,8 +113,7 @@ export default function LeadsPage() {
                 const params = new URLSearchParams();
                 if (estadoFilter) params.set("estado", estadoFilter);
                 const url = `${process.env.NEXT_PUBLIC_API_URL}/api/leads/export/csv${params.size ? `?${params}` : ""}`;
-                const token = getToken();
-                const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+                const res = await fetch(url, { credentials: "include" });
                 if (!res.ok) return;
                 const blob = await res.blob();
                 const a = document.createElement("a");

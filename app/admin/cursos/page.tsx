@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { api, type Curso } from "@/lib/api";
 import { Plus, Pencil, Trash2, X, BookOpen } from "lucide-react";
 
@@ -172,17 +171,11 @@ function CursoModal({
 }
 
 export default function CursosPage() {
-  const router = useRouter();
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<"create" | Curso | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("mea_admin_token")) {
-      router.replace("/admin/login");
-    }
-  }, [router]);
 
   const load = useCallback(async () => {
     setLoading(true);

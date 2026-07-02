@@ -1,32 +1,26 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.mea.edu.gt";
 
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("mea_admin_token");
-}
-
-export function setToken(token: string) {
-  localStorage.setItem("mea_admin_token", token);
-}
-
+// La sesión vive en una cookie httpOnly que setea el backend en /api/auth/login.
+// El JS nunca ve el token (inmune a robo por XSS); solo hace falta mandar
+// credentials: "include" en cada request. Limpieza de la era localStorage:
 export function clearToken() {
-  localStorage.removeItem("mea_admin_token");
+  if (typeof window !== "undefined") localStorage.removeItem("mea_admin_token");
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
 
   if (res.status === 401) {
-    clearToken();
-    window.location.href = "/admin/login";
+    if (window.location.pathname !== "/admin/login") {
+      window.location.href = "/admin/login";
+    }
     throw new Error("No autorizado");
   }
 
@@ -264,10 +258,12 @@ export interface CampanaStatus {
 
 export const api = {
   login: (email: string, password: string) =>
-    apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
+    apiFetch<{ admin: Admin }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
+
+  logout: () => apiFetch<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
 
   getMe: () => apiFetch<Admin & { activo: boolean }>("/api/auth/me"),
 
@@ -330,7 +326,7 @@ export const api = {
   deleteCurso: (id: number) =>
     fetch(`${API_URL}/api/cursos/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
+      credentials: "include",
     }),
 
   getEdiciones: (cursoId?: number, activo?: boolean) => {
@@ -373,7 +369,7 @@ export const api = {
   deleteEgreso: (id: number) =>
     fetch(`${API_URL}/api/finanzas/egresos/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
+      credentials: "include",
     }),
 
   getReconciliacion: (mes?: string) => {

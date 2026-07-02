@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { subDays, subMonths, startOfMonth, endOfMonth, format, startOfDay } from "date-fns";
 import prisma from "../lib/prisma";
-import { verifyJWT } from "../middleware/auth.middleware";
+import { verifyJWT, requireRole } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -116,7 +116,7 @@ router.get("/resumen", verifyJWT, async (req: Request, res: Response) => {
 });
 
 // GET /api/reportes/pl — P&L últimos 12 meses
-router.get("/pl", verifyJWT, async (_req: Request, res: Response) => {
+router.get("/pl", verifyJWT, requireRole("SUPER_ADMIN"), async (_req: Request, res: Response) => {
   const now = new Date();
   const meses = Array.from({ length: 12 }, (_, i) => subMonths(now, 11 - i));
 
@@ -151,7 +151,7 @@ router.get("/pl", verifyJWT, async (_req: Request, res: Response) => {
 });
 
 // GET /api/reportes/proyecciones — cuotas pendientes próximos 6 meses
-router.get("/proyecciones", verifyJWT, async (_req: Request, res: Response) => {
+router.get("/proyecciones", verifyJWT, requireRole("SUPER_ADMIN"), async (_req: Request, res: Response) => {
   const now = new Date();
   const hasta = endOfMonth(subMonths(now, -6));
 
@@ -173,7 +173,7 @@ router.get("/proyecciones", verifyJWT, async (_req: Request, res: Response) => {
 });
 
 // GET /api/reportes/flujo-caja — saldo actual + proyección 30 días
-router.get("/flujo-caja", verifyJWT, async (_req: Request, res: Response) => {
+router.get("/flujo-caja", verifyJWT, requireRole("SUPER_ADMIN"), async (_req: Request, res: Response) => {
   const now = new Date();
   const en30dias = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const hace90 = startOfMonth(subMonths(now, 3));

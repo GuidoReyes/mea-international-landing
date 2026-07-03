@@ -20,6 +20,7 @@ import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
+import jarvisBridgeRouter from "./routes/jarvis-bridge";
 import { startScheduler } from "./scheduler";
 import { startBackupScheduler } from "./backup/scheduler";
 
@@ -78,6 +79,8 @@ app.use("/api/reportes", reportesRouter);
 app.use("/api/certificados", certificadosRouter);
 app.use("/api/finanzas", finanzasRouter);
 app.use("/api/marketing", marketingRouter);
+// Bridge de solo lectura para JARVIS (token interno X-Jarvis-Token)
+app.use("/api/jarvis", jarvisBridgeRouter);
 
 // Security dashboard + backup (protected by X-Security-Key middleware)
 app.use(securityRouter);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, type LeadDetalle } from "@/lib/api";
-import { ArrowLeft, Phone, Mail, Calendar, MessageSquare, User } from "lucide-react";
+import { ArrowLeft, Phone, Mail, Calendar, MessageSquare, User, Bot } from "lucide-react";
 
 const ESTADO_OPTIONS = [
   { value: "nuevo", label: "Nuevo", style: "bg-blue-50 text-blue-600 border-blue-200", dot: "bg-blue-400" },
@@ -49,6 +49,8 @@ export default function LeadPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [estado, setEstado] = useState("");
+  const [handoff, setHandoff] = useState<{ modoHumano: boolean; segundosRestantes: number } | null>(null);
+  const [reactivando, setReactivando] = useState(false);
 
   useEffect(() => {
     api.getLead(Number(id))
@@ -58,7 +60,21 @@ export default function LeadPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+    api.getLeadHandoff(Number(id)).then(setHandoff).catch(() => {});
   }, [id]);
+
+  async function handleReactivarBot() {
+    if (reactivando) return;
+    setReactivando(true);
+    try {
+      await api.reactivarBot(Number(id));
+      setHandoff({ modoHumano: false, segundosRestantes: 0 });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReactivando(false);
+    }
+  }
 
   async function handleEstadoChange(nuevoEstado: string) {
     if (!lead || saving || nuevoEstado === estado) return;
@@ -194,6 +210,29 @@ export default function LeadPage() {
           </div>
         </div>
       </div>
+
+      {/* Handoff: bot silenciado porque un asesor está atendiendo */}
+      {handoff?.modoHumano && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+          <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+            <Bot className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-700">Bot silenciado — asesor atendiendo</p>
+            <p className="text-xs text-amber-600/80">
+              Se reactiva solo en ~{Math.max(1, Math.ceil((handoff.segundosRestantes || 0) / 60))} min,
+              o reactivalo ahora.
+            </p>
+          </div>
+          <button
+            onClick={handleReactivarBot}
+            disabled={reactivando}
+            className="shrink-0 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-bold transition-colors"
+          >
+            {reactivando ? "Reactivando…" : "Reactivar bot"}
+          </button>
+        </div>
+      )}
 
       {/* Conversation card */}
       <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">

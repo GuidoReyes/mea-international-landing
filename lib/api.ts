@@ -309,6 +309,12 @@ export const api = {
 
   getCRMEtapas: () => apiFetch<CRMEtapa[]>("/api/crm/etapas"),
 
+  getLeadHandoff: (leadId: number) =>
+    apiFetch<{ modoHumano: boolean; segundosRestantes: number }>(`/api/crm/leads/${leadId}/handoff`),
+
+  reactivarBot: (leadId: number) =>
+    apiFetch<{ ok: boolean }>(`/api/crm/leads/${leadId}/reactivar-bot`, { method: "POST" }),
+
   getReportesLeads: (periodo: "7d" | "30d" | "90d" = "30d") =>
     apiFetch<ReportesLeads>(`/api/reportes/leads?periodo=${periodo}`),
 

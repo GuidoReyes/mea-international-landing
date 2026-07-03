@@ -74,18 +74,25 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
       : null
   );
 
-  // Notion KB se inyecta ANTES de la instrucción de escalación para que
-  // Claude la consulte antes de decidir escalar.
-  const notionSection = notionCtx
-    ? `\n\nBASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`
-    : "";
-  // Inject Notion KB before the escalation block (anchored to new ESCALATION_INSTRUCTION prefix)
-  const systemPrompt = notionSection
-    ? agentConfig.systemPrompt.replace(
-        "\n\nIMPORTANTE: Nunca menciones",
-        `${notionSection}\n\nIMPORTANTE: Nunca menciones`
-      )
-    : agentConfig.systemPrompt;
+  // System en bloques para prompt caching: el bloque 1 (prompt de la etapa +
+  // WEB_CONTEXT + instrucción de escalación) es idéntico entre llamadas y se
+  // cachea en Anthropic (~90% menos costo de input en hits, TTL 5 min). El KB
+  // de Notion varía por mensaje, así que va en un bloque aparte SIN cache —
+  // su propio encabezado ya le dice a Claude que lo consulte antes de escalar,
+  // por lo que el orden bloque-final no cambia el comportamiento.
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    {
+      type: "text",
+      text: agentConfig.systemPrompt,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+  if (notionCtx) {
+    systemBlocks.push({
+      type: "text",
+      text: `BASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`,
+    });
+  }
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -93,7 +100,7 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
     model: "claude-sonnet-4-6",
     max_tokens: agentConfig.maxTokens,
     temperature: agentConfig.temperature,
-    system: systemPrompt,
+    system: systemBlocks,
     messages: history.slice(-10),
   });
 

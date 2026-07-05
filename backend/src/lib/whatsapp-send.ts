@@ -101,7 +101,7 @@ export async function sendTemplateMessage(
     type: "template",
     template: {
       name: templateName,
-      language: { code: "es" },
+      language: { code: process.env.WHATSAPP_TEMPLATE_LANG ?? "es_MX" },
       components,
     },
   });

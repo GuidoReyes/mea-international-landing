@@ -5,7 +5,7 @@ import { log } from "./logger";
 import prisma from "./prisma";
 import { selectAgent } from "../agents/agentRouter";
 import { estaModoHumano, activarModoHumano } from "./human-handoff";
-import { sendWhatsAppMessage } from "./whatsapp-send";
+import { sendTemplateMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
 import { detectIntent, notifyAdvisorIfNeeded } from "./advisor-notify";
 
@@ -129,12 +129,20 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
           data: { telefono, motivo },
         }).catch((err: unknown) => log("error", "[Claude] Error guardando EscalacionLog:", err));
 
-        // Canal Meta: notificación directa al asesor (si está configurado)
+        // Canal Meta: notificación al asesor por PLANTILLA aprobada — el texto
+        // libre solo llega si el asesor escribió al bot en las últimas 24h
+        // (ventana de Meta, error 131047); la plantilla llega siempre.
         if (asesorPhone) {
-          sendWhatsAppMessage(
-            asesorPhone,
-            `🔔 Escalación requerida\n📱 +${telefono}\n💬 Motivo: ${motivo}\n\nResponde directamente a este número. Envía /bot al bot para reactivarlo cuando termines.`
-          ).catch((err) => log("error", `[Claude] Error notificando escalación (Meta): ${mask}`, err));
+          const template = process.env.WHATSAPP_TEMPLATE_ESCALACION ?? "escalacion_asesor";
+          // Meta rechaza parámetros con saltos de línea o demasiado largos
+          const motivoParam = motivo.replace(/\s+/g, " ").trim().slice(0, 300) || "sin motivo";
+          sendTemplateMessage(asesorPhone, template, [`+${telefono}`, motivoParam])
+            .then((sent) => {
+              if (!sent.success) {
+                log("error", `[Claude] Plantilla de escalación falló para ${mask}: ${sent.error}`);
+              }
+            })
+            .catch((err) => log("error", `[Claude] Error notificando escalación (Meta): ${mask}`, err));
         }
 
         // Canal Twilio: formato con reply para responder desde WhatsApp personal

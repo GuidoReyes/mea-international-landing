@@ -7,6 +7,7 @@ import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 import { notifyAdminNewLead } from "../services/notifications";
 import prisma from "../lib/prisma";
 import { desactivarModoHumano } from "../lib/human-handoff";
+import { isAdvisorPhone, handleAdvisorMessage } from "../lib/advisor-commands";
 import { sendTwilioWhatsApp } from "../lib/twilio-send";
 import { log } from "../lib/logger";
 
@@ -62,6 +63,15 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
     const telefono = msg.from;
     const mensaje = msg.text.body;
     const mask = maskPhone(telefono);
+
+    // Mensajes del asesor (Mirce) al número del bot: son comandos de gestión
+    // ([+número] texto → responder al lead · /bot [+número] → reactivar bot),
+    // NUNCA van a Claude. La confirmación le vuelve por este mismo chat.
+    if (isAdvisorPhone(telefono)) {
+      log("info", `[WhatsApp] ${mask} | comando de asesor: "${mensaje.slice(0, 60)}"`);
+      await handleAdvisorMessage(mensaje, (texto) => sendWhatsAppMessage(telefono, texto));
+      continue;
+    }
 
     // 55.7: /bot — asesor reactiva el bot manualmente
     if (mensaje.trim() === "/bot") {

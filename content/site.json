@@ -1,0 +1,85 @@
+{
+  "_doc": "Contenido editable de la landing. JARVIS (agents/dev/modules/mea_landing_updater.py) edita este archivo vía GitHub API; cada push a main redeploya en Vercel. No renombrar claves sin actualizar app/page.tsx y el módulo de JARVIS. NOTA (2026-07-12): los cursos ya no llevan price (los niveles no muestran precio); los precios viven en planes[].",
+  "cursos": [
+    {
+      "id": "prea",
+      "text": "Pre A",
+      "title": "Inglés Pre A",
+      "features": [
+        "8 clases al mes (2 x Semana)",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp",
+        "Clases grupales",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": true,
+      "badge": "Más popular"
+    },
+    {
+      "id": "b1b2",
+      "text": "B1 B2",
+      "title": "Inglés intermedio-Avanzado Conversacional",
+      "features": [
+        "8 clases al mes (2 x Semana)",
+        "Plan de estudio especializado",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp",
+        "Clases grupales conversacionales",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": false,
+      "badge": "Para todos los niveles"
+    },
+    {
+      "id": "vip",
+      "text": "VIP",
+      "title": "Inglés personalizado",
+      "features": [
+        "Clases privadas 1 a 1",
+        "Horario 100% flexible",
+        "Plan de estudio a tu medida",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Certificado de nivel por la academia"
+      ],
+      "highlighted": false,
+      "badge": "Premium"
+    }
+  ],
+  "oferta": {
+    "activa": false,
+    "texto": ""
+  },
+  "planes": [
+    {
+      "id": "plataforma",
+      "text": "Plataforma",
+      "title": "Plan Plataforma",
+      "price": "Q150",
+      "features": [
+        "Acceso completo a la plataforma educativa",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp"
+      ],
+      "highlighted": false,
+      "badge": "Acceso digital"
+    },
+    {
+      "id": "plataforma-grupos",
+      "text": "Plataforma + Grupos",
+      "title": "Plan Plataforma + Grupos",
+      "price": "Q300",
+      "features": [
+        "Todo lo del Plan Plataforma",
+        "Clases grupales en vivo por Zoom",
+        "Material de estudio digital",
+        "Acceso a clases grabadas",
+        "Soporte vía WhatsApp"
+      ],
+      "highlighted": true,
+      "badge": "Más popular"
+    }
+  ]
+}

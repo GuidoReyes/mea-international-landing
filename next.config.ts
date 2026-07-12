@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // El backend tiene su propio tsconfig — excluirlo del build de Next.js
-    ignoreBuildErrors: true,
-  },
+  // El backend ya está excluido en tsconfig.json ("exclude": ["backend"]),
+  // así que no hace falta ignorar errores de tipos: si algo truena acá,
+  // debe frenar el build y no llegar mudo a producción.
 
   async headers() {
     return [
@@ -35,6 +34,27 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      // El panel admin no usa Spline/unpkg/Turnstile: CSP mucho más estricta
+      // (sin 'unsafe-eval' ni CDNs). Va después de "/:path*" porque en Next
+      // la última entrada que coincide gana para la misma key.
+      {
+        source: "/admin/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "connect-src 'self' https://api.mea.edu.gt http://localhost:4000",
+              "font-src 'self' data:",
+              "worker-src 'self' blob:",
+              "frame-ancestors 'none'",
+            ].join("; "),
           },
         ],
       },

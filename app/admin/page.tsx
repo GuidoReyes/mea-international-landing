@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, type ReportesResumen, type ReportesLeads } from "@/lib/api";
-import { getToken } from "@/lib/api";
 import { Users, GraduationCap, TrendingUp, DollarSign, KanbanSquare, BarChart2, ArrowRight } from "lucide-react";
 
 function Skeleton({ className }: { className?: string }) {
@@ -54,7 +53,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!getToken()) { router.push("/admin/login"); return; }
     Promise.all([
       api.getReportesResumen(),
       api.getReportesLeads("30d"),

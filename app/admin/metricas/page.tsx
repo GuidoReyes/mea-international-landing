@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, type ReportesLeads, type ReportesResumen } from "@/lib/api";
-import { getToken } from "@/lib/api";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, Area, AreaChart, CartesianGrid,
@@ -47,12 +46,10 @@ export default function MetricasPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!getToken()) { router.push("/admin/login"); return; }
     api.getReportesResumen().then(setResumen).catch(() => {});
   }, [router]);
 
   useEffect(() => {
-    if (!getToken()) return;
     setLoading(true);
     api.getReportesLeads(periodo)
       .then(setData)

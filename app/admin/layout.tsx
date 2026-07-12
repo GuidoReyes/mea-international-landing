@@ -3,20 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { getToken, clearToken } from "@/lib/api";
+import { api, clearToken } from "@/lib/api";
 import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library, Banknote } from "lucide-react";
-
-function getAdminRole(): string | null {
-  if (typeof window === "undefined") return null;
-  const token = localStorage.getItem("mea_admin_token");
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.rol ?? null;
-  } catch {
-    return null;
-  }
-}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -25,16 +13,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [rol, setRol] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoginPage && !getToken()) {
-      router.replace("/admin/login");
-    } else {
-      setRol(getAdminRole());
-    }
+    if (isLoginPage) return;
+    // La sesión vive en cookie httpOnly: el cliente no puede leer el token,
+    // así que se valida contra el backend. Un 401 redirige vía apiFetch.
+    api.getMe()
+      .then((me) => setRol(me.rol))
+      .catch(() => {});
   }, [isLoginPage, router]);
 
   function handleLogout() {
     clearToken();
-    router.push("/admin/login");
+    api.logout()
+      .catch(() => {})
+      .finally(() => router.push("/admin/login"));
   }
 
   if (isLoginPage) return <>{children}</>;

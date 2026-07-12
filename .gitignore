@@ -41,8 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude code session data
-.claude/
+# claude code session data (settings.json y hooks/ SÍ se versionan)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 # MCP config (contains API tokens)
 .mcp.json

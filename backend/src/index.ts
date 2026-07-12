@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cursosRouter from "./routes/cursos";
 import cursosOnlineRouter from "./routes/cursos-online";
@@ -29,6 +30,7 @@ import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
+import jarvisBridgeRouter from "./routes/jarvis-bridge";
 import { startScheduler } from "./scheduler";
 import { startBackupScheduler } from "./backup/scheduler";
 
@@ -37,16 +39,25 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Detrás del proxy de Railway: sin esto req.ip es la IP del proxy y el
+// rate-limit del login contaría a todos los clientes como uno solo.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(
   cors({
+    // Con credentials, cors echa el origin exacto (no se permite "*").
+    // Se filtra el "" para que un FRONTEND_URL sin setear no habilite
+    // requests sin header Origin.
     origin: [
-      process.env.FRONTEND_URL ?? "",
+      process.env.FRONTEND_URL,
       "https://www.mea.edu.gt",
       "http://localhost:3000",
-    ],
+    ].filter((o): o is string => Boolean(o)),
+    credentials: true,
   })
 );
+app.use(cookieParser());
 
 // Twilio envía form-urlencoded — montar ANTES del json parser y del router Twilio
 app.use("/api/twilio/webhook", express.urlencoded({ extended: false }), twilioWebhookRouter);
@@ -88,18 +99,24 @@ app.use("/api/reportes", reportesRouter);
 app.use("/api/certificados", certificadosRouter);
 app.use("/api/finanzas", finanzasRouter);
 app.use("/api/marketing", marketingRouter);
+// Bridge de solo lectura para JARVIS (token interno X-Jarvis-Token)
+app.use("/api/jarvis", jarvisBridgeRouter);
 
 // Security dashboard + backup (protected by X-Security-Key middleware)
 app.use(securityRouter);
 app.use(backupRouter);
 
-// Endpoint temporal de prueba — remover antes de producción real
+// Endpoint temporal de prueba — remover antes de producción real.
+// Protegido con la key del security dashboard: envía WhatsApp REAL y gasta
+// tokens de Anthropic, así que aunque el flag quede activo por accidente
+// nadie sin la key puede usarlo.
 if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
   const { responderMensaje } = require("./lib/claude");
   const { guardarMensajes } = require("./lib/persistence");
   const { sendWhatsAppMessage } = require("./lib/whatsapp-send");
+  const { securityKeyMiddleware } = require("./security-agent/middleware");
 
-  app.post("/api/test-bot", async (req: Request, res: Response) => {
+  app.post("/api/test-bot", securityKeyMiddleware, async (req: Request, res: Response) => {
     const { telefono, mensaje } = req.body as { telefono?: string; mensaje?: string };
     if (!telefono || !mensaje) {
       res.status(400).json({ error: "Se requiere telefono y mensaje" });

@@ -5,7 +5,7 @@ import { log } from "./logger";
 import prisma from "./prisma";
 import { selectAgent } from "../agents/agentRouter";
 import { estaModoHumano, activarModoHumano } from "./human-handoff";
-import { sendWhatsAppMessage } from "./whatsapp-send";
+import { sendTemplateMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
 import { detectIntent, notifyAdvisorIfNeeded } from "./advisor-notify";
 
@@ -74,18 +74,25 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
       : null
   );
 
-  // Notion KB se inyecta ANTES de la instrucción de escalación para que
-  // Claude la consulte antes de decidir escalar.
-  const notionSection = notionCtx
-    ? `\n\nBASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`
-    : "";
-  // Inject Notion KB before the escalation block (anchored to new ESCALATION_INSTRUCTION prefix)
-  const systemPrompt = notionSection
-    ? agentConfig.systemPrompt.replace(
-        "\n\nIMPORTANTE: Nunca menciones",
-        `${notionSection}\n\nIMPORTANTE: Nunca menciones`
-      )
-    : agentConfig.systemPrompt;
+  // System en bloques para prompt caching: el bloque 1 (prompt de la etapa +
+  // WEB_CONTEXT + instrucción de escalación) es idéntico entre llamadas y se
+  // cachea en Anthropic (~90% menos costo de input en hits, TTL 5 min). El KB
+  // de Notion varía por mensaje, así que va en un bloque aparte SIN cache —
+  // su propio encabezado ya le dice a Claude que lo consulte antes de escalar,
+  // por lo que el orden bloque-final no cambia el comportamiento.
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    {
+      type: "text",
+      text: agentConfig.systemPrompt,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+  if (notionCtx) {
+    systemBlocks.push({
+      type: "text",
+      text: `BASE DE CONOCIMIENTO OFICIAL MEA (consulta esto ANTES de escalar — tiene prioridad sobre cualquier otra fuente):\n${notionCtx}`,
+    });
+  }
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -93,7 +100,7 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
     model: "claude-sonnet-4-6",
     max_tokens: agentConfig.maxTokens,
     temperature: agentConfig.temperature,
-    system: systemPrompt,
+    system: systemBlocks,
     messages: history.slice(-10),
   });
 
@@ -122,12 +129,20 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
           data: { telefono, motivo },
         }).catch((err: unknown) => log("error", "[Claude] Error guardando EscalacionLog:", err));
 
-        // Canal Meta: notificación directa al asesor (si está configurado)
+        // Canal Meta: notificación al asesor por PLANTILLA aprobada — el texto
+        // libre solo llega si el asesor escribió al bot en las últimas 24h
+        // (ventana de Meta, error 131047); la plantilla llega siempre.
         if (asesorPhone) {
-          sendWhatsAppMessage(
-            asesorPhone,
-            `🔔 Escalación requerida\n📱 +${telefono}\n💬 Motivo: ${motivo}\n\nResponde directamente a este número. Envía /bot al bot para reactivarlo cuando termines.`
-          ).catch((err) => log("error", `[Claude] Error notificando escalación (Meta): ${mask}`, err));
+          const template = process.env.WHATSAPP_TEMPLATE_ESCALACION ?? "escalacion_asesor";
+          // Meta rechaza parámetros con saltos de línea o demasiado largos
+          const motivoParam = motivo.replace(/\s+/g, " ").trim().slice(0, 300) || "sin motivo";
+          sendTemplateMessage(asesorPhone, template, [`+${telefono}`, motivoParam])
+            .then((sent) => {
+              if (!sent.success) {
+                log("error", `[Claude] Plantilla de escalación falló para ${mask}: ${sent.error}`);
+              }
+            })
+            .catch((err) => log("error", `[Claude] Error notificando escalación (Meta): ${mask}`, err));
         }
 
         // Canal Twilio: formato con reply para responder desde WhatsApp personal

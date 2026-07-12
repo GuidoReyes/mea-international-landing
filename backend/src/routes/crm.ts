@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { desactivarModoHumano, estaModoHumano, tiempoRestanteHandoff } from "../lib/human-handoff";
 
 const router = Router();
 
@@ -133,6 +134,57 @@ router.patch(
     });
 
     res.json(lead);
+  }
+);
+
+// GET /api/crm/leads/:id/handoff — ¿el bot está silenciado para este lead?
+router.get("/leads/:id/handoff", verifyJWT, async (req: Request, res: Response) => {
+  const id = parseInt(req.params["id"] as string);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "ID inválido" });
+    return;
+  }
+
+  const lead = await prisma.lead.findUnique({ where: { id }, select: { telefono: true } });
+  if (!lead) {
+    res.status(404).json({ error: "Lead no encontrado" });
+    return;
+  }
+
+  const [modoHumano, segundosRestantes] = await Promise.all([
+    estaModoHumano(lead.telefono),
+    tiempoRestanteHandoff(lead.telefono),
+  ]);
+
+  res.json({ modoHumano, segundosRestantes });
+});
+
+// POST /api/crm/leads/:id/reactivar-bot — equivalente al comando /bot desde el panel
+router.post(
+  "/leads/:id/reactivar-bot",
+  verifyJWT,
+  auditLog("REACTIVAR_BOT", "crm"),
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params["id"] as string);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "ID inválido" });
+      return;
+    }
+
+    const lead = await prisma.lead.findUnique({ where: { id }, select: { telefono: true } });
+    if (!lead) {
+      res.status(404).json({ error: "Lead no encontrado" });
+      return;
+    }
+
+    await desactivarModoHumano(lead.telefono);
+    // Cerrar las escalaciones abiertas, igual que hace el comando /bot por WhatsApp
+    await prisma.escalacionLog.updateMany({
+      where: { telefono: lead.telefono, resueltaEn: null },
+      data: { resueltaEn: new Date(), resolvidaPor: `panel-admin-${req.admin?.adminId ?? "?"}` },
+    }).catch(() => {});
+
+    res.json({ ok: true });
   }
 );
 

@@ -14,6 +14,7 @@
     "seed:curriculum": "ts-node src/scripts/seed-curriculum.ts",
     "test:fase3": "ts-node src/scripts/test-fase3.ts",
     "test:clases-en-vivo": "ts-node src/scripts/test-clases-en-vivo.ts",
+    "test:piper-tts": "ts-node src/scripts/test-piper-tts.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

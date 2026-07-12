@@ -1,0 +1,241 @@
+/**
+ * Genera el contenido interactivo (LessonPlayer) de una Leccion vía Claude,
+ * lo valida contra leccionContenidoSchema, sintetiza audio con Piper para el
+ * vocabulario nuevo y las frases de "escuchar", sube ese audio a R2, y guarda
+ * el resultado en Leccion.content.
+ *
+ * Uso:
+ *   npx ts-node src/scripts/generate-leccion.ts <leccionId> "<tema>" [--dry-run]
+ *
+ * --dry-run: genera y valida el JSON pero NO sintetiza audio ni guarda nada
+ * (solo lo imprime). Útil para el orquestador antes de correrlo contra la BD real.
+ */
+import Anthropic from "@anthropic-ai/sdk";
+import prisma from "../lib/prisma";
+import { leccionContenidoSchema, LeccionContenido, PasoLeccion } from "../lib/leccion-contenido.schema";
+import { isPiperConfigurado, sintetizarAudioPiper, limpiarTextoParaVoz } from "../lib/piper-tts";
+import { subirArchivoR2 } from "../lib/storage";
+
+const MODEL = "claude-sonnet-4-6";
+const MAX_TOKENS = 8192;
+const MIN_PASOS = 8;
+const MAX_PASOS = 12;
+const PLACEHOLDER_AUDIO_URL = "https://pending.local/audio-placeholder.wav";
+
+interface Args {
+  leccionId: number;
+  tema: string;
+  dryRun: boolean;
+}
+
+function parseArgs(argv: string[]): Args {
+  const dryRun = argv.includes("--dry-run");
+  const [leccionIdRaw, tema] = argv.filter((a) => a !== "--dry-run");
+
+  const leccionId = Number(leccionIdRaw);
+  if (!leccionIdRaw || !Number.isInteger(leccionId) || leccionId <= 0) {
+    console.error('Uso: npx ts-node src/scripts/generate-leccion.ts <leccionId> "<tema>" [--dry-run]');
+    process.exit(1);
+  }
+  if (!tema || !tema.trim()) {
+    console.error("Falta el <tema> de la lección.");
+    process.exit(1);
+  }
+
+  return { leccionId, tema: tema.trim(), dryRun };
+}
+
+function construirPrompt(tema: string): string {
+  return `Generá el contenido interactivo de una lección de inglés estilo Duolingo sobre el tema: "${tema}".
+
+Devolvé SOLO JSON válido (sin \`\`\`json ni texto adicional, sin comentarios) con esta forma exacta (LeccionContenido):
+
+{
+  "version": 1,
+  "pasos": [ ... entre ${MIN_PASOS} y ${MAX_PASOS} pasos, mezclando los 6 tipos siguientes ... ]
+}
+
+Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de los 6 siguientes). Los tipos y sus campos EXACTOS son:
+
+1. tipo: "vocabulario"
+   - palabra: string (la palabra o frase en inglés)
+   - traduccion: string (traducción al español)
+   - imagenUrl?: opcional, string url — omitilo, no lo inventes
+   - audioUrl?: opcional, string url — omitilo por completo, se genera después
+
+2. tipo: "opcion_multiple"
+   - pregunta: string
+   - opciones: string[] (entre 2 y 6 opciones)
+   - respuestaCorrecta: number (índice 0-based de la opción correcta en "opciones")
+
+3. tipo: "completar"
+   - textoAntes: string (texto antes del espacio en blanco)
+   - textoDespues: string (texto después del espacio en blanco; puede ser "")
+   - respuestaCorrecta: string (la palabra/frase que completa el espacio)
+   - opciones?: opcional, string[] (entre 2 y 6 — banco de palabras si aplica)
+
+4. tipo: "ordenar"
+   - instruccion: string
+   - palabras: string[] (mínimo 2 — las palabras/piezas desordenadas)
+   - ordenCorrecto: number[] (índices 0-based que reordenan "palabras" a la frase correcta)
+
+5. tipo: "emparejar"
+   - instruccion: string
+   - pares: array de { izquierda: string, derecha: string } (mínimo 2 pares, ej. inglés-español)
+
+6. tipo: "escuchar"
+   - audioUrl: string url, REQUERIDO — poné EXACTAMENTE el placeholder "${PLACEHOLDER_AUDIO_URL}" (se reemplaza después con el audio real)
+   - opciones: string[] (entre 2 y 6 opciones de texto)
+   - respuestaCorrecta: number (índice 0-based de la opción que coincide con lo que se "escucha")
+
+Reglas importantes:
+- Usá los 6 tipos, mezclados, en un orden pedagógico razonable (vocabulario nuevo primero, práctica después).
+- Todo el contenido en inglés debe ser apropiado para el tema "${tema}".
+- Los "id" de cada paso deben ser únicos dentro del array (ej: "paso-1", "paso-2", ...).
+- NO incluyas el campo audioUrl en pasos que no sean "escuchar".
+- En pasos de tipo "escuchar" SÍ incluí audioUrl con el placeholder exacto indicado arriba.
+- Respondé ÚNICAMENTE con el JSON, nada de explicación, nada de markdown.`;
+}
+
+function extraerJSON(texto: string): string {
+  const limpio = texto.trim();
+  const fenceMatch = limpio.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  return fenceMatch ? fenceMatch[1].trim() : limpio;
+}
+
+async function generarContenido(tema: string): Promise<LeccionContenido> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    messages: [{ role: "user", content: construirPrompt(tema) }],
+  });
+
+  const firstContent = response.content[0];
+  if (!firstContent || firstContent.type !== "text") {
+    throw new Error("Respuesta inesperada de Claude (sin contenido de texto)");
+  }
+
+  const jsonTexto = extraerJSON(firstContent.text);
+
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(jsonTexto);
+  } catch (err) {
+    console.error("La respuesta de Claude no es JSON válido:");
+    console.error(jsonTexto);
+    throw err instanceof Error ? err : new Error(String(err));
+  }
+
+  const resultado = leccionContenidoSchema.safeParse(parsedJson);
+  if (!resultado.success) {
+    console.error("El contenido generado no cumple leccionContenidoSchema:");
+    for (const issue of resultado.error.issues) {
+      console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+    }
+    process.exit(1);
+  }
+
+  return resultado.data;
+}
+
+function textoPronunciable(paso: PasoLeccion): string | undefined {
+  if (paso.tipo === "vocabulario") return paso.palabra;
+  if (paso.tipo === "escuchar") return paso.opciones[paso.respuestaCorrecta];
+  return undefined;
+}
+
+interface ResultadoAudio {
+  contenido: LeccionContenido;
+  subidos: number;
+  saltados: number;
+}
+
+async function generarAudios(leccionId: number, contenido: LeccionContenido): Promise<ResultadoAudio> {
+  const pasosPronunciables = contenido.pasos.filter((p) => textoPronunciable(p) !== undefined);
+
+  if (!isPiperConfigurado()) {
+    if (pasosPronunciables.length > 0) {
+      console.warn(
+        `Piper no está configurado (falta PIPER_VOICE_PATH) — se omite audio para ${pasosPronunciables.length} paso(s).`
+      );
+    }
+    return { contenido, subidos: 0, saltados: pasosPronunciables.length };
+  }
+
+  let subidos = 0;
+  let saltados = 0;
+  const pasosActualizados: PasoLeccion[] = [];
+
+  for (const paso of contenido.pasos) {
+    const texto = textoPronunciable(paso);
+    if (texto === undefined) {
+      pasosActualizados.push(paso);
+      continue;
+    }
+
+    try {
+      const textoLimpio = limpiarTextoParaVoz(texto);
+      const audioBuffer = await sintetizarAudioPiper(textoLimpio);
+      const key = `lecciones/${leccionId}/audio/${paso.id}.wav`;
+      const url = await subirArchivoR2(key, audioBuffer, "audio/wav");
+
+      if (!url) {
+        console.warn(`No se pudo subir el audio del paso ${paso.id} (R2 no configurado o falló) — continúa sin audio.`);
+        saltados += 1;
+        pasosActualizados.push(paso);
+        continue;
+      }
+
+      subidos += 1;
+      pasosActualizados.push({ ...paso, audioUrl: url });
+    } catch (err) {
+      console.warn(`No se pudo sintetizar audio para el paso ${paso.id}:`, err instanceof Error ? err.message : err);
+      saltados += 1;
+      pasosActualizados.push(paso);
+    }
+  }
+
+  return { contenido: { ...contenido, pasos: pasosActualizados }, subidos, saltados };
+}
+
+async function main(): Promise<void> {
+  const { leccionId, tema, dryRun } = parseArgs(process.argv.slice(2));
+
+  const leccion = await prisma.leccion.findUnique({ where: { id: leccionId } });
+  if (!leccion) {
+    console.error(`No existe una Leccion con id=${leccionId}.`);
+    process.exit(1);
+  }
+
+  console.log(`Generando contenido para Leccion #${leccionId} ("${leccion.titulo}") — tema: "${tema}"...`);
+  const contenidoGenerado = await generarContenido(tema);
+  console.log(`Contenido generado y validado: ${contenidoGenerado.pasos.length} pasos.`);
+
+  if (dryRun) {
+    console.log(JSON.stringify(contenidoGenerado, null, 2));
+    console.log("--dry-run: no se generó audio ni se guardó nada en la base de datos.");
+    return;
+  }
+
+  const { contenido, subidos, saltados } = await generarAudios(leccionId, contenidoGenerado);
+
+  await prisma.leccion.update({
+    where: { id: leccionId },
+    data: { content: contenido },
+  });
+
+  console.log("── Resumen ──────────────────────────────────────");
+  console.log(`Pasos generados: ${contenido.pasos.length}`);
+  console.log(`Audios subidos:  ${subidos}`);
+  console.log(`Audios saltados: ${saltados}`);
+  console.log(`Leccion #${leccionId} actualizada.`);
+}
+
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());

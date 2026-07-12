@@ -2335,7 +2335,8 @@
           "65"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-07-12T20:43:56.868Z"
       },
       {
         "id": "71",
@@ -2778,7 +2779,7 @@
         ],
         "status": "in-progress",
         "subtasks": [],
-        "updatedAt": "2026-05-22T15:32:01.190Z"
+        "updatedAt": "2026-07-12T20:47:33.602Z"
       },
       {
         "id": "84",
@@ -3032,8 +3033,9 @@
         "testStrategy": "Prueba unitaria con mock de S3Client: verificar que llame a PutObjectCommand con los parámetros correctos y retorne la URL esperada. Prueba de integración local (si R2 está configurado): subir un archivo de prueba y verificar que la URL pública funcione. Prueba de degradación: sin env vars, verificar que retorne undefined y loguee warning sin lanzar error.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.135Z"
       },
       {
         "id": "102",
@@ -3043,8 +3045,9 @@
         "testStrategy": "Build local de la imagen Docker: `docker build -t mea-backend .` y verificar que el binario y modelos estén presentes (`docker run --rm mea-backend ls -lh /usr/local/bin/piper /app/tts-models`). Ejecutar un test simple dentro del contenedor: `echo 'Hello world' | piper --model /app/tts-models/en_US-lessac-medium.onnx --output_file /tmp/test.wav` y verificar que genere un WAV válido. Deploy a Railway y verificar que no rompa el build.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.186Z"
       },
       {
         "id": "103",
@@ -3057,8 +3060,9 @@
           "101",
           "102"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.193Z"
       },
       {
         "id": "104",
@@ -3073,8 +3077,9 @@
           "99",
           "103"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.199Z"
       },
       {
         "id": "105",
@@ -3086,8 +3091,9 @@
         "dependencies": [
           "97"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.466Z"
       },
       {
         "id": "106",
@@ -3099,8 +3105,9 @@
         "dependencies": [
           "105"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.477Z"
       },
       {
         "id": "107",
@@ -3113,8 +3120,9 @@
           "106",
           "100"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.487Z"
       },
       {
         "id": "108",
@@ -3127,8 +3135,9 @@
           "104",
           "107"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.493Z"
       },
       {
         "id": "109",
@@ -3140,8 +3149,9 @@
         "dependencies": [
           "108"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T21:48:26.499Z"
       },
       {
         "id": "110",
@@ -3713,9 +3723,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-07-12T20:26:36.460Z",
+      "lastModified": "2026-07-12T21:48:26.499Z",
       "taskCount": 149,
-      "completedCount": 138,
+      "completedCount": 147,
       "tags": [
         "master"
       ]

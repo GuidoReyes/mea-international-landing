@@ -2345,9 +2345,9 @@
         "testStrategy": "Verify installation: check package.json lists all dependencies, run npm list to confirm no peer dependency warnings, ensure tsc can resolve all type declarations without errors",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-05-21T07:01:59.166Z"
+        "updatedAt": "2026-06-10T01:06:03.908Z"
       },
       {
         "id": "72",
@@ -2359,7 +2359,7 @@
         "dependencies": [
           "71"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2367,9 +2367,10 @@
             "description": "Create the src/security-agent/ directory in the backend folder to house all security agent TypeScript files",
             "dependencies": [],
             "details": "Create the directory at backend/src/security-agent/ using mkdir -p. This directory will contain types.ts along with other security agent modules (scanner.ts, analyzer.ts, reporter.ts, etc.). Verify the directory exists and is at the correct path within the existing backend/src/ structure alongside routes/, lib/, middleware/, etc.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run ls -la backend/src/security-agent to confirm directory was created. Verify it appears in the expected location relative to other src directories.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:04:06.669Z"
           },
           {
             "id": 2,
@@ -2379,9 +2380,10 @@
               1
             ],
             "details": "Create backend/src/security-agent/types.ts with three exported type aliases:\n- export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';\n- export type Difficulty = 'EASY' | 'MEDIUM' | 'COMPLEX';\n- export type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';\n\nUse string literal union types (not enums) to match the existing codebase patterns seen in advisor-notify.ts. Place these at the top of the file before interfaces.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run tsc --noEmit from backend/ directory to verify no TypeScript errors. Import types in a temporary test file to confirm exports work: import { Severity, Difficulty, ScanStatus } from './security-agent/types';",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:04:06.677Z"
           },
           {
             "id": 3,
@@ -2391,9 +2393,10 @@
               2
             ],
             "details": "Add to types.ts:\nexport interface FixGuide {\n  steps: string[];           // Array of remediation steps\n  code_before?: string;      // Optional: vulnerable code snippet\n  code_after?: string;       // Optional: fixed code snippet\n  difficulty: Difficulty;    // References the Difficulty type alias\n  estimated_time: string;    // e.g., '15 minutes', '1 hour'\n}\n\nNote that FixGuide references the Difficulty type, so order matters. Use optional properties (?) for code_before and code_after as specified in the PRD.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run tsc --noEmit to verify FixGuide interface compiles correctly and Difficulty reference resolves. Test by creating a mock object: const fix: FixGuide = { steps: ['Step 1'], difficulty: 'EASY', estimated_time: '5 min' };",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:04:06.681Z"
           },
           {
             "id": 4,
@@ -2403,9 +2406,10 @@
               3
             ],
             "details": "Add to types.ts:\nexport interface Vulnerability {\n  id: string;                // Unique vulnerability identifier\n  title: string;             // Brief vulnerability title\n  severity: Severity;        // References Severity type\n  file: string;              // Affected file path\n  line: number;              // Line number of vulnerability\n  code_snippet: string;      // Vulnerable code excerpt\n  description: string;       // Detailed explanation\n  attack_scenario: string;   // How it could be exploited\n  business_impact: string;   // Business consequences\n  owasp_reference: string;   // OWASP category reference\n  cve_reference?: string;    // Optional CVE ID\n  fix_guide: FixGuide;       // References FixGuide interface\n  resolved: boolean;         // Whether fixed\n  resolved_at?: string;      // Optional ISO timestamp when resolved\n}\n\nThis interface references both Severity and FixGuide types.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run tsc --noEmit to verify Vulnerability interface compiles with all property types resolved. Verify Severity and FixGuide type references work correctly.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:04:06.686Z"
           },
           {
             "id": 5,
@@ -2415,12 +2419,13 @@
               4
             ],
             "details": "Add to types.ts:\nexport interface ScanResult {\n  scan_id: string;              // Unique scan identifier\n  timestamp: string;            // ISO 8601 timestamp\n  project_name: string;         // Scanned project name\n  files_scanned: number;        // Count of files analyzed\n  security_score: number;       // 0-100 security score\n  vulnerabilities: Vulnerability[];  // Array of findings\n  scan_summary: string;         // Executive summary text\n  status: ScanStatus;           // References ScanStatus type\n  duration_ms: number;          // Scan duration in milliseconds\n}\n\nFinal file should export all 6 types: Severity, Difficulty, ScanStatus, FixGuide, Vulnerability, ScanResult. Verify the file follows existing codebase conventions (no trailing commas in interfaces, consistent semicolons).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run tsc --noEmit to verify zero TypeScript errors. Test all exports: import { Severity, Difficulty, ScanStatus, FixGuide, Vulnerability, ScanResult } from './security-agent/types'; Create a mock ScanResult object with all required properties to validate the complete type structure.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:04:06.690Z"
           }
         ],
-        "updatedAt": "2026-05-21T07:03:14.801Z"
+        "updatedAt": "2026-06-10T01:04:06.690Z"
       },
       {
         "id": "73",
@@ -2432,9 +2437,9 @@
         "dependencies": [
           "71"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-05-21T07:04:51.041Z"
+        "updatedAt": "2026-06-10T01:06:03.913Z"
       },
       {
         "id": "74",
@@ -2446,9 +2451,9 @@
         "dependencies": [
           "72"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-05-21T07:06:03.920Z"
+        "updatedAt": "2026-06-10T01:06:03.919Z"
       },
       {
         "id": "75",
@@ -2556,8 +2561,9 @@
           "75",
           "76"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-06-10T01:06:03.923Z"
       },
       {
         "id": "78",
@@ -2659,7 +2665,7 @@
         "dependencies": [
           "79"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2667,9 +2673,10 @@
             "description": "Create src/security-agent/dashboard/ directory and build index.html with complete semantic HTML structure including header, main sections, and modal containers.",
             "dependencies": [],
             "details": "Create backend/src/security-agent/dashboard/ directory. Build index.html with:\n- DOCTYPE and HTML5 boilerplate with viewport meta, charset utf-8\n- Link to styles.css and script src app.js (defer)\n- Header section: security score badge (large number + color), severity counters row (CRITICAL/HIGH/MEDIUM/LOW with counts), Scan Now button, Send Email button\n- Main container with vulnerability list section: severity filter buttons (All/CRITICAL/HIGH/MEDIUM/LOW), search input, empty state placeholder, vulnerability cards container\n- Detail modal structure: close button, vulnerability title, 3-tab navigation (Description, Fix Guide, References), tab content containers, code block with diff placeholder, Mark Resolved button\n- Scan progress overlay (hidden by default): terminal-style container, progress bar, current file log, percentage text\n- Scan history section: table with columns (Date, Score, Duration, Vulns), Canvas element for trend chart\n- Backup section: last backup info box (timestamp, filename, status), Run Backup Now button, Drive history table (Name, Date, Size, Link), countdown timer to next 2 AM backup\n- Toast notification container (positioned fixed top-right)",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Open index.html in browser directly (file://) to verify all structural elements render. Check all sections exist: header with score area, vulnerability list with filters, modal with 3 tabs, scan overlay, history table with canvas, backup section. Validate HTML with W3C validator for semantic correctness.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:06:03.927Z"
           },
           {
             "id": 2,
@@ -2679,9 +2686,10 @@
               1
             ],
             "details": "Create backend/src/security-agent/dashboard/styles.css with:\n- CSS reset and box-sizing border-box\n- Root variables: --bg-primary: #0f172a, --bg-card: #1e293b, --text-primary: #e2e8f0, --text-secondary: #94a3b8, --critical: #ef4444, --high: #f97316, --medium: #eab308, --low: #3b82f6, --success: #22c55e\n- Body: background var(--bg-primary), color var(--text-primary), font-family system-ui\n- Header: flexbox row, space-between, gap for buttons\n- Security score badge: large font (3rem), rounded circle, dynamic color class (.score-critical, .score-high, .score-medium, .score-good)\n- Severity counter pills: inline-flex with colored left border matching severity\n- Buttons: primary (blue), danger (red), outline variants, hover states\n- Vulnerability cards: bg-card, border-left 4px colored by severity, padding, border-radius 8px, hover shadow\n- Filter buttons: toggle active state with underline/background change\n- Search input: dark input style, border on focus\n- Modal: fixed inset-0, flex center, backdrop-filter blur(4px), bg rgba(0,0,0,0.5)\n- Modal content: max-width 800px, max-height 90vh, overflow-y auto, bg-card, rounded-lg\n- Tabs: horizontal flex, tab buttons with active underline\n- Code block: monospace font, bg #0d1117, padding, overflow-x auto, white-space pre\n- Code diff: .diff-add green bg, .diff-remove red bg styles\n- Progress overlay: fixed inset-0, flex center, terminal-style box with monospace font\n- Progress bar: height 8px, rounded, bg-gray-700, inner fill with gradient animation\n- Table styles: full-width, striped rows, hover highlight\n- Toast notifications: position fixed top-4 right-4, slide-in animation, severity colored left border\n- Responsive: media queries for mobile (stack layout below 768px)",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Open index.html with styles.css linked. Verify dark theme applies correctly - background should be #0f172a, cards #1e293b. Test severity colors by adding test classes. Check modal backdrop blur works. Test responsive layout by resizing browser below 768px width. Verify all interactive elements have visible hover states.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:06:03.932Z"
           },
           {
             "id": 3,
@@ -2692,9 +2700,10 @@
               2
             ],
             "details": "Create backend/src/security-agent/dashboard/app.js with:\n- DOMContentLoaded wrapper\n- Security key management: getSecurityKey() reads from URL ?key= param first, falls back to sessionStorage, setSecurityKey() saves to sessionStorage\n- API helper: async fetchAPI(endpoint, options) that adds X-Security-Key header to all requests, handles JSON parsing, throws on non-ok responses\n- State object: { vulnerabilities: [], scanHistory: [], currentScan: null, backupHistory: [], lastBackup: null }\n- loadResults(): GET /api/security/results, populate state.vulnerabilities, call renderVulnerabilities()\n- loadHistory(): GET /api/security/history, populate state.scanHistory, call renderHistoryTable(), renderChart()\n- startScan(): POST /api/security/scan, show progress overlay, call pollScanStatus(scan_id)\n- pollScanStatus(scan_id): setInterval 2000ms, GET /api/security/status/:scan_id, update progress bar/file log, clear interval on COMPLETED/FAILED, call loadResults() on complete\n- sendEmail(): POST /api/security/email, show toast on success/error\n- markResolved(vulnId): PATCH /api/security/vuln/:vulnId/resolve, update local state, re-render\n- Event listeners: Scan button click -> startScan(), Email button click -> sendEmail()\n- Init function: if no key show prompt/redirect message, else loadResults(), loadHistory(), loadBackupStatus()\n- loadBackupStatus(): GET /api/backup/status, GET /api/backup/history, populate state, render backup section",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Open dashboard with valid ?key=SECRET param. Check browser console for no JS errors. Verify security key stored in sessionStorage. Mock API responses (or with backend running) to test: loadResults populates vulnerability list, startScan shows overlay and polls, sendEmail triggers POST and shows toast. Test without key param shows appropriate message.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:06:03.936Z"
           },
           {
             "id": 4,
@@ -2704,9 +2713,10 @@
               3
             ],
             "details": "Extend app.js with rendering and interaction functions:\n- renderVulnerabilities(filter='ALL', searchQuery=''): clear container, filter by severity and search text, create card elements with severity badge, title, file:line location, short description, click handler to openModal(vuln)\n- openModal(vuln): populate modal title, render tab content (Description tab: full description text; Fix Guide tab: fix_recommendation text + code diff with before/after using .diff-add/.diff-remove classes; References tab: list of reference links as clickable anchors), show modal, bind close handlers (X button, backdrop click, Escape key)\n- closeModal(): hide modal, clear content\n- renderHistoryTable(): clear table body, iterate scanHistory, create rows with formatted date, score (colored), duration, vuln count\n- showToast(message, type='success'): create toast element with icon, message, auto-dismiss after 3s with fade animation\n- Filter buttons: click handlers that call renderVulnerabilities(severity)\n- Search input: debounced input handler (300ms) that calls renderVulnerabilities(currentFilter, searchValue)\n- Code diff rendering: renderCodeDiff(before, after) function that creates side-by-side or unified diff display with syntax highlighting classes\n- Tab switching: click handlers on tab buttons that show/hide tab content, update active tab styling\n- Mark Resolved button in modal: click handler calls markResolved(), closes modal, shows success toast, re-renders list",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with mock vulnerability data: verify cards render with correct severity colors and positioning. Click card to open modal - verify all 3 tabs work and content switches. Test filter buttons filter the list correctly. Test search filters by title/description text. Test Mark Resolved updates UI. Test toast appears and auto-dismisses. Test modal closes on backdrop click and Escape key.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:06:03.940Z"
           },
           {
             "id": 5,
@@ -2717,12 +2727,13 @@
               4
             ],
             "details": "Extend app.js with chart and backup features:\n- renderChart(): get Canvas 2d context, clear canvas, calculate chart dimensions with padding, draw axes (white lines), plot scanHistory scores as connected line graph with colored points (score color), add date labels on x-axis, score scale (0-100) on y-axis, fill area under line with gradient, add grid lines for readability\n- calculateScoreColor(score): return color based on score ranges (0-40 critical red, 41-60 high orange, 61-80 medium yellow, 81-100 good green)\n- Backup section rendering: renderBackupSection() - show last backup timestamp (formatted), filename, success/fail status with colored indicator, update countdown timer text\n- loadBackupHistory(): GET /api/backup/history, render table rows with Name (link to webViewLink), Created date formatted, file size if available\n- triggerBackup(): POST /api/backup/trigger, show loading state on button, on success refresh backup status and history, show toast\n- Backup countdown timer: calculateNextBackup() returns Date for next 2:00 AM, startCountdownTimer() uses setInterval(1000ms) to update countdown display (HH:MM:SS format), recalculate when crossing midnight\n- Run Backup Now button: click handler calls triggerBackup()\n- Canvas responsive handling: resize observer or window resize handler to redraw chart at correct size\n- Polish: loading spinners during API calls, empty states for no vulnerabilities/no history, error states with retry buttons",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test chart renders with mock history data showing score trend line. Verify chart redraws on window resize. Test backup section shows last backup info when available. Click Run Backup Now and verify loading state, API call, and refresh. Verify countdown timer counts down every second. Test timer recalculates correctly after midnight. Test empty states display when no data. Test all loading spinners appear during API calls.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-06-10T01:06:03.943Z"
           }
         ],
-        "updatedAt": "2026-05-21T15:02:30.467Z"
+        "updatedAt": "2026-06-10T01:06:03.943Z"
       },
       {
         "id": "81",
@@ -2749,8 +2760,9 @@
         "dependencies": [
           "81"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-22T15:31:12.761Z"
       },
       {
         "id": "83",
@@ -2764,15 +2776,946 @@
           "81",
           "82"
         ],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-05-22T15:32:01.190Z"
+      },
+      {
+        "id": "84",
+        "title": "Implementar autenticación JWT para alumnos",
+        "description": "Crear endpoints de login y cambio de contraseña para alumnos con JWT separado del admin",
+        "details": "Crear nuevos endpoints en `backend/src/routes/auth.ts`:\n\n1. `POST /api/auth/alumno/login` (email + password):\n   - Validar credenciales con bcrypt\n   - Generar JWT con payload `{ alumnoId, email }` usando JWT_SECRET\n   - Rate limiting con el middleware existente\n   - Respuesta: `{ token, alumno: { id, nombre, apellido, email, primerLogin } }`\n\n2. `POST /api/auth/alumno/cambiar-password`:\n   - Requiere auth de alumno (verificar token)\n   - Body: `{ passwordActual, passwordNueva }`\n   - Validar password actual con bcrypt\n   - Hash nueva password con bcrypt (rounds: 10)\n   - Actualizar `Alumno.password` y `primerLogin=false`\n   - Generar nuevo token\n\n3. Crear middleware `verifyAlumnoJWT` en `backend/src/middleware/auth.middleware.ts`:\n   - Similar a `verifyJWT` pero para payload de alumno\n   - Extender `Express.Request` con `alumno?: { alumnoId, email }`\n   - Variante `optionalAlumnoJWT` que no falla si no hay token (next sin error)\n\nTecnologías: bcrypt, jsonwebtoken, express middleware, Prisma",
+        "testStrategy": "Unit tests:\n- Login con credenciales válidas devuelve token\n- Login con credenciales inválidas retorna 401\n- Cambio de password exitoso actualiza password y primerLogin\n- Cambio de password con password actual incorrecta retorna 401\n- verifyAlumnoJWT rechaza tokens inválidos\n- optionalAlumnoJWT permite requests sin token",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-07T20:25:36.259Z"
+      },
+      {
+        "id": "85",
+        "title": "Crear endpoints de inscripción y progreso de lecciones",
+        "description": "Implementar inscripción gratuita a cursos y registro de progreso por lección",
+        "details": "Crear en `backend/src/routes/cursos-online.ts`:\n\n1. `POST /api/cursos-online/:slug/inscribir` (auth alumno requerido):\n   - Buscar curso por slug y verificar que esté publicado\n   - Crear `InscripcionOnline` (alumnoId + cursoOnlineId)\n   - Usar `upsert` para idempotencia (unique constraint)\n   - Respuesta: `{ id, alumnoId, cursoOnlineId, iniciadaEn }`\n\n2. `POST /api/lecciones/:id/completar` (auth alumno requerido):\n   - Body: `{ puntaje?: number }` (validar 0-100 con Zod)\n   - Verificar que la lección existe\n   - Verificar acceso: esGratis=true O alumno tiene suscripción ACTIVA vigente (estado=ACTIVA y fechaFin > now)\n   - Upsert `ProgresoLeccion`: `{ alumnoId, leccionId, completada: true, puntaje, completadaEn: now }`\n   - Después del upsert, verificar si TODAS las lecciones del curso están completadas\n   - Si 100% completado, calcular promedio de puntaje (solo lecciones con puntaje no null)\n   - Si promedio >= 85, llamar helper `generateCertificadoOnline` (ver tarea 86)\n   - Respuesta: `{ completada: true, puntaje, certificadoEmitido?: boolean }`\n\nTecnologías: Express, Prisma upsert, Zod validation",
+        "testStrategy": "Integration tests:\n- Inscripción exitosa crea registro idempotente\n- Inscripción duplicada no falla\n- Completar lección gratis sin suscripción funciona\n- Completar lección premium sin suscripción retorna 403\n- Completar lección premium con suscripción ACTIVA funciona\n- Completar lección premium con suscripción VENCIDA retorna 403\n- Puntaje inválido (<0 o >100) retorna 400\n- Completar última lección con promedio >= 85 emite certificado",
+        "priority": "high",
+        "dependencies": [
+          "84"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.342Z"
+      },
+      {
+        "id": "86",
+        "title": "Implementar generación automática de certificados online",
+        "description": "Generar certificados PDF con QR cuando el alumno completa un curso con promedio >= 85",
+        "details": "Crear helper `generateCertificadoOnline` en `backend/src/routes/certificados.ts`:\n\n1. Verificar que NO existe certificado (unique alumnoId+cursoOnlineId)\n2. Generar código único con `crypto.randomBytes(8).toString('hex')`\n3. Calcular puntaje promedio de todas las lecciones completadas\n4. Crear `CertificadoOnline` en DB con puntaje\n5. Reutilizar `generateCertificadoPdf` del mismo archivo adaptando datos:\n   - alumnoNombre: `${alumno.nombre} ${alumno.apellido}`\n   - cursoNombre: `curso.titulo`\n   - edicionNombre: `\"Curso Online\"` (no hay ediciones en cursos online)\n   - fechaEmision: `new Date()`\n   - codigo: generado\n   - verifyUrl: `${FRONTEND_URL}/verify-online/${codigo}`\n6. Subir PDF a S3/R2 usando patrón existente (`getS3Client`, `PutObjectCommand`)\n7. Actualizar `CertificadoOnline.urlPdf` con la URL pública\n8. Responder con certificado creado\n\nCrear endpoint público:\n`GET /api/certificados-online/:cursoOnlineId` (auth alumno requerido):\n- Buscar certificado por alumnoId y cursoOnlineId\n- Si no existe, 404\n- Si existe, devolver JSON o stream PDF\n\nTecnologías: pdfkit, qrcode, @aws-sdk/client-s3, crypto",
+        "testStrategy": "Integration tests:\n- Certificado se genera solo si promedio >= 85\n- Certificado con promedio < 85 no se genera\n- Certificado idempotente (no duplica si ya existe)\n- PDF contiene QR válido\n- S3 upload exitoso actualiza urlPdf\n- GET certificado sin auth retorna 401\n- GET certificado inexistente retorna 404",
+        "priority": "high",
+        "dependencies": [
+          "85"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.349Z"
+      },
+      {
+        "id": "87",
+        "title": "Modificar endpoint GET /api/cursos-online/:slug con progreso personalizado",
+        "description": "Extender endpoint para incluir progreso y desbloqueo de lecciones cuando hay sesión de alumno",
+        "details": "Modificar `GET /api/cursos-online/:slug` en `backend/src/routes/cursos-online.ts`:\n\n1. Cambiar a usar middleware `optionalAlumnoJWT` (no requerir auth, pero aceptarla)\n2. Si hay `req.alumno`, buscar:\n   - `InscripcionOnline` del alumno para este curso\n   - Todos los `ProgresoLeccion` del alumno para las lecciones del curso\n   - `Suscripcion` ACTIVA del alumno (estado=ACTIVA y fechaFin > now)\n3. Para cada lección, calcular:\n   - `completada`: existe ProgresoLeccion.completada=true\n   - `puntaje`: ProgresoLeccion.puntaje si existe\n   - `bloqueada`: false si esGratis=true O tiene suscripción ACTIVA vigente\n   - `urlContenido`: null si bloqueada=true, string si desbloqueada\n4. Agregar al response:\n   - `progresoPorcentaje`: (lecciones completadas / total lecciones) * 100\n   - `inscrito`: boolean (existe InscripcionOnline)\n   - `tieneSuscripcionActiva`: boolean\n5. **Importante**: Solo cachear en Redis la versión anónima (sin alumno). Si hay alumno, no usar caché.\n\nTecnologías: Express middleware, Prisma joins, Redis cache control",
+        "testStrategy": "Integration tests:\n- Request sin auth devuelve versión anónima (sin progreso)\n- Request con auth devuelve progreso real por lección\n- Lecciones gratuitas siempre desbloqueadas\n- Lecciones premium bloqueadas sin suscripción activa\n- Lecciones premium desbloqueadas con suscripción activa\n- Lecciones premium bloqueadas con suscripción vencida\n- progresoPorcentaje calculado correctamente\n- Cache NO se usa cuando hay auth",
+        "priority": "high",
+        "dependencies": [
+          "84",
+          "85"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.354Z"
+      },
+      {
+        "id": "88",
+        "title": "Crear endpoint GET /api/suscripciones/me para consultar estado de suscripción",
+        "description": "Endpoint para que el alumno consulte su suscripción actual (plan, fechas, estado)",
+        "details": "Crear en `backend/src/routes/suscripciones.ts` (archivo nuevo):\n\n`GET /api/suscripciones/me` (auth alumno requerido):\n1. Buscar la suscripción más reciente del alumno:\n   - `orderBy: { creadoEn: 'desc' }`, `take: 1`\n   - Include: `planPrecio.plan`\n2. Si no existe, responder: `{ activa: false, suscripcion: null }`\n3. Si existe, calcular:\n   - `activa`: estado=ACTIVA Y fechaFin > now\n   - `diasRestantes`: diferencia entre fechaFin y now en días (usar date-fns)\n   - `vencida`: fechaFin < now\n4. Responder:\n```json\n{\n  \"activa\": boolean,\n  \"suscripcion\": {\n    \"id\": number,\n    \"plan\": { \"nombre\": string, \"slug\": string },\n    \"estado\": string,\n    \"fechaInicio\": date,\n    \"fechaFin\": date,\n    \"diasRestantes\": number,\n    \"proveedor\": string\n  }\n}\n```\n\nRegistrar router en `backend/src/index.ts`.\n\nTecnologías: Express, Prisma, date-fns",
+        "testStrategy": "Integration tests:\n- Alumno sin suscripción recibe activa=false\n- Alumno con suscripción ACTIVA vigente recibe activa=true\n- Alumno con suscripción VENCIDA recibe activa=false\n- diasRestantes calculado correctamente\n- Request sin auth retorna 401",
+        "priority": "medium",
+        "dependencies": [
+          "84"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.359Z"
+      },
+      {
+        "id": "89",
+        "title": "Crear frontend: página /alumno/login y helpers de autenticación",
+        "description": "Página de login para alumnos y helpers para manejar tokens separados del admin",
+        "details": "1. Crear `lib/alumno-api.ts` con helpers client-side:\n   - `loginAlumno(email, password)`: POST a /api/auth/alumno/login, guardar token en localStorage como `mea_alumno_token`\n   - `cambiarPasswordAlumno(passwordActual, passwordNueva)`: POST a /api/auth/alumno/cambiar-password con header Authorization\n   - `getAlumnoToken()`: leer token de localStorage\n   - `logoutAlumno()`: borrar token de localStorage\n   - `fetchAlumno(endpoint, options)`: wrapper de fetch con Authorization header automático\n\n2. Crear `app/alumno/login/page.tsx`:\n   - Form con email y password\n   - Submit llama a `loginAlumno`\n   - Si `primerLogin=true`, redirigir a `/alumno/cambiar-password` pasando token\n   - Si `primerLogin=false`, redirigir a `/mis-cursos`\n   - Mostrar errores de validación\n   - Estilos Tailwind coherentes con brand (#0A2540, #00C4B4)\n\n3. Crear `app/alumno/cambiar-password/page.tsx`:\n   - Form con passwordActual y passwordNueva (confirmación)\n   - Submit llama a `cambiarPasswordAlumno`\n   - Redirigir a `/mis-cursos` después del cambio exitoso\n\nTecnologías: Next.js 16 App Router, React hooks, localStorage, fetch API",
+        "testStrategy": "E2E tests:\n- Login exitoso guarda token y redirige\n- Login con credenciales incorrectas muestra error\n- Primer login redirige a cambiar password\n- Cambio de password exitoso redirige a mis-cursos\n- Logout borra token correctamente",
+        "priority": "high",
+        "dependencies": [
+          "84"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-08T06:14:31.780Z"
+      },
+      {
+        "id": "90",
+        "title": "Crear frontend: página /mis-cursos con progreso real",
+        "description": "Dashboard del alumno mostrando sus inscripciones, progreso y certificados",
+        "details": "Crear `app/mis-cursos/page.tsx`:\n\n1. Verificar sesión de alumno (leer token, si no existe redirigir a /alumno/login)\n2. Crear endpoint `GET /api/alumnos/me/cursos` (auth alumno requerido) en backend:\n   - Buscar todas las `InscripcionOnline` del alumno\n   - Include: `cursoOnline.capitulos.lecciones`\n   - Para cada inscripción, calcular:\n     - Total lecciones\n     - Lecciones completadas (join con ProgresoLeccion)\n     - Porcentaje progreso\n     - Certificado emitido (exists en CertificadoOnline)\n   - Responder array de cursos con progreso\n\n3. En el frontend, mostrar:\n   - Card por cada curso inscrito\n   - Barra de progreso con porcentaje real\n   - Link al curso `/cursos/[slug]`\n   - Badge \"Completado\" si progreso = 100%\n   - Botón \"Descargar Certificado\" si existe certificado (link a `/api/certificados-online/:cursoOnlineId` con Authorization)\n   - Si no hay inscripciones, CTA a `/cursos`\n\n4. Header con:\n   - Nombre del alumno\n   - Estado de suscripción (llamar a `/api/suscripciones/me`)\n   - Botón de logout\n\nTecnologías: Next.js App Router, React Server Components, fetch con auth",
+        "testStrategy": "E2E tests:\n- Página requiere autenticación\n- Muestra cursos inscritos con progreso correcto\n- Barra de progreso refleja lecciones completadas\n- Certificado aparece solo si curso 100% completado y promedio >= 85\n- Link de descarga funciona con auth\n- Estado de suscripción visible en header",
+        "priority": "high",
+        "dependencies": [
+          "87",
+          "89"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-08T06:14:31.786Z"
+      },
+      {
+        "id": "91",
+        "title": "Extender frontend: página /cursos/[slug] con progreso y estados por lección",
+        "description": "Actualizar detalle de curso para mostrar progreso real, botón de inscripción y estados de lecciones",
+        "details": "Modificar `app/cursos/[slug]/page.tsx`:\n\n1. Hacer fetch con token de alumno si existe (usar `getAlumnoToken()` client-side o server-side con cookies)\n2. Si NO hay inscripción, mostrar botón \"Inscribirme gratis\":\n   - Al hacer click, llamar a `POST /api/cursos-online/:slug/inscribir` con auth\n   - Recargar página después de inscripción exitosa\n\n3. Si hay inscripción, mostrar:\n   - Barra de progreso general del curso (progresoPorcentaje del endpoint)\n   - Por cada lección, mostrar badge de estado:\n     - **Completada** (check verde): `completada=true`\n     - **Disponible** (desbloqueada): `bloqueada=false` y `completada=false`\n     - **Bloqueada** (candado): `bloqueada=true`\n   - Link a `/cursos/[slug]/leccion/[leccionSlug]` si desbloqueada\n   - Tooltip o modal con CTA a `/planes` si bloqueada\n\n4. Si todas las lecciones completadas y hay certificado, mostrar badge \"Curso Completado\" y link a certificado\n\nTecnologías: Next.js 16 (params es Promise), React hooks, Tailwind, Lucide icons",
+        "testStrategy": "E2E tests:\n- Usuario sin sesión ve solo lecciones gratuitas desbloqueadas\n- Usuario con sesión sin inscripción ve botón de inscripción\n- Inscripción exitosa actualiza UI\n- Usuario inscrito con suscripción activa ve todas las lecciones desbloqueadas\n- Usuario inscrito sin suscripción ve lecciones premium bloqueadas\n- Progreso real se refleja en la barra\n- Certificado aparece cuando curso 100% completado",
+        "priority": "high",
+        "dependencies": [
+          "87",
+          "89"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-08T06:14:31.790Z"
+      },
+      {
+        "id": "92",
+        "title": "Crear frontend: página de lección /cursos/[slug]/leccion/[leccionSlug]",
+        "description": "Vista de lección individual con contenido (video/audio/markdown) y botón de completar",
+        "details": "Crear `app/cursos/[slug]/leccion/[leccionSlug]/page.tsx`:\n\n1. Verificar sesión de alumno (redirigir a /alumno/login si no existe)\n2. Fetch del curso con progreso (usar endpoint modificado de tarea 87)\n3. Buscar la lección por slug en la estructura de capítulos\n4. Si `bloqueada=true`:\n   - Mostrar candado y mensaje \"Esta lección requiere un plan activo\"\n   - CTA a `/planes`\n   - No mostrar contenido\n5. Si `bloqueada=false`:\n   - Mostrar `urlContenido`:\n     - Si es URL de video (YouTube, Vimeo): embed con iframe responsive\n     - Si es URL de audio: player HTML5 audio\n     - Si es markdown: renderizar con `@tailwindcss/typography` (prose)\n   - Mostrar botón \"Marcar como completada\"\n   - Input opcional para puntaje (slider 0-100)\n   - Al completar, llamar a `POST /api/lecciones/:id/completar` con `{ puntaje }`\n   - Mostrar feedback si se emitió certificado\n   - Link a siguiente lección si existe\n\n6. Navigation:\n   - Breadcrumb: Cursos > [nombreCurso] > [nombreCapitulo] > [nombreLeccion]\n   - Botones prev/next para navegar entre lecciones\n\nTecnologías: Next.js App Router, React, markdown rendering, responsive iframe",
+        "testStrategy": "E2E tests:\n- Página requiere autenticación\n- Lección bloqueada muestra candado y CTA a planes\n- Lección desbloqueada muestra contenido correcto\n- Video embed funciona (YouTube/Vimeo)\n- Audio player funciona\n- Markdown se renderiza correctamente\n- Marcar como completada actualiza progreso\n- Puntaje opcional se guarda correctamente\n- Navegación prev/next funciona",
+        "priority": "high",
+        "dependencies": [
+          "85",
+          "89",
+          "91"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-08T06:14:31.794Z"
+      },
+      {
+        "id": "93",
+        "title": "Conectar progreso real al catálogo /cursos",
+        "description": "Actualizar página de catálogo para mostrar progreso real en lugar de 0% fijo",
+        "details": "Modificar `app/cursos/page.tsx` y `components/cursos-online/CatalogoCursos.tsx`:\n\n1. Si hay sesión de alumno (token existe), hacer fetch de cursos con progreso:\n   - Crear endpoint `GET /api/cursos-online?conProgreso=true` (auth alumno opcional)\n   - Si hay alumno, incluir progresoPorcentaje para cada curso\n   - Responder array con misma estructura más campo `progreso`\n\n2. En el componente `CatalogoCursos`:\n   - Recibir prop `progreso?: Record<string, number>` (map cursoId -> porcentaje)\n   - Reemplazar barra de progreso fija (0%) por progreso real si existe\n   - Mostrar badge \"Completado\" si progreso = 100%\n   - Mantener diseño responsive y Tailwind existente\n\n3. Optimización:\n   - Cachear endpoint sin progreso en Redis (usuarios anónimos)\n   - NO cachear endpoint con progreso (personalizado por alumno)\n\nTecnologías: Next.js App Router, React, fetch con auth opcional",
+        "testStrategy": "E2E tests:\n- Usuario sin sesión ve barras de progreso en 0%\n- Usuario con sesión ve progreso real por curso\n- Progreso se actualiza después de completar lecciones\n- Badge \"Completado\" aparece en cursos 100% completados\n- Performance: endpoint sin progreso usa caché",
+        "priority": "medium",
+        "dependencies": [
+          "87",
+          "89"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-08T06:14:31.803Z"
+      },
+      {
+        "id": "94",
+        "title": "Implementar checkout automático con API de Recurrente",
+        "description": "Crear endpoint de checkout que genera URL de pago en Recurrente y crea suscripción PENDIENTE",
+        "details": "Crear en `backend/src/routes/suscripciones.ts`:\n\n`POST /api/suscripciones/checkout` (auth alumno, rate limited):\n1. Validar env vars `RECURRENTE_API_KEY`, `RECURRENTE_WEBHOOK_SECRET`\n   - Si faltan, responder 503: `{ error: \"Recurrente no configurado, usa el flujo manual por WhatsApp\" }`\n2. Body: `{ planPrecioId }` (validar con Zod)\n3. Buscar `PlanPrecio` con include de `plan`\n4. Crear `Suscripcion` en DB con:\n   - `alumnoId`, `planPrecioId`\n   - `estado: PENDIENTE`\n   - `proveedor: \"recurrente\"`\n   - `fechaInicio`, `fechaFin`: null (se llenan en webhook)\n5. Llamar a API de Recurrente para crear checkout:\n   - Endpoint: `POST https://api.recurrente.com/v1/checkouts`\n   - Headers: `Authorization: Bearer ${RECURRENTE_API_KEY}`, `Content-Type: application/json`\n   - Body:\n```json\n{\n  \"amount\": planPrecio.precioTotalCentavos,\n  \"currency\": \"GTQ\",\n  \"description\": `${plan.nombre} - ${planPrecio.duracionMeses} meses`,\n  \"customer\": {\n    \"email\": alumno.email,\n    \"name\": `${alumno.nombre} ${alumno.apellido}`\n  },\n  \"metadata\": {\n    \"suscripcionId\": suscripcion.id,\n    \"alumnoId\": alumno.id,\n    \"planPrecioId\": planPrecio.id\n  },\n  \"success_url\": `${FRONTEND_URL}/checkout/success?suscripcion=${suscripcion.id}`,\n  \"cancel_url\": `${FRONTEND_URL}/checkout/cancel`\n}\n```\n6. Actualizar `Suscripcion.idExterno` con checkout ID de Recurrente\n7. Responder: `{ checkoutUrl: response.checkout_url, suscripcionId }`\n\nTecnologías: fetch API, Express, Prisma, Zod, rate limiting",
+        "testStrategy": "Integration tests:\n- Checkout sin env vars retorna 503 con mensaje claro\n- Checkout exitoso crea Suscripcion PENDIENTE\n- API de Recurrente recibe datos correctos\n- idExterno se guarda en DB\n- checkoutUrl se devuelve al frontend\n- Rate limiting previene abuso",
+        "priority": "high",
+        "dependencies": [
+          "84"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.374Z"
+      },
+      {
+        "id": "95",
+        "title": "Implementar webhook de Recurrente con validación HMAC",
+        "description": "Endpoint seguro para recibir notificaciones de pagos de Recurrente y activar suscripciones",
+        "details": "Crear en `backend/src/routes/webhooks.ts` (archivo nuevo):\n\n`POST /api/webhooks/recurrente` (público, sin auth JWT):\n1. Crear middleware `verifyRecurrenteHmac` inspirado en `verifyMetaHmac`:\n   - Leer header `X-Recurrente-Signature`\n   - Usar `req.rawBody` (ya capturado en index.ts)\n   - Calcular HMAC SHA-256 con `RECURRENTE_WEBHOOK_SECRET`\n   - Comparar con `timingSafeEqual` (timing-safe)\n   - Si no coincide, responder 403\n\n2. Parsear body (evento de Recurrente):\n```json\n{\n  \"event\": \"payment.succeeded\",\n  \"data\": {\n    \"checkout_id\": \"ch_xxx\",\n    \"metadata\": {\n      \"suscripcionId\": number,\n      \"alumnoId\": number,\n      \"planPrecioId\": number\n    },\n    \"amount\": number,\n    \"currency\": \"GTQ\"\n  }\n}\n```\n\n3. Si `event === \"payment.succeeded\"`:\n   - Buscar `Suscripcion` por `idExterno = checkout_id` O por `id = metadata.suscripcionId`\n   - **Idempotencia**: Si ya está ACTIVA, responder 200 sin cambios\n   - Buscar `PlanPrecio` para obtener `duracionMeses`\n   - Calcular fechas:\n     - `fechaInicio = new Date()`\n     - `fechaFin = addMonths(fechaInicio, duracionMeses)` (usar date-fns)\n   - Actualizar `Suscripcion`: `estado=ACTIVA`, `fechaInicio`, `fechaFin`\n   - Crear `PagoSuscripcion`:\n     - `suscripcionId`, `montoCentavos`, `moneda`, `estado=COMPLETADO`\n     - `proveedor=\"recurrente\"`, `idExterno=checkout_id`, `pagadoEn=now`\n   - Si alumno tiene `whatsapp`, enviar confirmación usando `sendWhatsAppMessage`:\n     - Mensaje: \"¡Tu suscripción a [plan] está activa! Válida hasta [fechaFin]. Accedé a tus cursos en [URL]\"\n   - Log info con detalles del pago\n\n4. Responder siempre 200 (aunque falle WhatsApp, no reintentar por eso)\n\nRegistrar router en `backend/src/index.ts` con el middleware HMAC.\n\nTecnologías: crypto, Express middleware, Prisma transactions, date-fns, WhatsApp API",
+        "testStrategy": "Integration tests:\n- Webhook sin firma válida rechazado con 403\n- Webhook con firma válida y evento payment.succeeded activa suscripción\n- fechaFin calculada correctamente (fechaInicio + duracionMeses)\n- PagoSuscripcion creado con datos correctos\n- Idempotencia: reintentos no duplican activación\n- WhatsApp se envía si alumno tiene número\n- Webhook con evento desconocido responde 200 sin acción",
+        "priority": "high",
+        "dependencies": [
+          "94"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:52.379Z"
+      },
+      {
+        "id": "96",
+        "title": "Crear frontend: página /checkout/[planPrecioId]",
+        "description": "Página de checkout que inicia el flujo de pago con Recurrente o fallback a WhatsApp",
+        "details": "Crear `app/checkout/[planPrecioId]/page.tsx`:\n\n1. Resolver params de Next.js 16 (es Promise): `const { planPrecioId } = await params`\n2. Fetch del plan y precio desde `GET /api/planes` (público)\n3. Mostrar resumen del plan:\n   - Nombre del plan\n   - Duración en meses\n   - Precio total formateado (usar helper `formatearPrecioCentavos`)\n   - Precio por mes\n   - Features incluidas\n\n4. Si hay sesión de alumno (token existe):\n   - Botón \"Pagar ahora\" que llama a `POST /api/suscripciones/checkout` con `{ planPrecioId }`\n   - Si respuesta 503 (Recurrente no configurado) O si no hay sesión:\n     - Mostrar fallback: CTA a WhatsApp con mensaje preformateado:\n       - Texto: \"Hola, quiero suscribirme al plan [nombre] por [duración] meses\"\n       - Link: `https://wa.me/50212345678?text=[mensaje URL encoded]`\n   - Si respuesta exitosa:\n     - Guardar `suscripcionId` en localStorage\n     - Redirigir a `checkoutUrl` de Recurrente\n\n5. Si NO hay sesión:\n   - Mostrar mensaje \"Iniciá sesión para continuar\"\n   - Link a `/alumno/login?redirect=/checkout/${planPrecioId}`\n\n6. Crear `app/checkout/success/page.tsx`:\n   - Mensaje de éxito \"Tu pago está siendo procesado\"\n   - Link a `/mis-cursos`\n\n7. Crear `app/checkout/cancel/page.tsx`:\n   - Mensaje \"Pago cancelado\"\n   - Botón para reintentar\n\nTecnologías: Next.js 16 App Router, React hooks, localStorage, URL encoding",
+        "testStrategy": "E2E tests:\n- Usuario sin sesión ve mensaje de login\n- Usuario con sesión ve botón de pago\n- Checkout exitoso redirige a Recurrente\n- Checkout con Recurrente no configurado muestra fallback WhatsApp\n- Link de WhatsApp contiene mensaje correcto\n- Página de éxito muestra confirmación\n- Página de cancelación permite reintentar",
+        "priority": "high",
+        "dependencies": [
+          "94",
+          "89"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T01:56:26.759Z"
+      },
+      {
+        "id": "97",
+        "title": "Crear contrato de tipos TypeScript y schema Zod para LeccionContenido",
+        "description": "Definir tipos discriminados para los 6 tipos de pasos (intro, listen_learn, multiple_choice, arrange_words, fill_blank, write_word) y validarlos con Zod",
+        "details": "Crear `backend/src/types/leccion-contenido.ts` exportando los tipos `PasoLeccion` (union discriminada con `type`) y `LeccionContenido` (version + steps). Crear `backend/src/schemas/leccion-contenido.schema.ts` con schemas Zod individuales por tipo de paso y un `z.discriminatedUnion(\"type\", [...])` para validar todo el contenido. Exportar `leccionContenidoSchema: z.ZodType<LeccionContenido>` y `type LeccionContenidoInput = z.infer<typeof leccionContenidoSchema>`. Asegurar que audioUrl sea string en listen_learn y opcional en multiple_choice, correctIndex/correctOrder sean números enteros válidos, arrays de opciones/palabras no estén vacíos, y todos los campos de texto sean strings no vacíos.",
+        "testStrategy": "Pruebas unitarias con Vitest/Jest: validar casos válidos para cada tipo de paso, casos inválidos (type incorrecto, campos faltantes, índices fuera de rango, arrays vacíos), y que safeParse devuelva los errores esperados de Zod con mensajes claros. Verificar que TypeScript infiera los tipos correctamente.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T20:10:09.106Z"
+      },
+      {
+        "id": "98",
+        "title": "Agregar campo content Json? al modelo Leccion en Prisma",
+        "description": "Extender el modelo Leccion con un campo opcional content de tipo Json para almacenar el JSON de LeccionContenido validado",
+        "details": "Editar `backend/prisma/schema.prisma` línea 335-346 (modelo Leccion): agregar `content Json?` después de `esGratis Boolean @default(false)`. Ejecutar `npx prisma migrate dev --name add_leccion_content` localmente para crear la migración. Ejecutar `npx prisma db push` en el entorno de Railway para aplicar la migración sin crear archivos (migración aditiva, sin pérdida de datos). Verificar que los modelos existentes no se modifiquen y que el campo sea nullable para lecciones antiguas sin contenido interactivo.",
+        "testStrategy": "Verificar que `npx prisma db push` se ejecute sin errores en Railway. Consultar la tabla Leccion en MySQL y verificar que la columna `content` exista con tipo JSON nullable. Crear una lección de prueba con content=null y otra con content={version:1,steps:[...]} para confirmar que ambos casos funcionen.",
+        "priority": "high",
+        "dependencies": [
+          "97"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T20:17:56.281Z"
+      },
+      {
+        "id": "99",
+        "title": "Implementar POST /api/admin/lecciones/:id/content para guardar contenido interactivo",
+        "description": "Endpoint protegido solo para admin que valida el JSON de contenido con Zod y lo guarda en la BD",
+        "details": "Crear/extender `backend/src/routes/lecciones.ts` (ya existe para POST /:id/completar). Agregar `import { verifyJWT } from '../middleware/auth.middleware'` (middleware de admin existente). Implementar `router.post('/:id/content', verifyJWT, async (req, res) => {...})`. Parsear req.body con `leccionContenidoSchema.safeParse(req.body)`. Si falla, responder 400 con `{ error: 'Contenido inválido', issues: result.error.issues }` (issues de Zod en formato estructurado para el cliente). Si pasa, ejecutar `await prisma.leccion.update({ where: { id: leccionId }, data: { content: result.data } })`. Responder 200 con `{ success: true }`. Manejar 404 si la lección no existe. Registrar en `backend/src/index.ts` la ruta como `app.use('/api/lecciones', leccionesRoutes)` si no está ya.",
+        "testStrategy": "Prueba de integración: (1) enviar JSON inválido (type incorrecto, campo faltante) y verificar respuesta 400 con issues de Zod, (2) enviar JSON válido y verificar 200 + contenido guardado en BD, (3) verificar que solo admins autenticados puedan acceder (sin token → 401, token de alumno → 403), (4) intentar con ID de lección inexistente → 404. Usar Thunder Client o Postman.",
+        "priority": "high",
+        "dependencies": [
+          "97",
+          "98"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T20:26:36.437Z"
+      },
+      {
+        "id": "100",
+        "title": "Implementar GET /api/lecciones/:id/jugar para devolver contenido interactivo",
+        "description": "Endpoint público/autenticado que devuelve el JSON de content si la lección es accesible (esGratis o suscripción activa)",
+        "details": "En `backend/src/routes/lecciones.ts`, agregar `router.get('/:id/jugar', verifyAlumnoJWT, async (req, res) => {...})`. Importar `verifyAlumnoJWT` de `middleware/alumno-auth.middleware` y `tieneSuscripcionActiva` de `lib/suscripciones` (ya existen). Buscar la lección con `prisma.leccion.findUnique({ where: { id }, select: { id, titulo, esGratis, content } })`. Si no existe → 404. Si `!leccion.esGratis`, verificar `await tieneSuscripcionActiva(req.alumno.alumnoId)`. Si no activa → 403 con `{ error: 'Lección bloqueada', upgradeUrl: '/planes' }`. Si pasa, responder 200 con `{ leccion: { id, titulo, content } }`. Si content es null, devolver null (lección sin contenido interactivo, debe usar el viewer simple).",
+        "testStrategy": "Prueba de integración: (1) lección esGratis=true con content → 200 con JSON, (2) lección esGratis=false sin suscripción activa → 403 con upgradeUrl, (3) lección esGratis=false con suscripción activa → 200, (4) lección con content=null → 200 con content:null, (5) ID inexistente → 404. Probar con token de alumno y sin token (verificar middleware).",
+        "priority": "medium",
+        "dependencies": [
+          "97",
+          "98",
+          "99"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T20:26:36.460Z"
+      },
+      {
+        "id": "101",
+        "title": "Crear helper compartido storage.ts para subir archivos a R2",
+        "description": "Generalizar la lógica de S3Client y PutObjectCommand en un helper reutilizable para certificados y audios",
+        "details": "Crear `backend/src/lib/storage.ts`. Exportar `subirArchivoR2(key: string, buffer: Buffer, contentType: string): Promise<string | undefined>` que reutilice `getS3Client()` de `certificado-pdf.ts` (moverlo a storage.ts), valide las env vars (R2_ACCOUNT_ID, ACCESS_KEY, SECRET_KEY, BUCKET, PUBLIC_URL), ejecute `PutObjectCommand`, retorne la URL pública o undefined si falla/no configurado. Loguear con `log('info', '[R2] Archivo subido: {url}')` y `log('warn', '[R2] No configurado — archivo no subido')`. Modificar `certificado-pdf.ts` para importar y usar `subirArchivoR2('certificados/{codigo}.pdf', buffer, 'application/pdf')` en vez de duplicar el código.",
+        "testStrategy": "Prueba unitaria con mock de S3Client: verificar que llame a PutObjectCommand con los parámetros correctos y retorne la URL esperada. Prueba de integración local (si R2 está configurado): subir un archivo de prueba y verificar que la URL pública funcione. Prueba de degradación: sin env vars, verificar que retorne undefined y loguee warning sin lanzar error.",
+        "priority": "medium",
+        "dependencies": [],
         "status": "pending",
         "subtasks": []
+      },
+      {
+        "id": "102",
+        "title": "Configurar binario Piper TTS en Dockerfile para síntesis de voz offline",
+        "description": "Descargar el binario Piper CLI (Linux x64) y el modelo en_US-lessac-medium.onnx en el contenedor Docker de Railway",
+        "details": "Editar `backend/Dockerfile` (o crear si no existe). Agregar paso RUN para descargar el binario Piper desde GitHub releases (https://github.com/rhasspy/piper/releases, versión estable más reciente, ej. v1.2.0) para Linux x64. Descargar el modelo `en_US-lessac-medium.onnx` y `en_US-lessac-medium.onnx.json` desde Hugging Face (https://huggingface.co/rhasspy/piper-voices/tree/main/en/en_US/lessac/medium). Colocar el binario en `/usr/local/bin/piper` con permisos de ejecución (`RUN chmod +x /usr/local/bin/piper`). Colocar los archivos del modelo en `/app/tts-models/en_US-lessac-medium.onnx` y `.json`. Verificar que el tamaño de la imagen Docker no crezca excesivamente (comprimir con multi-stage build si es necesario). Documentar las env vars de R2 en `.env.example` (CLOUDFLARE_R2_ACCOUNT_ID, ACCESS_KEY, SECRET_KEY).",
+        "testStrategy": "Build local de la imagen Docker: `docker build -t mea-backend .` y verificar que el binario y modelos estén presentes (`docker run --rm mea-backend ls -lh /usr/local/bin/piper /app/tts-models`). Ejecutar un test simple dentro del contenedor: `echo 'Hello world' | piper --model /app/tts-models/en_US-lessac-medium.onnx --output_file /tmp/test.wav` y verificar que genere un WAV válido. Deploy a Railway y verificar que no rompa el build.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "103",
+        "title": "Implementar función sintetizarAudioPiper en Node con child_process",
+        "description": "Wrapper Node para invocar Piper CLI, pasar texto por stdin, capturar WAV por stdout y subirlo a R2",
+        "details": "Crear `backend/src/lib/tts.ts`. Exportar `async function sintetizarAudioPiper(texto: string, leccionId: number, pasoIndex: number): Promise<string | undefined>`. Usar `child_process.execFile` (no spawn ni exec por seguridad) para invocar `/usr/local/bin/piper --model /app/tts-models/en_US-lessac-medium.onnx --output-raw`. Pasar `texto` por stdin, capturar stdout (raw PCM) con un Buffer. Convertir PCM a WAV con headers (16kHz mono, 16-bit, formato estándar WAV RIFF). Importar `subirArchivoR2` de `lib/storage.ts`. Generar key como `lecciones/{leccionId}/paso-{pasoIndex}.wav`. Llamar `subirArchivoR2(key, wavBuffer, 'audio/wav')`. Retornar la URL pública o undefined si falla. Si R2 no está configurado, loguear warning y retornar undefined (modo degradado). Manejar errores de Piper (exit code != 0) logueando el stderr y retornando undefined.",
+        "testStrategy": "Prueba unitaria (mock de execFile): verificar que se invoque Piper con los argumentos correctos y que se procese el stdout. Prueba de integración local (con binario Piper instalado): sintetizar 'Hello world', verificar que genere WAV válido, subirlo a R2 (si configurado) y reproducir el audio. Prueba de degradación: sin R2, verificar que retorne undefined sin romper.",
+        "priority": "high",
+        "dependencies": [
+          "101",
+          "102"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "104",
+        "title": "Implementar script generate-leccion.ts para generación LLM + TTS + almacenamiento",
+        "description": "Pipeline CLI que llama a Anthropic para generar LeccionContenido, sintetiza audios con Piper, sube a R2 y guarda en BD",
+        "details": "Crear `backend/src/scripts/generate-leccion.ts` (similar a `seed-cursos-online.ts`). Parsear CLI args: `--curso`, `--capitulo`, `--tema`, `--nivel`, `--frases` (formato 'phraseEn|phraseEs;...'). Construir prompt para Claude Sonnet (ANTHROPIC_API_KEY) exigiendo JSON válido de `LeccionContenido` con reglas pedagógicas del PRD: por frase meta → listen_learn + reconocimiento + producción; cada 2 frases → listen_learn combinador + ejercicio; 15-18 pasos máx; feedback positivo en español neutro (Guatemala); diálogo funcional (taller/oficina). Llamar API con `messages: [{ role: 'user', content: prompt }]`, `model: 'claude-sonnet-4-20250514'`, `max_tokens: 4096`. Parsear respuesta con `leccionContenidoSchema.safeParse`. Si falla, reintentar 1 vez con mensaje de corrección ('El JSON generado tiene estos errores: {issues}. Por favor corrígelo.'). Si vuelve a fallar, abortar con error claro. Para cada paso con `audioUrl` pendiente (listen_learn, multiple_choice con audio): llamar `sintetizarAudioPiper(phraseEn, leccionId, pasoIndex)`, reemplazar placeholder por URL. Si sintetizarAudioPiper retorna undefined, dejar `audioUrl: ''` y loguear warning. Buscar/crear Capitulo (upsert), crear Leccion (upsert por slug generado desde `tema`), guardar `content` validado. Imprimir resumen al final (título, slug, pasos generados, audios sintetizados).",
+        "testStrategy": "Prueba end-to-end local: ejecutar con frases de ejemplo, verificar que genere JSON válido, sintetice audios (si R2 configurado), y guarde en BD. Verificar que el JSON cumpla con el schema. Probar reintento en caso de JSON inválido (mock de Anthropic con respuesta inválida → corrección). Probar sin R2 configurado (modo degradado con audioUrl vacío). Verificar que no rompa si el Capitulo ya existe.",
+        "priority": "high",
+        "dependencies": [
+          "97",
+          "98",
+          "99",
+          "103"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "105",
+        "title": "Crear componentes React para los 6 tipos de pasos del LessonPlayer",
+        "description": "Implementar IntroStep, ListenLearnStep, MultipleChoiceStep, ArrangeWordsStep, FillBlankStep, WriteWordStep en components/cursos-online/lesson-steps/",
+        "details": "Crear directorio `components/cursos-online/lesson-steps/`. Crear un archivo por componente: `IntroStep.tsx` (título + body con markdown simple), `ListenLearnStep.tsx` (phraseEn + phraseEs, botón play con <audio>, botones 1X y lenta con playbackRate), `MultipleChoiceStep.tsx` (question, audio opcional, opciones como botones, feedback inmediato verde/rojo, reintento 'Start over'), `ArrangeWordsStep.tsx` (phraseEs arriba, palabras arrastrables con @dnd-kit/core, verificar orden al soltar), `FillBlankStep.tsx` (sentenceParts con espacio en blanco, opciones como botones, rellenar y verificar), `WriteWordStep.tsx` (promptEs, input de texto con hints de letras, validar exactitud ignorando case/acentos con normalize('NFD')). Todos deben recibir props del tipo de paso + callback onComplete(correcto: boolean). Usar colores de marca MEA (#0A2540 primario, #00C4B4 acento) y Tailwind con clases de rounded-2xl, shadow-sm, bg-white. Feedback: banner verde 'Correcto! {traducción}' o rojo 'Intenta de nuevo' con botón 'Start over'.",
+        "testStrategy": "Prueba de componente aislado con Storybook o página de prueba: renderizar cada paso con datos de ejemplo, verificar que el audio se reproduzca, que las opciones sean clicables, que el drag&drop funcione, que el feedback se muestre correctamente. Probar casos edge: sin audio, sin opciones, respuesta correcta al primer intento, múltiples reintentos.",
+        "priority": "high",
+        "dependencies": [
+          "97"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "106",
+        "title": "Implementar componente LessonPlayer con navegación de pasos y cálculo de puntaje",
+        "description": "Componente orquestador que renderiza los pasos secuencialmente, muestra progreso, calcula score y llama al endpoint de completar",
+        "details": "Crear `components/cursos-online/LessonPlayer.tsx`. Props: `leccionId: number`, `content: LeccionContenido`, `onExit: () => void`. Estado: `currentStepIndex: number`, `respuestas: boolean[]` (array de correctos al primer intento), `erroresPorPaso: number[]`. Renderizar barra de progreso arriba (%) con `(currentStepIndex / content.steps.length) * 100`, botón X que llama onExit. Renderizar el paso actual usando switch/map sobre `content.steps[currentStepIndex].type` → componente correspondiente. Botón 'Continuar' abajo que solo se habilita tras recibir feedback (onComplete del paso hijo). Al avanzar, guardar respuesta en `respuestas[]` (true si correcto al primer intento, false si requirió reintentos). Al llegar al último paso, mostrar pantalla de cierre con score calculado como `(respuestas.filter(r => r).length / respuestas.length) * 100`. Llamar `alumnoApi.completarLeccion(leccionId, Math.round(score))`. Botón 'Siguiente lección' o 'Volver al curso'. Usar animaciones con framer-motion para transiciones entre pasos.",
+        "testStrategy": "Prueba de integración con mock de alumnoApi: renderizar LessonPlayer con contenido de ejemplo (3-4 pasos), completar todos correctamente, verificar que score sea 100 y que se llame a completarLeccion. Completar con errores, verificar que score baje. Probar navegación (avanzar/retroceder si se implementa), verificar que el progreso se actualice. Probar onExit.",
+        "priority": "high",
+        "dependencies": [
+          "105"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "107",
+        "title": "Integrar LessonPlayer en página de lección existente con condicional según leccion.content",
+        "description": "Modificar LeccionClient.tsx para renderizar LessonPlayer si content existe, o el viewer simple si content es null",
+        "details": "Editar `components/cursos-online/LeccionClient.tsx` línea 154-226. Antes de renderizar el contenido simple (`ContenidoLeccion`), agregar condicional: si `leccion.content` existe (no null), hacer fetch a `GET /api/lecciones/{leccionId}/jugar` (agregar método en `lib/alumno-api.ts`: `jugarLeccion(leccionId): Promise<{ leccion: { id, titulo, content: LeccionContenido | null } }>`). Si content null, renderizar viewer simple (no cambiar). Si content existe, renderizar `<LessonPlayer leccionId={leccion.id} content={content} onExit={() => router.push(`/cursos/${cursoSlug}`)} />`. Importar LessonPlayer. Mantener el bloque de 'Marcar como completada' oculto cuando se usa LessonPlayer (el player maneja el guardado). No romper lecciones sin content (esGratis con urlContenido simple).",
+        "testStrategy": "Prueba end-to-end: (1) lección sin content (urlContenido video/audio) → renderiza viewer simple + botón manual, (2) lección con content → renderiza LessonPlayer, completa pasos, verifica que se guarde el puntaje y se muestre certificado si corresponde, (3) lección bloqueada → muestra mensaje de upgrade sin romper. Probar con y sin suscripción activa.",
+        "priority": "high",
+        "dependencies": [
+          "106",
+          "100"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "108",
+        "title": "Generar 3 lecciones seed para capítulo 'Diálogos del taller' con generate-leccion.ts",
+        "description": "Ejecutar el script de generación para crear lecciones interactivas de ejemplo en el curso 'ingles-talleres-mecanicos'",
+        "details": "Ejecutar `npx ts-node scripts/generate-leccion.ts` 3 veces con estos parámetros: (1) `--curso 'ingles-talleres-mecanicos' --capitulo 'Diálogos del taller' --tema 'Recibir al cliente' --nivel 'A1' --frases 'Good morning|Buenos días;What is the problem?|¿Cuál es el problema?;My car makes a noise|Mi carro hace un ruido;Let me check|Déjame revisar'`, marcar esGratis=true en la BD tras generarla. (2) `--curso 'ingles-talleres-mecanicos' --capitulo 'Diálogos del taller' --tema 'Las partes básicas' --nivel 'A1' --frases 'The engine|El motor;The brakes|Los frenos;The oil|El aceite;The battery is dead|La batería está muerta;Check the tire|Revise la llanta'`. (3) `--curso 'ingles-talleres-mecanicos' --capitulo 'Diálogos del taller' --tema 'Cotizar y despedir' --nivel 'A1' --frases 'It costs fifty dollars|Cuesta cincuenta dólares;It will be ready tomorrow|Estará listo mañana;Thank you|Gracias;See you later|Hasta luego'`. Verificar que las lecciones se creen con orden 1, 2, 3 en el capítulo, y que los audios se sinteticen y suban a R2 (si configurado). Actualizar manualmente `esGratis=true` solo para la primera lección en la BD.",
+        "testStrategy": "Verificar en BD que las 3 lecciones existan con `content` válido. Acceder a `/cursos/ingles-talleres-mecanicos` y verificar que el capítulo 'Diálogos del taller' aparezca con 3 lecciones. Jugar la lección 1 (gratis) sin login, verificar que funcione. Intentar jugar lección 2 sin suscripción → debe bloquear. Jugar con suscripción activa → debe funcionar. Reproducir audios en cada paso, verificar que suenen correctos.",
+        "priority": "medium",
+        "dependencies": [
+          "104",
+          "107"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "109",
+        "title": "Validación end-to-end: lección interactiva completa desde generación hasta certificado",
+        "description": "Flujo completo: generar lección → jugar en navegador → completar con puntaje → verificar certificado si promedio >= 85",
+        "details": "Prueba manual end-to-end: (1) Generar una lección nueva con generate-leccion.ts (tema no usado), verificar que se guarde en BD con content válido y audios. (2) Loguearse como alumno con suscripción activa, acceder a la lección en `/cursos/{slug}/leccion/{leccionSlug}`. (3) Completar todos los pasos correctamente (100%), verificar que el score se calcule bien. (4) Verificar que se llame a `POST /api/lecciones/:id/completar` con puntaje correcto. (5) Si el alumno ya tiene otras lecciones del curso completadas y el promedio llega a 85+, verificar que se emita el certificado automáticamente (llamada a `emitirCertificadoOnlineSiCorresponde` ya existe en lecciones.ts). (6) Verificar que el certificado aparezca con `urlPdf` si R2 está configurado, o sin urlPdf (modo degradado). (7) Acceder al certificado en `/verify-online/{codigo}` y verificar que se vea correctamente. Probar también con puntaje bajo (<85) y verificar que NO se emita certificado.",
+        "testStrategy": "Checklist manual: [ ] Lección generada sin errores, [ ] LessonPlayer renderiza todos los pasos, [ ] Audio se reproduce, [ ] Feedback correcto/incorrecto funciona, [ ] Score se calcula bien, [ ] Puntaje se guarda en BD, [ ] Certificado se emite si promedio >= 85, [ ] Certificado NO se emite si promedio < 85, [ ] PDF se sube a R2 (si configurado), [ ] Verificación pública funciona. Documentar cualquier regresión en lecciones sin content.",
+        "priority": "high",
+        "dependencies": [
+          "108"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "110",
+        "title": "Extend Prisma schema with Ruta and RutaLeccion models",
+        "description": "Add Ruta and RutaLeccion models to schema.prisma and update Capitulo with nivel field",
+        "details": "1. Add `Ruta` model with Int @id @default(autoincrement()), slug (unique), titulo, descripcion, nivelMinimo, nivelMaximo, icono (nullable), orden (default 0), publicada (default false), proximamente (default false)\n2. Add `RutaLeccion` M2M pivot with composite PK [rutaId, leccionId], orden field, proper indexes\n3. Add `nivel String` field to Capitulo model with default \"A1\" for migration safety\n4. Add inverse relation `rutas RutaLeccion[]` to existing Leccion model\n5. Run `npx prisma migrate dev --name add-rutas-curriculum` to generate migration\n6. Verify migration runs without breaking existing InscripcionOnline, ProgresoLeccion, CertificadoOnline tables\n7. Use Int PKs throughout (NOT cuid), consistent with existing schema",
+        "testStrategy": "1. Verify migration applies cleanly against existing DB\n2. Check that all existing foreign key relationships remain intact\n3. Confirm Capitulo rows get nivel=\"A1\" default\n4. Test that InscripcionOnline/ProgresoLeccion queries still work\n5. Verify composite PK constraint on RutaLeccion prevents duplicates",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.141Z"
+      },
+      {
+        "id": "111",
+        "title": "Create comprehensive A1-C1 curriculum seed script",
+        "description": "Build seed-curriculum.ts with complete temario from A1 to C1 as specified in PRD tables",
+        "details": "1. Create `backend/src/scripts/seed-curriculum.ts` following pattern of seed-cursos-online.ts\n2. Find/update existing `ingles-general-a1` CursoOnline → rename slug to `ingles-general`, update titulo to \"Inglés General\" (preserve ID for InscripcionOnline integrity)\n3. For each A1-C1 table row in PRD: parse \"Lecciones clave\" column (split by comma/semicolon) into individual Leccion objects\n4. Generate Capitulo with `nivel` field set per table section (A1/A2/B1/B2/C1)\n5. For each Leccion: generate kebab-case slug from English title (ascii, unique within chapter), set titulo from Spanish title, urlContenido=null initially, orden from position\n6. Upsert by slug (idempotent) - if Capitulo slug exists, skip or update; if Leccion slug exists within Capitulo, skip\n7. Insert ALL chapters under `ingles-general` CursoOnline (not creating new courses)\n8. Keep existing `ingles-talleres-mecanicos` and `ingles-de-oficina` untouched (referenced by existing inscriptions)\n9. Use Prisma upsert pattern to make script re-runnable without duplicating data",
+        "testStrategy": "1. Run seed twice, verify no duplicate Capitulo/Leccion rows created\n2. Count total Leccion rows matches expected count from PRD tables (approximately 150-200 lecciones A1-C1)\n3. Verify each Capitulo has correct nivel field (A1/A2/B1/B2/C1)\n4. Confirm ingles-general CursoOnline ID unchanged, slug updated from ingles-general-a1\n5. Verify existing talleres/oficina courses remain untouched\n6. Test Leccion slugs are unique, kebab-case, ascii-only",
+        "priority": "high",
+        "dependencies": [
+          "110"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.146Z"
+      },
+      {
+        "id": "112",
+        "title": "Seed 7 Rutas with correct assignment matrix",
+        "description": "Extend seed-curriculum.ts to insert Ruta rows and populate RutaLeccion according to PRD assignment matrix",
+        "details": "1. Define 7 Ruta objects in seed-curriculum.ts: general (A1-C1), viajar (A1-A2), restaurantes (A1-A2), talleres (A1-A2), oficina (A2-B1), tecnicos-pc (A2-B1), call-center (B2-C1)\n2. Set icono field using lucide-react icon names (Globe, Plane, UtensilsCrossed, Wrench, Briefcase, Monitor, Headset)\n3. For `general` Ruta: insert ALL Leccion IDs from A1-C1 curriculum into RutaLeccion, ordered by Capitulo.nivel then Capitulo.orden then Leccion.orden\n4. For specialized Rutas (viajar, restaurantes, talleres, oficina, tecnicos-pc, call-center): query Leccion by chapter titulo/keyword matching per PRD matrix rules, insert into RutaLeccion with appropriate orden\n5. For talleres and oficina Rutas: also include existing Leccion IDs from `ingles-talleres-mecanicos` and `ingles-de-oficina` CursoOnline\n6. Set Ruta.orden: general=1, viajar=2, restaurantes=3, talleres=4, oficina=5, tecnicos-pc=6, call-center=7\n7. Mark all 7 Rutas as publicada=true\n8. Use upsert by slug to make idempotent",
+        "testStrategy": "1. Verify all 7 Rutas created with correct slugs and orden\n2. Check general Ruta has ~150-200 RutaLeccion entries (all A1-C1)\n3. Verify viajar/restaurantes Rutas only reference A1-A2 lecciones\n4. Confirm call-center Ruta includes B2-C1 lecciones\n5. Test talleres Ruta includes both general A1-A2 lecciones AND existing talleres-specific lecciones\n6. Verify no Leccion is duplicated within same Ruta (composite PK enforces)\n7. Run query: SELECT rutaId, COUNT(*) FROM RutaLeccion GROUP BY rutaId - confirm non-zero counts",
+        "priority": "high",
+        "dependencies": [
+          "111"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.150Z"
+      },
+      {
+        "id": "113",
+        "title": "Implement GET /api/rutas backend endpoint",
+        "description": "Create backend/src/routes/rutas.ts with public catalog endpoint matching cursos-online pattern",
+        "details": "1. Create `backend/src/routes/rutas.ts` Express router\n2. GET /api/rutas endpoint: query Ruta where publicada=true, orderBy orden asc\n3. Include count of RutaLeccion per Ruta (totalLecciones)\n4. Return RutaResumen interface: id, slug, titulo, descripcion, nivelMinimo, nivelMaximo, icono, proximamente, totalLecciones\n5. Implement Redis caching with key `rutas:all`, TTL from COURSE_CACHE_TTL (same as cursos-online)\n6. Use same try/catch Redis pattern as cursos-online.ts (graceful degradation if Redis unavailable)\n7. Register router in backend/src/index.ts: app.use('/api/rutas', rutasRouter)\n8. Import getJSON/setJSON from lib/redis.ts, COURSE_CACHE_TTL from lib/redis.ts",
+        "testStrategy": "1. Test GET /api/rutas returns exactly 7 Rutas in orden order\n2. Verify totalLecciones counts match RutaLeccion rows per Ruta\n3. Check response includes all fields: slug, titulo, descripcion, nivelMinimo, nivelMaximo, icono, proximamente\n4. Test Redis caching: first request hits DB, second returns cached (check logs/timing)\n5. Test graceful degradation: stop Redis, verify endpoint still works from DB\n6. Verify proximamente field works (create test Ruta with proximamente=true, confirm excluded)",
+        "priority": "high",
+        "dependencies": [
+          "112"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.154Z"
+      },
+      {
+        "id": "114",
+        "title": "Implement GET /api/rutas/:slug/curriculum endpoint",
+        "description": "Add curriculum detail endpoint with lesson access control and optional progress data",
+        "details": "1. Add GET /api/rutas/:slug/curriculum to rutas.ts router\n2. Use optionalAlumnoJWT middleware (same as cursos-online/:slug)\n3. Query Ruta by slug where publicada=true, include RutaLeccion ordered by orden, join to Leccion → Capitulo → CursoOnline\n4. Reconstruct response grouped by Capitulo (each Leccion already knows its capitulo via FK)\n5. For slug==='general': order Capitulos by nivel field (A1, A2, B1, B2, C1) to enable tabs\n6. For other slugs: order Capitulos by orden field\n7. Apply access control per Leccion: if esGratis OR alumno has suscripcionActiva → bloqueada=false, expose urlContenido; else bloqueada=true, urlContenido=null\n8. If alumnoId present: join ProgresoLeccion to include completada/puntaje fields per lesson\n9. Return RutaCurriculum interface: id, slug, titulo, descripcion, nivelMinimo, nivelMaximo, capitulos (grouped), inscrito (always false - Rutas don't have inscriptions), suscripcionActiva\n10. Cache anonymous requests only (with Redis key `rutas:curriculum:{slug}`)",
+        "testStrategy": "1. Test anonymous request: bloqueada=true for non-free lessons, urlContenido=null\n2. Test with alumno JWT + active subscription: all lessons bloqueada=false, urlContenido exposed\n3. Test with alumno JWT without subscription: only esGratis lessons unlocked\n4. Verify general Ruta response has capitulos ordered by nivel (A1 first, C1 last)\n5. Verify viajar Ruta capitulos ordered by original orden field\n6. Test completada/puntaje fields present when alumnoId exists\n7. Verify 404 for non-existent slug or unpublished Ruta",
+        "priority": "high",
+        "dependencies": [
+          "113"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.158Z"
+      },
+      {
+        "id": "115",
+        "title": "Create lib/rutas.ts frontend fetcher functions",
+        "description": "Build frontend fetcher module matching lib/cursos-online.ts pattern for server components",
+        "details": "1. Create `lib/rutas.ts` with TypeScript interfaces: RutaResumen, RutaCurriculum, CapituloRuta, LeccionRuta\n2. Implement getRutas(): Promise<RutaResumen[]> fetcher hitting GET /api/rutas with ISR revalidation (same REVALIDATE_SECONDS as cursos-online)\n3. Implement getRutaCurriculum(slug: string): Promise<RutaCurriculum | null> hitting GET /api/rutas/:slug/curriculum\n4. Use same error handling pattern as cursos-online.ts (return [] or null on error, don't throw)\n5. Match TypeScript interfaces exactly to backend response shape\n6. Export nivel badge color helper: getNivelBadgeColor(nivelMin, nivelMax) → returns tailwind classes (green for A1-A2, amber for B1-B2, red if includes C1) using MEA colors #0A2540/#00C4B4\n7. No client-side state management needed (server components only)",
+        "testStrategy": "1. Test getRutas() in Next.js dev server, verify 7 Rutas returned\n2. Test getRutaCurriculum('general'), verify A1-C1 curriculum structure\n3. Test getRutaCurriculum('viajar'), verify only A1-A2 lecciones\n4. Test error handling: pass invalid slug, verify returns null without throwing\n5. Verify TypeScript types match backend response (no any types)\n6. Test getNivelBadgeColor helper returns correct color for each Ruta",
+        "priority": "medium",
+        "dependencies": [
+          "114"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.161Z"
+      },
+      {
+        "id": "116",
+        "title": "Refactor app/cursos/page.tsx to display Ruta cards",
+        "description": "Replace CursoOnline listing with Ruta catalog using getRutas()",
+        "details": "1. Update app/cursos/page.tsx: replace getCursosOnline() call with getRutas()\n2. Update CatalogoCursos component (or create new CatalogoRutas) to map Ruta objects instead of CursoOnline\n3. Each Ruta card displays: titulo, nivel badge (colored by getNivelBadgeColor), totalLecciones count, first line of descripcion, icono from lucide-react\n4. Order cards by Ruta.orden field (general first)\n5. Link each card to /cursos/[slug] (route already exists, will be refactored in next task)\n6. Update page metadata: title \"Rutas de Aprendizaje\" instead of \"Cursos\", description mentions 7 specialized tracks\n7. Keep existing CTA to /planes at bottom\n8. Use MEA colors #0A2540 (primary dark) and #00C4B4 (accent teal) per globals.css, NO other colors\n9. Remove tabs/filtering by track (old CursoOnline pattern) - Rutas are flat list",
+        "testStrategy": "1. Visit /cursos, verify 7 Ruta cards rendered in correct orden\n2. Verify \"Inglés General\" card shows nivel badge \"A1-C1\" in appropriate color\n3. Verify specialized Rutas show correct nivel ranges (e.g., viajar: A1-A2)\n4. Test totalLecciones count matches backend data\n5. Verify lucide-react icons render correctly (Globe, Plane, etc.)\n6. Test responsive layout on mobile/desktop\n7. Verify links navigate to /cursos/[slug]",
+        "priority": "medium",
+        "dependencies": [
+          "115"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.164Z"
+      },
+      {
+        "id": "117",
+        "title": "Refactor app/cursos/[slug]/page.tsx for Ruta detail with nivel tabs",
+        "description": "Update course detail page to resolve by Ruta slug and show A1-C1 tabs for general, single view for specialized",
+        "details": "1. Update app/cursos/[slug]/page.tsx to call getRutaCurriculum(slug) instead of getCursoOnline(slug)\n2. If slug === 'general': render tabs UI (A1 | A2 | B1 | B2 | C1) using shadcn/ui Tabs or custom pills, filter capitulos by nivel per selected tab\n3. For each tab: render acordeones grouped by Capitulo, expandable to show Lecciones with lock icon (bloqueada), check icon (completada), gray text (locked)\n4. If slug !== 'general': show badge \"Nivel: {nivelMinimo}–{nivelMaximo}\" at top, optional short section \"¿Por qué este nivel?\", single list of capitulos (no tabs)\n5. Use MEA color palette: tabs active state #00C4B4, inactive #0A2540/50% opacity\n6. Each Leccion links to /cursos/[rutaSlug]/leccion/[leccionSlug] (new route pattern - will be handled in next task)\n7. Show progress indicator if alumno logged in: \"X de Y lecciones completadas\" with percentage bar\n8. Update metadata to use Ruta titulo/descripcion\n9. Handle 404 if Ruta not found",
+        "testStrategy": "1. Visit /cursos/general, verify 5 tabs (A1-C1) render\n2. Click A1 tab, verify only A1 capitulos/lecciones shown\n3. Verify lecciones with esGratis=true show unlocked, others show lock icon\n4. Visit /cursos/viajar, verify single view (no tabs), nivel badge \"A1-A2\"\n5. Test logged-in alumno sees completada checkmarks and progress percentage\n6. Test anonymous user sees all non-free lecciones locked\n7. Verify /cursos/invalid-slug returns 404",
+        "priority": "high",
+        "dependencies": [
+          "116"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.168Z"
+      },
+      {
+        "id": "118",
+        "title": "Update app/cursos/[slug]/leccion/[leccionSlug]/page.tsx to resolve from Ruta",
+        "description": "Modify lesson page to resolve leccionSlug within Ruta curriculum instead of CursoOnline",
+        "details": "1. Update app/cursos/[slug]/leccion/[leccionSlug]/page.tsx to accept params: { slug: rutaSlug, leccionSlug }\n2. Call getRutaCurriculum(rutaSlug) to fetch Ruta curriculum\n3. Find Leccion by matching leccionSlug within curriculum (flatten capitulos.lecciones, Array.find by slug)\n4. If not found in Ruta: return 404\n5. Pass Leccion data to existing LeccionClient component (no changes needed to LeccionClient)\n6. Breadcrumb trail: /cursos → /cursos/{rutaSlug} → current lesson titulo\n7. \"Inscribirme\" CTA (if not inscrito): call POST /api/cursos-online/{cursoOnlineId}/inscribir using the real cursoOnlineId from Leccion.capitulo.cursoOnline (InscripcionOnline still references CursoOnline, not Ruta)\n8. \"Completar\" action: call existing POST /api/lecciones/{leccionId}/completar - ProgresoLeccion still references leccionId directly\n9. Progress and certificate logic UNCHANGED: still groups by CursoOnline in /mis-cursos\n10. Ensure existing LeccionClient, inscripcion, and progreso endpoints work without modification",
+        "testStrategy": "1. Navigate from /cursos/general (A1 tab) → click a leccion → verify lesson page loads\n2. Verify breadcrumb shows correct Ruta slug (not CursoOnline slug)\n3. Test \"Inscribirme\" CTA calls correct cursoOnlineId (verify in network tab)\n4. Test \"Completar\" action updates ProgresoLeccion (check DB or /mis-cursos)\n5. Verify bloqueada lecciones show upgrade CTA instead of content\n6. Test lectiones from specialized Ruta (e.g., /cursos/viajar/leccion/...)\n7. Verify 404 for invalid leccionSlug within valid Ruta",
+        "priority": "medium",
+        "dependencies": [
+          "117"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.172Z"
+      },
+      {
+        "id": "119",
+        "title": "Update /mis-cursos to show Ruta context alongside CursoOnline progress",
+        "description": "Optionally enhance progress page to show which Rutas contain the user's enrolled courses",
+        "details": "1. This task is OPTIONAL per PRD (\"certificado por Ruta queda fuera\" - simplification conscious)\n2. Current /mis-cursos groups progress by CursoOnline (inscripcionOnline.cursoOnlineId) - NO CHANGES to core logic\n3. Enhancement: for each enrolled CursoOnline, query which Rutas include its Lecciones via RutaLeccion\n4. Display small badge on course card: \"También en: Viajar, Restaurantes\" (list of Ruta titulos)\n5. Clicking Ruta badge navigates to /cursos/{rutaSlug}\n6. This is informational only - progress calculation and certificates remain grouped by CursoOnline\n7. If time-constrained, SKIP this task entirely (PRD allows it: \"es una simplificación consciente\")",
+        "testStrategy": "1. Enroll in ingles-general, complete some lecciones\n2. Visit /mis-cursos, verify progress shows under \"Inglés General\" course\n3. If enhancement implemented: verify badges show \"También en: Inglés General, Viajar\" (if lecciones overlap)\n4. Test progress percentage calculation unchanged (still based on CursoOnline total lecciones)\n5. Verify certificates still reference cursoOnlineId, not rutaId\n6. Test skipping this task doesn't break existing functionality",
+        "priority": "low",
+        "dependencies": [
+          "118"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.175Z"
+      },
+      {
+        "id": "120",
+        "title": "Integration testing and cache invalidation",
+        "description": "End-to-end testing of Rutas feature and Redis cache invalidation strategy",
+        "details": "1. Test complete user flow: anonymous user browses /cursos → clicks general Ruta → explores A1 tab → clicks free leccion → views content\n2. Test authenticated flow: alumno with active subscription browses /cursos → clicks call-center Ruta → verifies all B2-C1 lecciones unlocked → completes a lesson → returns to Ruta page, sees progress\n3. Test cache invalidation: after running seed-curriculum.ts, verify GET /api/rutas and GET /api/rutas/:slug/curriculum return fresh data (clear Redis keys: DEL rutas:all, DEL rutas:curriculum:*)\n4. Create cache warming script (optional): backend/src/scripts/warm-rutas-cache.ts that pre-fetches all Rutas into Redis after seed\n5. Test Redis failure mode: stop Redis, verify all endpoints gracefully fall back to Prisma queries\n6. Load test: simulate 100 concurrent requests to /api/rutas/:slug/curriculum, verify acceptable response time with Redis (<100ms) and without (<500ms)\n7. Verify no N+1 query issues: enable Prisma query logging, count queries per endpoint call (should be O(1) with proper includes/joins)",
+        "testStrategy": "1. Run seed-curriculum.ts, verify 7 Rutas + ~150-200 Lecciones created\n2. Clear Redis cache, hit /cursos, verify data loads correctly\n3. Check Redis cache populated after first request\n4. Test anonymous vs authenticated access to locked lecciones\n5. Verify ProgresoLeccion updates correctly from Ruta-based lesson pages\n6. Test all 7 Rutas render correctly on /cursos with correct nivel badges\n7. Verify no broken links in Ruta → Leccion navigation\n8. Check Prisma query count: should be 2-3 queries per curriculum endpoint (not 50+)",
+        "priority": "medium",
+        "dependencies": [
+          "111",
+          "112",
+          "113",
+          "114",
+          "118"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-09T06:05:11.178Z"
+      },
+      {
+        "id": "121",
+        "title": "Extend Prisma schema with live class models",
+        "description": "Add GrupoClaseEnVivo and HorarioClase models to schema.prisma, plus incluyeClasesEnVivo field to Plan model",
+        "details": "Add the two new models exactly as specified in the PRD:\n\n```prisma\nmodel GrupoClaseEnVivo {\n  id              Int                 @id @default(autoincrement())\n  slug            String              @unique\n  nombre          String\n  audiencia       String              // \"ninos\" | \"adolescentes\" | \"adultos\" | \"general\"\n  niveles         String              // \"A1\" | \"A2\" | \"B2,C1\" | \"PRE_A1\" | \"PRE_BEGINNERS\" | \"A1,A2\"\n  descripcion     String?             @db.Text\n  profesor        String?\n  urlZoom         String              // placeholder inicial \"https://zoom.us/j/PENDIENTE\"\n  duracionMinutos Int                 @default(60)\n  activo          Boolean             @default(true)\n  horarios        HorarioClase[]\n}\n\nmodel HorarioClase {\n  id           Int              @id @default(autoincrement())\n  grupoId      Int\n  grupo        GrupoClaseEnVivo @relation(fields: [grupoId], references: [id])\n  diaSemana    Int              // 0=domingo, 1=lunes, 2=martes, 3=miércoles, 4=jueves, 5=viernes, 6=sábado\n  horaInicio   String           // \"HH:mm\" 24h, hora de Guatemala\n\n  @@unique([grupoId, diaSemana, horaInicio])\n}\n```\n\nAnd extend the existing Plan model:\n```prisma\nmodel Plan {\n  // ... existing fields\n  incluyeClasesEnVivo Boolean @default(false)\n  // ... existing relations\n}\n```\n\nAfter editing schema.prisma, run `npx prisma migrate dev --name agregar-clases-en-vivo` to create the migration, then `npx prisma generate` to update the Prisma client.",
+        "testStrategy": "After migration: verify the tables exist in the database with `npx prisma studio` or by inspecting the generated migration SQL. Confirm Plan model has the new field and both new models are present with correct field types and constraints.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.648Z"
+      },
+      {
+        "id": "122",
+        "title": "Create seed script for live class groups and schedules",
+        "description": "Implement backend/src/scripts/seed-clases-en-vivo.ts following the idempotent upsert pattern from seed-cursos-online.ts",
+        "details": "Create `backend/src/scripts/seed-clases-en-vivo.ts` following the exact pattern from `seed-cursos-online.ts` (static arrays with upsert by slug, idempotent).\n\nDefine the 8 groups and 16 schedules as specified in the PRD table:\n\n```typescript\nimport prisma from \"../lib/prisma\";\n\nconst GRUPOS = [\n  {\n    slug: \"basic-ninos\",\n    nombre: \"Basic Niños\",\n    audiencia: \"ninos\",\n    niveles: \"A1\",\n    descripcion: null,\n    profesor: null,\n    urlZoom: \"https://zoom.us/j/PENDIENTE\",\n    duracionMinutos: 60,\n    horarios: [{ diaSemana: 1, horaInicio: \"17:00\" }, { diaSemana: 3, horaInicio: \"17:00\" }]\n  },\n  {\n    slug: \"basico-2-adolescentes\",\n    nombre: \"Básico 2 Adolescentes\",\n    audiencia: \"adolescentes\",\n    niveles: \"A2\",\n    descripcion: null,\n    profesor: null,\n    urlZoom: \"https://zoom.us/j/PENDIENTE\",\n    duracionMinutos: 60,\n    horarios: [{ diaSemana: 1, horaInicio: \"18:20\" }, { diaSemana: 3, horaInicio: \"18:20\" }]\n  },\n  // ... continue for all 8 groups as per PRD table\n];\n\nasync function main() {\n  for (const grupo of GRUPOS) {\n    const { horarios, ...grupoData } = grupo;\n    const created = await prisma.grupoClaseEnVivo.upsert({\n      where: { slug: grupo.slug },\n      update: grupoData,\n      create: grupoData\n    });\n    \n    // Delete old schedules and recreate (simplest idempotent approach)\n    await prisma.horarioClase.deleteMany({ where: { grupoId: created.id } });\n    for (const h of horarios) {\n      await prisma.horarioClase.create({\n        data: { grupoId: created.id, diaSemana: h.diaSemana, horaInicio: h.horaInicio }\n      });\n    }\n  }\n  \n  // Update Plan \"profesional\" to incluyeClasesEnVivo: true\n  await prisma.plan.update({\n    where: { slug: \"profesional\" },\n    data: { incluyeClasesEnVivo: true }\n  });\n  \n  console.log(\"✓ Seeded 8 live class groups with 16 schedules\");\n}\n\nmain().catch(console.error).finally(() => prisma.$disconnect());\n```\n\nAdd script to package.json:\n```json\n\"seed:clases-en-vivo\": \"ts-node src/scripts/seed-clases-en-vivo.ts\"\n```",
+        "testStrategy": "Run `npm run seed:clases-en-vivo` multiple times (idempotent test). Verify with Prisma Studio: 8 GrupoClaseEnVivo records exist with correct slugs, 16 HorarioClase records (2 per group), and Plan \"profesional\" has incluyeClasesEnVivo=true. Re-run should not create duplicates or error.",
+        "priority": "high",
+        "dependencies": [
+          "121"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.653Z"
+      },
+      {
+        "id": "123",
+        "title": "Implement timezone-aware time calculation utilities",
+        "description": "Create backend/src/lib/horario-clases.ts with pure functions for Guatemala timezone handling using Intl.DateTimeFormat",
+        "details": "Create `backend/src/lib/horario-clases.ts` with pure, testable functions for time calculations in America/Guatemala timezone (UTC-6, no DST).\n\nImplement these functions:\n\n```typescript\nimport { GrupoClaseEnVivo, HorarioClase } from \"@prisma/client\";\n\nexport type GrupoConHorarios = GrupoClaseEnVivo & { horarios: HorarioClase[] };\n\nexport interface ClaseEnVivo {\n  grupoId: number;\n  grupoSlug: string;\n  nombre: string;\n  audiencia: string;\n  niveles: string;\n  profesor: string | null;\n  horaFin: string; // \"HH:mm\"\n}\n\nexport interface ProximaClase {\n  grupoId: number;\n  nombre: string;\n  diaSemana: number;\n  horaInicio: string;\n  niveles: string;\n  minutosHasta: number; // always positive\n}\n\n// Pure function: converts any Date to Guatemala time components\nexport function obtenerAhoraGuatemala(fecha: Date = new Date()): { diaSemana: number; minutos: number } {\n  const formatter = new Intl.DateTimeFormat('en-US', {\n    timeZone: 'America/Guatemala',\n    weekday: 'narrow', // returns single letter, use numeric\n    hour: '2-digit',\n    minute: '2-digit',\n    hour12: false\n  });\n  \n  // More reliable approach: use getDay() after converting to Guatemala\n  const gtDate = new Date(fecha.toLocaleString('en-US', { timeZone: 'America/Guatemala' }));\n  const diaSemana = gtDate.getDay(); // 0=Sun, 1=Mon, etc.\n  const minutos = gtDate.getHours() * 60 + gtDate.getMinutes();\n  \n  return { diaSemana, minutos };\n}\n\n// Check if a schedule is currently live\nexport function estaEnVivo(\n  horario: { diaSemana: number; horaInicio: string },\n  duracionMinutos: number,\n  ahora: { diaSemana: number; minutos: number }\n): boolean {\n  if (horario.diaSemana !== ahora.diaSemana) return false;\n  \n  const [h, m] = horario.horaInicio.split(':').map(Number);\n  const inicio = h * 60 + m;\n  const fin = inicio + duracionMinutos;\n  \n  return ahora.minutos >= inicio && ahora.minutos < fin;\n}\n\n// Get all currently live classes\nexport function obtenerClasesEnVivo(\n  grupos: GrupoConHorarios[],\n  ahora: { diaSemana: number; minutos: number }\n): ClaseEnVivo[] {\n  const resultado: ClaseEnVivo[] = [];\n  \n  for (const grupo of grupos.filter(g => g.activo)) {\n    for (const horario of grupo.horarios) {\n      if (estaEnVivo(horario, grupo.duracionMinutos, ahora)) {\n        const [h, m] = horario.horaInicio.split(':').map(Number);\n        const finMin = h * 60 + m + grupo.duracionMinutos;\n        const horaFin = `${String(Math.floor(finMin / 60)).padStart(2, '0')}:${String(finMin % 60).padStart(2, '0')}`;\n        \n        resultado.push({\n          grupoId: grupo.id,\n          grupoSlug: grupo.slug,\n          nombre: grupo.nombre,\n          audiencia: grupo.audiencia,\n          niveles: grupo.niveles,\n          profesor: grupo.profesor,\n          horaFin\n        });\n      }\n    }\n  }\n  \n  return resultado;\n}\n\n// Get next upcoming class (smallest future distance in the week)\nexport function obtenerProximaClase(\n  grupos: GrupoConHorarios[],\n  ahora: { diaSemana: number; minutos: number }\n): ProximaClase | null {\n  let mejorDistancia = Infinity;\n  let mejor: ProximaClase | null = null;\n  \n  for (const grupo of grupos.filter(g => g.activo)) {\n    for (const horario of grupo.horarios) {\n      const [h, m] = horario.horaInicio.split(':').map(Number);\n      const inicio = h * 60 + m;\n      \n      // Calculate distance in minutes (wrapping week if needed)\n      let distancia: number;\n      if (horario.diaSemana === ahora.diaSemana && inicio > ahora.minutos) {\n        distancia = inicio - ahora.minutos;\n      } else if (horario.diaSemana > ahora.diaSemana) {\n        distancia = (horario.diaSemana - ahora.diaSemana) * 1440 + inicio - ahora.minutos;\n      } else {\n        // Wrap to next week\n        distancia = (7 - ahora.diaSemana + horario.diaSemana) * 1440 + inicio - ahora.minutos;\n      }\n      \n      if (distancia < mejorDistancia) {\n        mejorDistancia = distancia;\n        mejor = {\n          grupoId: grupo.id,\n          nombre: grupo.nombre,\n          diaSemana: horario.diaSemana,\n          horaInicio: horario.horaInicio,\n          niveles: grupo.niveles,\n          minutosHasta: distancia\n        };\n      }\n    }\n  }\n  \n  return mejor;\n}\n```\n\nAll functions are pure with injected time parameter for testability (pattern from lib/recurrente.ts).",
+        "testStrategy": "Write test-clases-en-vivo.ts (next task) to verify timezone calculations work correctly regardless of server timezone, and that próxima clase correctly wraps to next week when needed.",
+        "priority": "high",
+        "dependencies": [
+          "121"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.658Z"
+      },
+      {
+        "id": "124",
+        "title": "Create test script for live class time logic",
+        "description": "Implement backend/src/scripts/test-clases-en-vivo.ts following the assert-based pattern from test-fase3.ts",
+        "details": "Create `backend/src/scripts/test-clases-en-vivo.ts` following the pattern from `test-fase3.ts` (using `assert`, no Jest/Vitest).\n\nTest cases:\n\n```typescript\nimport assert from \"assert\";\nimport { obtenerAhoraGuatemala, estaEnVivo, obtenerClasesEnVivo, obtenerProximaClase } from \"../lib/horario-clases\";\n\n// Test 1: obtenerAhoraGuatemala with UTC date\nconst utcDate = new Date(\"2026-07-09T19:00:00Z\"); // 19:00 UTC = 13:00 Guatemala (UTC-6)\nconst gt = obtenerAhoraGuatemala(utcDate);\nassert.strictEqual(gt.diaSemana, 3); // Wednesday\nassert.strictEqual(gt.minutos, 13 * 60); // 13:00 = 780 minutes\n\n// Test 2: estaEnVivo - class currently live\nconst horaInicio17 = { diaSemana: 1, horaInicio: \"17:00\" };\nconst ahora17_30 = { diaSemana: 1, minutos: 17 * 60 + 30 };\nassert.strictEqual(estaEnVivo(horaInicio17, 60, ahora17_30), true);\n\n// Test 3: estaEnVivo - exact end boundary (should be false)\nconst ahora18_00 = { diaSemana: 1, minutos: 18 * 60 };\nassert.strictEqual(estaEnVivo(horaInicio17, 60, ahora18_00), false);\n\n// Test 4: estaEnVivo - one minute before end (should be true)\nconst ahora17_59 = { diaSemana: 1, minutos: 17 * 60 + 59 };\nassert.strictEqual(estaEnVivo(horaInicio17, 60, ahora17_59), true);\n\n// Test 5: obtenerClasesEnVivo - no active groups\nconst gruposVacio: any[] = [];\nassert.deepStrictEqual(obtenerClasesEnVivo(gruposVacio, ahora17_30), []);\n\n// Test 6: obtenerProximaClase - wraps to next week\nconst grupoLunes: any = {\n  id: 1,\n  nombre: \"Test\",\n  niveles: \"A1\",\n  activo: true,\n  duracionMinutos: 60,\n  horarios: [{ diaSemana: 1, horaInicio: \"17:00\" }]\n};\nconst jueves21 = { diaSemana: 4, minutos: 21 * 60 }; // Thursday 21:00\nconst proxima = obtenerProximaClase([grupoLunes], jueves21);\nassert.strictEqual(proxima?.diaSemana, 1); // Should wrap to Monday\nassert.ok(proxima && proxima.minutosHasta > 0); // Should have positive distance\n\n// Test 7: obtenerProximaClase - null when no groups\nassert.strictEqual(obtenerProximaClase([], ahora17_30), null);\n\nconsole.log(\"✓ obtenerAhoraGuatemala: timezone conversion OK\");\nconsole.log(\"✓ estaEnVivo: boundary cases OK\");\nconsole.log(\"✓ obtenerClasesEnVivo: empty array OK\");\nconsole.log(\"✓ obtenerProximaClase: week wrap OK\");\nconsole.log(\"Todos los tests de clases en vivo pasaron.\");\n```\n\nAdd to package.json scripts:\n```json\n\"test:clases-en-vivo\": \"ts-node src/scripts/test-clases-en-vivo.ts\"\n```",
+        "testStrategy": "Run `npm run test:clases-en-vivo`. All assertions should pass. Verify that timezone calculations work correctly regardless of server timezone (UTC on Railway), boundary conditions are handled properly, and week wrapping logic is correct.",
+        "priority": "high",
+        "dependencies": [
+          "123"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.662Z"
+      },
+      {
+        "id": "125",
+        "title": "Extend suscripciones library with live class access check",
+        "description": "Add tieneSuscripcionConClasesEnVivo function to backend/src/lib/suscripciones.ts without modifying existing tieneSuscripcionActiva",
+        "details": "Extend `backend/src/lib/suscripciones.ts` by adding a new function that checks if an alumno has an active subscription WITH live class access.\n\n```typescript\n// Add to existing file (do NOT modify tieneSuscripcionActiva)\n\n// Check if alumno has active subscription with live class feature\nexport async function tieneSuscripcionConClasesEnVivo(alumnoId: number): Promise<boolean> {\n  const suscripcion = await prisma.suscripcion.findFirst({\n    where: {\n      alumnoId,\n      estado: \"ACTIVA\",\n      OR: [{ fechaFin: null }, { fechaFin: { gt: new Date() } }],\n    },\n    include: {\n      planPrecio: {\n        include: {\n          plan: {\n            select: { incluyeClasesEnVivo: true }\n          }\n        }\n      }\n    }\n  });\n  \n  return suscripcion?.planPrecio.plan.incluyeClasesEnVivo === true;\n}\n```\n\nThis extends the existing check to also verify the plan includes live classes. Keep the original `tieneSuscripcionActiva` function unchanged as it's used throughout the codebase for unlocking lessons.",
+        "testStrategy": "After implementing the routes (task 126), test with: (1) Alumno with Plan Profesional ACTIVA → should return true, (2) Alumno with Plan Esencial ACTIVA → should return false (no live classes), (3) Alumno without subscription → should return false. Verify existing lesson unlock logic still works (uses tieneSuscripcionActiva).",
+        "priority": "high",
+        "dependencies": [
+          "121"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.668Z"
+      },
+      {
+        "id": "126",
+        "title": "Create live class public API endpoint for schedule",
+        "description": "Implement GET /api/clases-en-vivo/horario endpoint with liveNow and nextClass calculations",
+        "details": "Create `backend/src/routes/clases-en-vivo.ts` starting with the public endpoint:\n\n```typescript\nimport { Router, Request, Response } from \"express\";\nimport prisma from \"../lib/prisma\";\nimport { obtenerAhoraGuatemala, obtenerClasesEnVivo, obtenerProximaClase } from \"../lib/horario-clases\";\n\nconst router = Router();\n\n// Public endpoint: full weekly schedule + current live classes + next class\nrouter.get(\"/horario\", async (req: Request, res: Response) => {\n  const grupos = await prisma.grupoClaseEnVivo.findMany({\n    where: { activo: true },\n    include: { horarios: true },\n    orderBy: { nombre: \"asc\" }\n  });\n  \n  const ahora = obtenerAhoraGuatemala();\n  const liveNow = obtenerClasesEnVivo(grupos, ahora);\n  const nextClass = obtenerProximaClase(grupos, ahora);\n  \n  // CRITICAL: Never include urlZoom in public response\n  const horarioSemanal = grupos.map(g => ({\n    id: g.id,\n    slug: g.slug,\n    nombre: g.nombre,\n    audiencia: g.audiencia,\n    niveles: g.niveles,\n    descripcion: g.descripcion,\n    profesor: g.profesor,\n    duracionMinutos: g.duracionMinutos,\n    horarios: g.horarios.map(h => ({\n      diaSemana: h.diaSemana,\n      horaInicio: h.horaInicio\n    }))\n  }));\n  \n  res.json({\n    horarioSemanal,\n    liveNow,\n    nextClass\n  });\n});\n\nexport default router;\n```\n\nMount in `backend/src/index.ts`:\n```typescript\nimport clasesEnVivoRoutes from \"./routes/clases-en-vivo\";\napp.use(\"/api/clases-en-vivo\", clasesEnVivoRoutes);\n```\n\nEnsure urlZoom is explicitly filtered out in the response mapping.",
+        "testStrategy": "Test with: `curl http://localhost:3001/api/clases-en-vivo/horario | jq`. Verify: (1) Response includes horarioSemanal with 8 groups, (2) liveNow is empty array when no class is live, (3) nextClass shows upcoming class with correct minutosHasta, (4) CRITICAL: urlZoom field does NOT appear anywhere in response JSON.",
+        "priority": "high",
+        "dependencies": [
+          "123",
+          "125"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.673Z"
+      },
+      {
+        "id": "127",
+        "title": "Create gated Zoom entry endpoint with rate limiting",
+        "description": "Implement GET /api/clases-en-vivo/:grupoId/entrar with alumno JWT verification, subscription check, and rate limiting",
+        "details": "Add the gated entry endpoint to `backend/src/routes/clases-en-vivo.ts`:\n\n```typescript\nimport { verifyAlumnoJWT } from \"../middleware/alumno-auth.middleware\";\nimport { tieneSuscripcionConClasesEnVivo } from \"../lib/suscripciones\";\nimport { log } from \"../lib/logger\";\nimport redisClient from \"../lib/redis\";\n\n// Rate limiting: max 10 entry attempts per alumno per hour\nconst RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds\nconst RATE_LIMIT_MAX = 10;\n\nrouter.get(\"/:grupoId/entrar\", verifyAlumnoJWT, async (req: Request, res: Response) => {\n  const grupoId = parseInt(req.params[\"grupoId\"] as string);\n  const alumnoId = req.alumno!.alumnoId;\n  \n  if (isNaN(grupoId)) {\n    res.status(400).json({ error: \"ID de grupo inválido\" });\n    return;\n  }\n  \n  // Rate limiting (same pattern as checkoutAttempts in routes/suscripciones.ts)\n  const rateLimitKey = `live_class_entry:${alumnoId}`;\n  try {\n    const attempts = await redisClient.incr(rateLimitKey);\n    if (attempts === 1) await redisClient.expire(rateLimitKey, RATE_LIMIT_WINDOW);\n    if (attempts > RATE_LIMIT_MAX) {\n      res.status(429).json({ error: \"Demasiados intentos. Intentá de nuevo en una hora.\" });\n      return;\n    }\n  } catch {\n    // Redis unavailable, allow request (fail open for availability)\n  }\n  \n  // Check subscription with live class access\n  const tieneAcceso = await tieneSuscripcionConClasesEnVivo(alumnoId);\n  if (!tieneAcceso) {\n    res.status(403).json({ reason: \"plan_required\", error: \"Necesitás un plan con clases en vivo\" });\n    return;\n  }\n  \n  // Fetch group with schedules\n  const grupo = await prisma.grupoClaseEnVivo.findUnique({\n    where: { id: grupoId },\n    include: { horarios: true }\n  });\n  \n  if (!grupo || !grupo.activo) {\n    res.status(404).json({ error: \"Grupo no encontrado\" });\n    return;\n  }\n  \n  // Check if class is live OR starts in next 10 minutes\n  const ahora = obtenerAhoraGuatemala();\n  const MIN_ANTICIPACION = 10; // minutes before class start\n  \n  let puedeEntrar = false;\n  let nextOccurrence: { diaSemana: number; horaInicio: string } | null = null;\n  \n  for (const horario of grupo.horarios) {\n    if (estaEnVivo(horario, grupo.duracionMinutos, ahora)) {\n      puedeEntrar = true;\n      break;\n    }\n    \n    // Check if starts in next 10 minutes\n    if (horario.diaSemana === ahora.diaSemana) {\n      const [h, m] = horario.horaInicio.split(':').map(Number);\n      const inicioMin = h * 60 + m;\n      const diff = inicioMin - ahora.minutos;\n      \n      if (diff > 0 && diff <= MIN_ANTICIPACION) {\n        puedeEntrar = true;\n        break;\n      }\n    }\n  }\n  \n  if (!puedeEntrar) {\n    // Find next occurrence for helpful error message\n    const proxima = obtenerProximaClase([grupo], ahora);\n    if (proxima) {\n      nextOccurrence = { diaSemana: proxima.diaSemana, horaInicio: proxima.horaInicio };\n    }\n    \n    res.status(409).json({ \n      reason: \"not_live\", \n      error: \"Esta clase no está en vivo ahora\",\n      nextOccurrence \n    });\n    return;\n  }\n  \n  // Success: log entry and return Zoom URL\n  log(\"info\", `[ClasesEnVivo] Alumno ${alumnoId} entró a grupo ${grupoId} (${grupo.nombre})`);\n  \n  res.json({ zoomUrl: grupo.urlZoom });\n});\n```\n\nThis endpoint handles all gating logic: JWT verification, subscription check with live class feature, rate limiting, and time-based access control (only when class is live or starts in 10 minutes).",
+        "testStrategy": "Test scenarios: (1) Alumno with Profesional plan + class live → returns {zoomUrl}, (2) Alumno with Esencial plan → 403 with reason:plan_required, (3) No JWT token → 401, (4) Class not live and not starting soon → 409 with reason:not_live and nextOccurrence, (5) Class starting in 5 minutes → returns {zoomUrl}, (6) 11th request in same hour → 429 rate limit error.",
+        "priority": "high",
+        "dependencies": [
+          "125",
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.677Z"
+      },
+      {
+        "id": "128",
+        "title": "Implement admin CRUD endpoints for live class groups",
+        "description": "Add admin-protected POST, PATCH endpoints for creating and editing live class groups in same clases-en-vivo.ts file",
+        "details": "Extend `backend/src/routes/clases-en-vivo.ts` with admin endpoints following the pattern from `routes/cursos.ts` (verifyJWT + auditLog in same file):\n\n```typescript\nimport { verifyJWT } from \"../middleware/auth.middleware\";\nimport { auditLog } from \"../middleware/audit.middleware\";\n\n// Admin: Create new live class group\nrouter.post(\"/\", verifyJWT, auditLog(\"CREAR_GRUPO_CLASE\", \"clases-en-vivo\"), async (req: Request, res: Response) => {\n  const { slug, nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos } = req.body as {\n    slug?: string;\n    nombre?: string;\n    audiencia?: string;\n    niveles?: string;\n    descripcion?: string;\n    profesor?: string;\n    urlZoom?: string;\n    duracionMinutos?: number;\n  };\n  \n  if (!slug || !nombre || !audiencia || !niveles) {\n    res.status(400).json({ error: \"Faltan campos requeridos: slug, nombre, audiencia, niveles\" });\n    return;\n  }\n  \n  const grupo = await prisma.grupoClaseEnVivo.create({\n    data: {\n      slug,\n      nombre,\n      audiencia,\n      niveles,\n      descripcion,\n      profesor,\n      urlZoom: urlZoom ?? \"https://zoom.us/j/PENDIENTE\",\n      duracionMinutos: duracionMinutos ?? 60,\n      activo: true\n    }\n  });\n  \n  res.status(201).json(grupo);\n});\n\n// Admin: Update live class group (including urlZoom)\nrouter.patch(\"/:id\", verifyJWT, auditLog(\"ACTUALIZAR_GRUPO_CLASE\", \"clases-en-vivo\"), async (req: Request, res: Response) => {\n  const id = parseInt(req.params[\"id\"] as string);\n  if (isNaN(id)) {\n    res.status(400).json({ error: \"ID inválido\" });\n    return;\n  }\n  \n  const { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo } = req.body as {\n    nombre?: string;\n    audiencia?: string;\n    niveles?: string;\n    descripcion?: string;\n    profesor?: string;\n    urlZoom?: string;\n    duracionMinutos?: number;\n    activo?: boolean;\n  };\n  \n  const grupo = await prisma.grupoClaseEnVivo.update({\n    where: { id },\n    data: { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo }\n  });\n  \n  res.json(grupo);\n});\n\n// Admin: Add schedule to group\nrouter.post(\"/:id/horarios\", verifyJWT, auditLog(\"AGREGAR_HORARIO\", \"clases-en-vivo\"), async (req: Request, res: Response) => {\n  const grupoId = parseInt(req.params[\"id\"] as string);\n  if (isNaN(grupoId)) {\n    res.status(400).json({ error: \"ID inválido\" });\n    return;\n  }\n  \n  const { diaSemana, horaInicio } = req.body as { diaSemana?: number; horaInicio?: string };\n  \n  if (diaSemana === undefined || !horaInicio) {\n    res.status(400).json({ error: \"Faltan campos: diaSemana, horaInicio\" });\n    return;\n  }\n  \n  if (diaSemana < 0 || diaSemana > 6) {\n    res.status(400).json({ error: \"diaSemana debe estar entre 0 (domingo) y 6 (sábado)\" });\n    return;\n  }\n  \n  // Validate time format HH:mm\n  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(horaInicio)) {\n    res.status(400).json({ error: \"horaInicio debe tener formato HH:mm (24h)\" });\n    return;\n  }\n  \n  const horario = await prisma.horarioClase.create({\n    data: { grupoId, diaSemana, horaInicio }\n  });\n  \n  res.status(201).json(horario);\n});\n```\n\nThese endpoints allow Guido to manage live class groups from admin panel without touching code, including editing Zoom URLs when available.",
+        "testStrategy": "Test with admin JWT token: (1) POST /api/clases-en-vivo creates new group, (2) PATCH /api/clases-en-vivo/1 updates urlZoom successfully, (3) POST /api/clases-en-vivo/1/horarios adds schedule with validation, (4) Invalid diaSemana or horaInicio format returns 400, (5) All actions create audit log entries via auditLog middleware.",
+        "priority": "medium",
+        "dependencies": [
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.682Z"
+      },
+      {
+        "id": "129",
+        "title": "Create frontend fetcher library for live classes",
+        "description": "Implement lib/clases-en-vivo.ts following the pattern from lib/rutas.ts for server-side fetching",
+        "details": "Create `lib/clases-en-vivo.ts` following the exact pattern from `lib/rutas.ts` (server-side fetcher with revalidation):\n\n```typescript\nconst API_URL = process.env.NEXT_PUBLIC_API_URL ?? \"https://api.mea.edu.gt\";\nconst REVALIDATE_SECONDS = 60; // Refresh every minute for live status\n\nexport interface HorarioSemanal {\n  id: number;\n  slug: string;\n  nombre: string;\n  audiencia: string;\n  niveles: string;\n  descripcion: string | null;\n  profesor: string | null;\n  duracionMinutos: number;\n  horarios: { diaSemana: number; horaInicio: string }[];\n}\n\nexport interface ClaseEnVivo {\n  grupoId: number;\n  grupoSlug: string;\n  nombre: string;\n  audiencia: string;\n  niveles: string;\n  profesor: string | null;\n  horaFin: string;\n}\n\nexport interface ProximaClase {\n  grupoId: number;\n  nombre: string;\n  diaSemana: number;\n  horaInicio: string;\n  niveles: string;\n  minutosHasta: number;\n}\n\nexport interface HorarioClasesResponse {\n  horarioSemanal: HorarioSemanal[];\n  liveNow: ClaseEnVivo[];\n  nextClass: ProximaClase | null;\n}\n\nexport async function getHorarioClases(): Promise<HorarioClasesResponse> {\n  const res = await fetch(`${API_URL}/api/clases-en-vivo/horario`, {\n    next: { revalidate: REVALIDATE_SECONDS }\n  });\n  \n  if (!res.ok) {\n    throw new Error(`Error fetching horario: ${res.status}`);\n  }\n  \n  return res.json();\n}\n\nexport async function entrarClase(grupoId: number, token: string): Promise<{ zoomUrl: string }> {\n  const res = await fetch(`${API_URL}/api/clases-en-vivo/${grupoId}/entrar`, {\n    headers: {\n      Authorization: `Bearer ${token}`\n    },\n    cache: 'no-store' // Never cache Zoom URLs\n  });\n  \n  if (!res.ok) {\n    const error = await res.json().catch(() => ({ error: 'Error desconocido' }));\n    throw new Error(error.error || `Error ${res.status}`);\n  }\n  \n  return res.json();\n}\n\n// Helper: day of week number to Spanish name\nexport function nombreDiaSemana(dia: number): string {\n  const nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];\n  return nombres[dia] ?? 'Desconocido';\n}\n\n// Helper: badge color by audience\nexport function colorAudiencia(audiencia: string): string {\n  switch (audiencia) {\n    case 'ninos': return 'bg-blue-100 text-blue-700';\n    case 'adolescentes': return 'bg-purple-100 text-purple-700';\n    case 'adultos': return 'bg-slate-100 text-slate-700';\n    default: return 'bg-gray-100 text-gray-700';\n  }\n}\n\n// Helper: badge color by level (extends colorBadgeNivel from lib/rutas.ts)\nexport function colorNivel(niveles: string): string {\n  if (niveles.includes('PRE_')) return 'bg-gray-100 text-gray-600';\n  if (niveles.includes('B2') || niveles.includes('C1')) return 'bg-red-100 text-red-700';\n  return 'bg-green-100 text-green-700'; // A1, A2\n}\n```",
+        "testStrategy": "After creating the frontend page (task 130), verify fetcher works: (1) getHorarioClases() returns data with correct types, (2) entrarClase() with valid token returns {zoomUrl}, (3) Helper functions return correct colors and day names.",
+        "priority": "medium",
+        "dependencies": [
+          "126"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.687Z"
+      },
+      {
+        "id": "130",
+        "title": "Create /clases-en-vivo frontend page with live banner",
+        "description": "Implement app/clases-en-vivo/page.tsx with live class banner, weekly schedule grid, and 60s refresh interval",
+        "details": "Create `app/clases-en-vivo/page.tsx` with:\n\n1. Server Component wrapper that fetches initial data\n2. Client Component with setInterval(60s) to refresh liveNow/nextClass\n3. Live banner with pulsing animation when classes are live\n4. Weekly schedule grid (only Mon/Tue/Wed/Thu columns)\n5. Call-to-action based on session state\n\n```typescript\n'use client';\n\nimport { useState, useEffect } from 'react';\nimport { getHorarioClases, type HorarioClasesResponse, nombreDiaSemana, colorAudiencia, colorNivel } from '@/lib/clases-en-vivo';\nimport { CheckCircle, Clock, Users } from 'lucide-react';\nimport Link from 'next/link';\n\nexport default function ClasesEnVivoPage() {\n  const [data, setData] = useState<HorarioClasesResponse | null>(null);\n  const [loading, setLoading] = useState(true);\n  \n  useEffect(() => {\n    const fetchData = async () => {\n      try {\n        const result = await getHorarioClases();\n        setData(result);\n      } catch (error) {\n        console.error('Error fetching schedule:', error);\n      } finally {\n        setLoading(false);\n      }\n    };\n    \n    fetchData();\n    \n    // Refresh every 60 seconds to update liveNow/nextClass\n    const interval = setInterval(fetchData, 60000);\n    return () => clearInterval(interval);\n  }, []);\n  \n  if (loading) return <div className=\"max-w-7xl mx-auto px-4 py-12\">Cargando...</div>;\n  if (!data) return <div className=\"max-w-7xl mx-auto px-4 py-12\">Error cargando horario</div>;\n  \n  const { horarioSemanal, liveNow, nextClass } = data;\n  \n  return (\n    <div className=\"min-h-screen bg-slate-50\">\n      <div className=\"max-w-7xl mx-auto px-4 py-12\">\n        <h1 className=\"text-4xl font-bold text-[#0A2540] mb-4\">Clases en Vivo</h1>\n        <p className=\"text-lg text-slate-600 mb-8\">\n          Conectate en tiempo real con profesores y compañeros. Horario de Guatemala.\n        </p>\n        \n        {/* Live NOW banner */}\n        {liveNow.length > 0 ? (\n          <div className=\"bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl p-8 mb-8 relative overflow-hidden\">\n            <div className=\"absolute top-4 right-4\">\n              <span className=\"relative flex h-3 w-3\">\n                <span className=\"animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75\"></span>\n                <span className=\"relative inline-flex rounded-full h-3 w-3 bg-white\"></span>\n              </span>\n            </div>\n            <h2 className=\"text-2xl font-bold mb-4\">EN VIVO AHORA</h2>\n            {liveNow.map((clase) => (\n              <div key={clase.grupoId} className=\"mb-4 last:mb-0\">\n                <p className=\"text-xl font-semibold\">{clase.nombre}</p>\n                <p className=\"text-sm opacity-90\">Nivel: {clase.niveles} • Termina a las {clase.horaFin}</p>\n              </div>\n            ))}\n            {/* TODO: Add button logic based on session state */}\n            <Link href=\"/planes\" className=\"inline-block mt-4 bg-white text-red-600 px-6 py-3 rounded-full font-bold hover:bg-slate-100\">\n              Desbloquear clases en vivo\n            </Link>\n          </div>\n        ) : nextClass ? (\n          <div className=\"bg-white border border-slate-200 rounded-2xl p-8 mb-8\">\n            <h2 className=\"text-xl font-bold text-[#0A2540] mb-2 flex items-center gap-2\">\n              <Clock className=\"w-5 h-5 text-[#00C4B4]\" />\n              Próxima clase\n            </h2>\n            <p className=\"text-lg\">{nextClass.nombre}</p>\n            <p className=\"text-sm text-slate-500\">\n              {nombreDiaSemana(nextClass.diaSemana)} a las {nextClass.horaInicio} • En {Math.floor(nextClass.minutosHasta / 60)}h {nextClass.minutosHasta % 60}min\n            </p>\n          </div>\n        ) : null}\n        \n        {/* Weekly schedule grid */}\n        <div className=\"bg-white rounded-2xl border border-slate-100 p-8\">\n          <h2 className=\"text-2xl font-bold text-[#0A2540] mb-6\">Horario Semanal</h2>\n          <div className=\"grid grid-cols-4 gap-4\">\n            {[1, 2, 3, 4].map(dia => (\n              <div key={dia}>\n                <h3 className=\"font-bold text-[#0A2540] mb-3 text-center\">{nombreDiaSemana(dia)}</h3>\n                <div className=\"space-y-3\">\n                  {horarioSemanal\n                    .filter(g => g.horarios.some(h => h.diaSemana === dia))\n                    .map(grupo => \n                      grupo.horarios\n                        .filter(h => h.diaSemana === dia)\n                        .map((horario, idx) => {\n                          const isLive = liveNow.some(live => live.grupoId === grupo.id && live.grupoSlug === grupo.slug);\n                          return (\n                            <div key={`${grupo.id}-${idx}`} className={`p-3 rounded-lg border ${\n                              isLive ? 'border-[#00C4B4] bg-[#00C4B4]/5' : 'border-slate-100'\n                            }`}>\n                              <p className=\"font-semibold text-sm text-[#0A2540]\">{horario.horaInicio}</p>\n                              <p className=\"text-xs font-medium mt-1\">{grupo.nombre}</p>\n                              <div className=\"flex gap-1 mt-2\">\n                                <span className={`text-xs px-2 py-0.5 rounded-full ${colorAudiencia(grupo.audiencia)}`}>\n                                  {grupo.audiencia}\n                                </span>\n                                <span className={`text-xs px-2 py-0.5 rounded-full ${colorNivel(grupo.niveles)}`}>\n                                  {grupo.niveles}\n                                </span>\n                              </div>\n                            </div>\n                          );\n                        })\n                    )}\n                </div>\n              </div>\n            ))}\n          </div>\n        </div>\n        \n        {/* How it works section */}\n        <div className=\"mt-12 bg-white rounded-2xl border border-slate-100 p-8\">\n          <h2 className=\"text-2xl font-bold text-[#0A2540] mb-6\">¿Cómo funcionan las clases en vivo?</h2>\n          <div className=\"grid md:grid-cols-3 gap-6\">\n            <div className=\"text-center\">\n              <div className=\"w-12 h-12 bg-[#00C4B4]/10 rounded-full flex items-center justify-center mx-auto mb-3\">\n                <CheckCircle className=\"w-6 h-6 text-[#00C4B4]\" />\n              </div>\n              <h3 className=\"font-bold mb-2\">1. Contratar plan</h3>\n              <p className=\"text-sm text-slate-600\">El Plan Profesional incluye clases en vivo ilimitadas</p>\n            </div>\n            <div className=\"text-center\">\n              <div className=\"w-12 h-12 bg-[#00C4B4]/10 rounded-full flex items-center justify-center mx-auto mb-3\">\n                <Clock className=\"w-6 h-6 text-[#00C4B4]\" />\n              </div>\n              <h3 className=\"font-bold mb-2\">2. Revisar horario</h3>\n              <p className=\"text-sm text-slate-600\">Elegí el horario que mejor te funcione</p>\n            </div>\n            <div className=\"text-center\">\n              <div className=\"w-12 h-12 bg-[#00C4B4]/10 rounded-full flex items-center justify-center mx-auto mb-3\">\n                <Users className=\"w-6 h-6 text-[#00C4B4]\" />\n              </div>\n              <h3 className=\"font-bold mb-2\">3. Entrar a Zoom</h3>\n              <p className=\"text-sm text-slate-600\">Conectate desde esta página cuando esté en vivo</p>\n            </div>\n          </div>\n        </div>\n      </div>\n    </div>\n  );\n}\n```\n\nUse MEA color palette: primary #0A2540, accent #00C4B4 (from app/globals.css).",
+        "testStrategy": "Manual test: (1) Visit /clases-en-vivo page, (2) When no class is live, see \"Próxima clase\" card, (3) Weekly grid shows 4 columns (Mon-Thu) with correct classes, (4) Wait 60s and verify data refreshes via network tab, (5) During a live class, verify \"EN VIVO AHORA\" banner appears with pulsing animation.",
+        "priority": "medium",
+        "dependencies": [
+          "129"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.691Z"
+      },
+      {
+        "id": "131",
+        "title": "Add live class link to Plan Profesional features",
+        "description": "Update components/planes/PricingPlanes.tsx to make \"Clases en vivo\" feature clickable linking to /clases-en-vivo",
+        "details": "Update `components/planes/PricingPlanes.tsx` to detect and link the live class feature:\n\nFind the feature list rendering (around line 56):\n\n```typescript\n<ul className=\"space-y-3 mb-8\">\n  {plan.features.map((feature) => {\n    const esClaseEnVivo = feature.toLowerCase().includes(\"clases en vivo\");\n    \n    return (\n      <li key={feature} className=\"flex items-start gap-2.5 text-sm text-slate-600\">\n        <Check className=\"w-4 h-4 text-[#00C4B4] mt-0.5 shrink-0\" />\n        {esClaseEnVivo ? (\n          <Link href=\"/clases-en-vivo\" className=\"hover:text-[#00C4B4] hover:underline transition\">\n            {feature}\n          </Link>\n        ) : (\n          <span>{feature}</span>\n        )}\n      </li>\n    );\n  })}\n</ul>\n```\n\nImport Link from next/link at the top if not already imported.\n\nThis makes the \"Clases en vivo ilimitadas\" feature in Plan Profesional clickable, directing users to see the schedule and understand what they get.",
+        "testStrategy": "Visit /planes page, find Plan Profesional card, verify \"Clases en vivo ilimitadas\" feature is now a clickable link (underlines on hover), click it and confirm it navigates to /clases-en-vivo page. Verify other features remain as plain text.",
+        "priority": "low",
+        "dependencies": [
+          "130"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.695Z"
+      },
+      {
+        "id": "132",
+        "title": "Run all seeds and verify database state",
+        "description": "Execute seed:clases-en-vivo script and verify all 8 groups, 16 schedules, and Plan updates are correct",
+        "details": "Execute the complete seeding workflow:\n\n1. Run Prisma migration:\n   ```bash\n   cd backend\n   npx prisma migrate dev --name agregar-clases-en-vivo\n   npx prisma generate\n   ```\n\n2. Run the seed script:\n   ```bash\n   npm run seed:clases-en-vivo\n   ```\n\n3. Verify with Prisma Studio:\n   ```bash\n   npx prisma studio\n   ```\n   \n   Check:\n   - GrupoClaseEnVivo table has exactly 8 records\n   - Slugs match: basic-ninos, basico-2-adolescentes, advance-conversacional, basic-adultos, starters, cubs, smarties, adults\n   - HorarioClase table has exactly 16 records (2 per group)\n   - All urlZoom fields are \"https://zoom.us/j/PENDIENTE\"\n   - All duracionMinutos are 60\n   - Plan table: \"profesional\" has incluyeClasesEnVivo=true, \"esencial\" has incluyeClasesEnVivo=false\n\n4. Test idempotency: run `npm run seed:clases-en-vivo` again and verify no duplicates are created and no errors occur.",
+        "testStrategy": "Seed script completes without errors. Prisma Studio shows exactly 8 groups and 16 schedules with correct data. Running seed twice produces same result (idempotent). Plan \"profesional\" correctly updated.",
+        "priority": "medium",
+        "dependencies": [
+          "122"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:13:58.699Z"
+      },
+      {
+        "id": "133",
+        "title": "Refactor courses section to remove pricing information",
+        "description": "Remove all Quetzal pricing (Q300, Q250, Q1,600) from the existing #cursos section while maintaining the card design and structure",
+        "details": "Edit app/page.tsx lines 115-161 to remove the 'price' field from the courses array data structure. Update lines 638-648 to remove the pricing display block while maintaining the card layout integrity. The courses array should retain all other fields: text, title, features, highlighted, and badge. Update the section heading from 'Elige tu plan de inglés' to 'Elige tu curso de inglés' (line 578) to reflect the separation of concepts. Remove or update lines 586-600 that display the Q100 inscription + Q130 platform badges. Update the bottom disclaimer (lines 683-688) to remove pricing references. The CTA button can be changed to 'Ver planes' linking to #planes or remain as 'Inscríbete Ahora' with WhatsApp link - recommend keeping WhatsApp link for continuity.",
+        "testStrategy": "Visual inspection in dev mode (npm run dev): verify no Q300/Q250/Q1,600 amounts appear in the courses section, verify card layout remains intact with EvervaultCard visual, features list, and CTA button. Check responsive behavior on mobile breakpoints. Verify build passes with 'next build'.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-10T14:54:19.995Z"
+      },
+      {
+        "id": "134",
+        "title": "Create new Planes section component with static pricing data",
+        "description": "Create a new #planes section in app/page.tsx with 2 hardcoded plan cards matching the visual style of the courses section",
+        "details": "After the #cursos section (around line 690), insert a new <section id=\"planes\"> with the same styling pattern (bg-[#0A2540], radial gradient overlay, max-w-7xl container). Create a new data array 'planes' with 2 items: 1) Plan Plataforma (Q150/mes) with features: ['Acceso a la plataforma educativa', 'Material digital y clases grabadas', 'Soporte por WhatsApp', 'Sin clases grupales en vivo'], highlighted: false. 2) Plan Plataforma + Grupos (Q300/mes) with features: ['Todo lo del Plan Plataforma', 'Clases grupales en vivo por Zoom', 'Horarios flexibles de clases', 'Certificado al completar nivel'], highlighted: true, badge: 'Más popular'. Use the same card rendering pattern as courses: EvervaultCard visual component, same Tailwind classes for borders/shadows/backgrounds, same feature list checkmark styling (lines 651-659 pattern), same CTA button with WhatsApp link. Use FadeIn wrapper for animations matching courses section. Display 2 cards in a grid: 'grid md:grid-cols-2 gap-8 items-start max-w-5xl mx-auto' for better centering of 2 cards.",
+        "testStrategy": "Visual inspection: verify 2 plan cards appear with correct pricing (Q150, Q300), verify 'Más popular' badge on Q300 plan, verify same visual style as courses (EvervaultCard, borders, colors, hover effects). Test responsiveness - cards should stack on mobile. Verify WhatsApp CTA links work. Check build success.",
+        "priority": "high",
+        "dependencies": [
+          "133"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-10T14:54:20.002Z"
+      },
+      {
+        "id": "135",
+        "title": "Add inscription badge and disclaimer to Planes section",
+        "description": "Add a prominent Q100 inscription badge above the plan cards and a clear disclaimer below explaining the one-time payment structure",
+        "details": "In the #planes section, before the plan cards grid, add a centered badge similar to lines 589-592 pattern but adapted: Single badge showing 'Q100 inscripción' with 'pago único' label, using same styling (bg-white/5 border border-white/10 rounded-full). After the plan cards grid, add a FadeIn wrapper with disclaimer text: 'Todos los planes requieren una inscripción única de Q100 (pago único, no se repite cada mes). Las mensualidades del plan elegido se pagan por separado, sin acumularse con la inscripción.' Use text-slate-500 text-sm styling matching line 683 pattern but with enhanced clarity about non-accumulation. Add section header before cards: 'Planes de Pago Mensual' with subtitle explaining flexible payment options.",
+        "testStrategy": "Visual inspection: verify Q100 badge displays clearly with 'pago único' label, verify disclaimer text is readable and clearly explains the one-time nature of inscription fee. Test on mobile to ensure text wraps properly. Verify semantic HTML structure is accessible.",
+        "priority": "medium",
+        "dependencies": [
+          "134"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-10T14:54:20.022Z"
+      },
+      {
+        "id": "136",
+        "title": "Update navbar navigation to include Planes link",
+        "description": "Add 'Planes' navigation item to both desktop and mobile menus in navbar and footer",
+        "details": "Edit components/ui/navbar-1.tsx line 9-15: Add { label: 'Planes', href: '#planes' } to navLinks array after the Cursos item (position index 2). This array is used by both desktop nav (line 59) and mobile menu (line 135), so one change updates both. Edit app/page.tsx lines 793-799: Add { label: 'Planes', href: '#planes' } to the inline footer navigation array after Cursos to maintain parity. Verify smooth scroll behavior works for both #cursos and #planes anchors.",
+        "testStrategy": "Manual testing: click Planes link in desktop nav, verify smooth scroll to #planes section. Open mobile menu, click Planes, verify scroll and menu closes. Scroll to footer, click Planes link, verify navigation. Test all navigation states (scrolled/not scrolled for navbar, mobile open/closed). Verify no console errors.",
+        "priority": "medium",
+        "dependencies": [
+          "134"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-10T14:55:12.403Z"
+      },
+      {
+        "id": "137",
+        "title": "Implement responsive design and visual consistency for Planes section",
+        "description": "Ensure the new Planes section matches the visual design system of Cursos section and works seamlessly across all breakpoints",
+        "details": "Apply the same responsive grid pattern as courses but optimized for 2 cards: 'grid md:grid-cols-2 gap-8' instead of 'grid md:grid-cols-3 gap-8'. Ensure EvervaultCard component renders correctly with the same aspect-square container and h-36 height (line 618). Verify badge positioning for 'Más popular' matches courses pattern (absolute -top-4 left-1/2 -translate-x-1/2). Test card heights are consistent using 'h-full flex flex-col' on parent and 'flex-1' on features list. Verify color scheme consistency: same bg-[#0A2540], same text-[#00C4B4] accent, same border-white/10 borders, same hover effects (hover:bg-white/10). Test at breakpoints: mobile (< 768px cards stack), tablet (768px-1024px 2 columns), desktop (>1024px 2 columns centered). Verify section spacing matches: py-24 padding, mb-14 heading margin, etc.",
+        "testStrategy": "Responsive testing: Test on Chrome DevTools at 375px (mobile), 768px (tablet), 1024px (desktop), 1440px (large desktop). Verify cards stack properly on mobile, display 2-column on tablet/desktop. Compare side-by-side with Cursos section - colors, spacing, typography should be identical. Verify hover states work. Test with slow 3G throttling to check animation performance.",
+        "priority": "medium",
+        "dependencies": [
+          "134",
+          "135"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T04:00:00.809Z"
+      },
+      {
+        "id": "138",
+        "title": "Production build validation and final QA",
+        "description": "Run full production build, verify all acceptance criteria, and conduct final visual review before deployment",
+        "details": "Execute production build: 'npm run build' and verify no TypeScript errors, no build warnings, successful compilation. Start production server: 'npm start' and conduct full QA checklist: 1) #cursos section shows NO Quetzal amounts (Q250, Q300, Q1,600 removed), 2) #planes section exists with exactly 2 cards (Plataforma Q150/mes, Plataforma + Grupos Q300/mes), 3) Q300 plan has 'Más popular' badge, 4) Q100 inscription badge displays with 'pago único' label, 5) Disclaimer clearly explains one-time inscription payment, 6) All WhatsApp CTAs work with correct number (+50256311728), 7) Nav (desktop, mobile, footer) includes working #cursos and #planes links, 8) Responsive: cards stack properly on mobile. Test complete user journey: land on page → scroll to cursos → scroll to planes → click plan CTA → WhatsApp opens with pre-filled message. Use Lighthouse to verify no performance/accessibility regressions. Document any edge cases or browser-specific issues.",
+        "testStrategy": "Automated: Run 'next build' and verify exit code 0. Run 'next lint' and verify no errors. Manual QA: Complete acceptance criteria checklist from PRD section 2. Test in Chrome, Firefox, Safari. Test on real mobile device (iOS/Android). Run Lighthouse audit - target scores: Performance >90, Accessibility >95. Compare live production site (mea.edu.gt) before/after to verify no unintended changes to other sections (testimonios, FAQ, hero, footer content).",
+        "priority": "high",
+        "dependencies": [
+          "133",
+          "134",
+          "135",
+          "136",
+          "137"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-11T07:04:22.439Z"
+      },
+      {
+        "id": "139",
+        "title": "Extend Prisma schema for manual deposit payment tracking",
+        "description": "Add new fields to PagoSuscripcion model to support manual bank deposit workflow with Drive storage",
+        "details": "In backend/prisma/schema.prisma, extend the PagoSuscripcion model with:\n- comprobanteUrl String? — Google Drive webViewLink to the uploaded receipt\n- comprobanteDriveId String? — Google Drive file ID for future operations (delete/move)\n- mesPagado String? — month covered by this payment in 'YYYY-MM' format\n\nNo enum changes needed — PagoEstado already has PENDIENTE/COMPLETADO/RECHAZADO, SuscripcionEstado has PENDIENTE/ACTIVA, and Suscripcion.proveedor is already a free String (will use 'manual_deposito').\n\nAfter schema update, run 'npx prisma migrate dev --name add_comprobante_fields' and 'npx prisma generate'.\n\nValidation: Check that the migration creates the three new nullable columns without errors.",
+        "testStrategy": "Run migration in dev environment, verify schema compiles with 'tsc --noEmit', check that PrismaClient types now include the new fields on PagoSuscripcion",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:37:31.818Z"
+      },
+      {
+        "id": "140",
+        "title": "Create Drive helper for receipt uploads",
+        "description": "Implement backend/src/lib/drive-comprobantes.ts to handle Google Drive folder structure and file uploads for payment receipts",
+        "details": "Create backend/src/lib/drive-comprobantes.ts:\n\n1. Import buildDriveClient and isDriveConfigured from '../backup/drive-auth' (REUSE, don't reimplement)\n2. Export function subirComprobanteDeposito({ alumnoNombre, alumnoApellido, alumnoCarnet, mes, buffer, nombreArchivo, mimeType })\n3. Implementation:\n   - Get root folder ID from env var GOOGLE_DRIVE_PAGOS_FOLDER_ID\n   - Search for or create subfolder '{apellido}, {nombre} ({carnet})' inside root\n   - Search for or create subfolder '{mes}' (e.g. '2026-07') inside student folder\n   - Upload file using drive.files.create with buffer as media body\n   - Return { driveFileId: string, url: string } (webViewLink)\n\n4. Use same pattern as backend/src/backup/uploader.ts for folder search/creation:\n   - drive.files.list with q: \"name='folder' and 'parentId' in parents and mimeType='application/vnd.google-apps.folder'\"\n   - drive.files.create with mimeType: 'application/vnd.google-apps.folder' if not found\n\n5. Error handling: if isDriveConfigured() is false, throw clear error (will be caught by endpoint for 503 response)",
+        "testStrategy": "Unit test with mocked Drive API: verify folder hierarchy creation logic, test file upload with sample buffer, verify returned driveFileId and url structure. Integration test uploads actual file to test Drive folder.",
+        "priority": "high",
+        "dependencies": [
+          "139"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:38:53.309Z"
+      },
+      {
+        "id": "141",
+        "title": "Implement POST /api/suscripciones/checkout-manual endpoint",
+        "description": "Create new endpoint to initiate manual deposit payment flow, creating pending Suscripcion and PagoSuscripcion records",
+        "details": "In backend/src/routes/suscripciones.ts, add new route POST /api/suscripciones/checkout-manual:\n\n1. Middleware: verifyAlumnoJWT, rateLimitCheckout (reuse existing)\n2. Body validation: { planPrecioId: number }\n3. Fetch planPrecio with plan relation, verify exists (404 if not)\n4. Fetch alumno from req.alumno.alumnoId, verify activo (401 if not)\n5. Check for existing PENDIENTE Suscripcion with same alumnoId + planPrecioId + proveedor='manual_deposito':\n   - If exists and has PENDIENTE PagoSuscripcion, reuse both (don't create duplicates)\n   - If not, create new Suscripcion with estado=PENDIENTE, proveedor='manual_deposito'\n6. Create (or reuse) PagoSuscripcion with:\n   - proveedor: 'deposito_bi'\n   - estado: PENDIENTE\n   - montoCentavos: planPrecio.precioTotalCentavos\n   - moneda: planPrecio.moneda\n7. Response JSON:\n{\n  suscripcionId: number,\n  pagoId: number,\n  cuenta: {\n    nombreCuenta: 'Corporacion ME',\n    tipoCuenta: 'Cuenta monetaria BI',\n    numeroCuenta: 'GTQ-6930015505',\n    banco: 'Banco Industrial'\n  }\n}\n\nError handling: catch all errors, return appropriate status codes with error messages",
+        "testStrategy": "Integration tests: (1) successful checkout-manual creates Suscripcion and PagoSuscripcion with correct fields, (2) calling twice with same planPrecioId reuses existing pending records, (3) invalid planPrecioId returns 404, (4) inactive alumno returns 401, (5) rate limit triggers after CHECKOUT_MAX_POR_MINUTO attempts",
+        "priority": "high",
+        "dependencies": [
+          "139",
+          "140"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:42:06.716Z"
+      },
+      {
+        "id": "142",
+        "title": "Implement POST /api/suscripciones/pagos/:pagoId/comprobante endpoint",
+        "description": "Create multipart endpoint for students to upload payment receipt images/PDFs to Drive and link to PagoSuscripcion",
+        "details": "In backend/src/routes/suscripciones.ts, add route POST /api/suscripciones/pagos/:pagoId/comprobante:\n\n1. Middleware: verifyAlumnoJWT, multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })\n   - REUSE pattern from backend/src/routes/inscripciones.ts (lines 8-9)\n2. Parse pagoId from params, validate is number\n3. Fetch PagoSuscripcion with suscripcion.alumno relation\n4. Verify ownership: suscripcion.alumnoId === req.alumno.alumnoId (403/404 if not)\n5. Parse body field 'mesPagado' (YYYY-MM format, default to current month if not provided)\n6. Validate mesPagado format with regex /^\\d{4}-\\d{2}$/\n7. Check isDriveConfigured(), return 503 with clear message if false\n8. Upload file:\n   - Call subirComprobanteDeposito with alumno nombre/apellido/carnet, mes, req.file.buffer, req.file.originalname, req.file.mimetype\n   - Get back { driveFileId, url }\n9. Update PagoSuscripcion:\n   - comprobanteUrl = url\n   - comprobanteDriveId = driveFileId\n   - mesPagado = mesPagado\n   - estado stays PENDIENTE (manual approval required)\n10. Response: { success: true, pagoId, comprobanteUrl }\n\nError handling: catch Drive errors, return 502 for upload failures, 503 if Drive not configured",
+        "testStrategy": "Integration tests: (1) upload valid image creates Drive file and updates PagoSuscripcion, (2) unauthorized alumno gets 403, (3) invalid pagoId gets 404, (4) file exceeds 10MB gets 413, (5) missing mesPagado defaults to current month, (6) Drive not configured returns 503, (7) verify actual file appears in Drive folder hierarchy",
+        "priority": "high",
+        "dependencies": [
+          "140",
+          "141"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:42:06.723Z"
+      },
+      {
+        "id": "143",
+        "title": "Create admin endpoints for manual payment approval workflow",
+        "description": "Implement new routes file backend/src/routes/pagos-deposito.ts with list, confirm, and reject endpoints for admin panel",
+        "details": "Create backend/src/routes/pagos-deposito.ts:\n\n1. Import verifyJWT from middleware/auth.middleware, auditLog from middleware/audit.middleware\n2. Mount all routes under /api/admin/pagos-deposito\n3. All routes use verifyJWT middleware\n\nGET / — list pending deposits:\n- Query param: estado (optional filter, defaults to PENDIENTE)\n- Query PagoSuscripcion where proveedor='deposito_bi', include suscripcion.alumno (nombre, apellido, carnet, email) and suscripcion.planPrecio.plan (nombre)\n- Order by creadoEn desc\n- Return array with pagos and nested alumno/plan data for table display\n\nPATCH /:id/confirmar — approve payment:\n- Middleware: auditLog('CONFIRMAR_PAGO_DEPOSITO', 'pagos_deposito')\n- Fetch PagoSuscripcion with suscripcion.planPrecio relation\n- Update PagoSuscripcion: estado=COMPLETADO, pagadoEn=now()\n- Activate Suscripcion:\n  - If fechaInicio is null, set to now()\n  - Calculate fechaFin = agregarMeses(fechaInicio, planPrecio.duracionMeses) — REUSE function from lib/recurrente.ts\n  - Set estado=ACTIVA\n- Response: { success: true, pagoId, suscripcionId }\n\nPATCH /:id/rechazar — reject payment:\n- Middleware: auditLog('RECHAZAR_PAGO_DEPOSITO', 'pagos_deposito')\n- Optional body: { motivo?: string }\n- Update PagoSuscripcion: estado=RECHAZADO\n- Suscripcion stays PENDIENTE (student can retry with new payment)\n- Response: { success: true, pagoId, motivo }\n\nMount router in backend/src/index.ts under /api/admin/pagos-deposito",
+        "testStrategy": "Integration tests: (1) GET / returns only deposito_bi payments with correct nesting, (2) confirmar sets PagoSuscripcion to COMPLETADO and activates Suscripcion with correct dates using agregarMeses, (3) rechazar sets RECHAZADO and logs motivo, (4) audit logs are created for both actions, (5) unauthorized requests get 401, (6) verify fechaFin calculation matches Recurrente webhook logic",
+        "priority": "high",
+        "dependencies": [
+          "139",
+          "142"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:45:19.931Z"
+      },
+      {
+        "id": "144",
+        "title": "Create frontend constant and utilities for bank account display",
+        "description": "Add lib/pago-deposito.ts with hardcoded bank account information constants and helper utilities",
+        "details": "Create lib/pago-deposito.ts:\n\nexport const CUENTA_DEPOSITO = {\n  banco: 'Banco Industrial',\n  nombreCuenta: 'Corporacion ME',\n  tipoCuenta: 'Cuenta monetaria BI',\n  numeroCuenta: 'GTQ-6930015505',\n} as const;\n\nexport function formatearMes(mes: string): string {\n  // Convert 'YYYY-MM' to readable format like 'Julio 2026'\n  const [year, month] = mes.split('-');\n  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];\n  return `${meses[parseInt(month, 10) - 1]} ${year}`;\n}\n\nexport function getMesActual(): string {\n  // Returns current month in 'YYYY-MM' format\n  const now = new Date();\n  const year = now.getFullYear();\n  const month = String(now.getMonth() + 1).padStart(2, '0');\n  return `${year}-${month}`;\n}\n\nValidation: TypeScript compiles without errors, constants match PRD specification exactly",
+        "testStrategy": "Unit tests: (1) CUENTA_DEPOSITO has all 4 required fields with exact values from PRD, (2) formatearMes('2026-07') returns 'Julio 2026', (3) getMesActual() returns valid YYYY-MM format matching current date",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:45:41.899Z"
+      },
+      {
+        "id": "145",
+        "title": "Extend alumnoApi with manual checkout and receipt upload methods",
+        "description": "Add checkoutManual and subirComprobante functions to lib/alumno-api.ts following existing patterns",
+        "details": "In lib/alumno-api.ts, extend alumnoApi object with two new methods:\n\n1. checkoutManual: (planPrecioId: number) =>\n   alumnoFetch<{ suscripcionId: number; pagoId: number; cuenta: typeof CUENTA_DEPOSITO }>(\n     '/api/suscripciones/checkout-manual',\n     { method: 'POST', body: JSON.stringify({ planPrecioId }) }\n   )\n\n2. subirComprobante: (pagoId: number, formData: FormData) => {\n   const token = getAlumnoToken();\n   const res = await fetch(`${API_URL}/api/suscripciones/pagos/${pagoId}/comprobante`, {\n     method: 'POST',\n     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },\n     body: formData, // NO Content-Type header — let browser set multipart boundary\n   });\n   // Handle response same as alumnoFetch (401 → clearAlumnoToken, !ok → throw error)\n   if (res.status === 401) {\n     clearAlumnoToken();\n     throw new Error('Sesión expirada. Iniciá sesión de nuevo.');\n   }\n   if (!res.ok) {\n     const data = await res.json().catch(() => ({}));\n     throw new Error(data.error ?? `HTTP ${res.status}`);\n   }\n   return res.json();\n }\n\nImportant: subirComprobante must NOT set Content-Type header — browser auto-sets with multipart boundary when body is FormData.\n\nValidation: TypeScript compiles, methods follow same patterns as existing alumnoApi functions",
+        "testStrategy": "Integration tests: (1) checkoutManual calls correct endpoint with planPrecioId, (2) subirComprobante sends FormData with Authorization header but no Content-Type, (3) both handle 401 by clearing token, (4) errors throw with message from response.error field",
+        "priority": "medium",
+        "dependencies": [
+          "144"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:48:29.828Z"
+      },
+      {
+        "id": "146",
+        "title": "Refactor CheckoutClient to implement two-step manual deposit flow",
+        "description": "Modify components/planes/CheckoutClient.tsx to replace Recurrente redirect with manual deposit workflow: show bank account info, then receipt upload form",
+        "details": "Refactor components/planes/CheckoutClient.tsx:\n\n1. Remove handlePagarEnLinea function and Recurrente checkout logic\n2. Add new state:\n   - paso: 'datos' | 'comprobante' | 'confirmacion'\n   - pagoId: number | null\n   - archivoSeleccionado: File | null\n   - mesSeleccionado: string (default getMesActual())\n   - subiendoComprobante: boolean\n3. Replace entire JSX structure with three-step flow:\n\nStep 1 (paso='datos') — show bank account and amount:\n- Display plan name, precio.duracionMeses, precio.precioTotalCentavos formatted\n- Show CUENTA_DEPOSITO in styled card with:\n  - Banco, Nombre de cuenta, Tipo de cuenta, Número de cuenta\n  - Copy button next to numeroCuenta (onClick → navigator.clipboard.writeText)\n- Button 'Ya realicé el depósito' → calls checkoutManual, sets pagoId, moves to paso='comprobante'\n\nStep 2 (paso='comprobante') — upload receipt:\n- File input (accept='image/*,application/pdf')\n- Month selector (current month default, dropdown with ±3 months options)\n- Upload button → creates FormData, calls subirComprobante(pagoId, formData), moves to paso='confirmacion'\n- Show loading state while subiendoComprobante=true\n\nStep 3 (paso='confirmacion') — success message:\n- 'Recibimos tu comprobante, nuestro equipo lo va a confirmar en las próximas horas.'\n- Link to /mis-cursos\n\nError handling: catch errors from both API calls, display in aviso state\n\nRemove WhatsApp option (PRD says to replace, not add alongside)",
+        "testStrategy": "Manual E2E test: (1) checkout page shows bank account info with copy button, (2) clicking 'Ya realicé el depósito' creates pending Suscripcion and shows upload form, (3) uploading image/PDF calls API and shows success message, (4) verify file appears in Drive under correct student/month folders, (5) PagoSuscripcion has comprobanteUrl populated, (6) error states display correctly",
+        "priority": "high",
+        "dependencies": [
+          "144",
+          "145"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:50:32.593Z"
+      },
+      {
+        "id": "147",
+        "title": "Create admin panel page for manual payment approval",
+        "description": "Implement app/admin/pagos-deposito/page.tsx with table of pending receipts and approve/reject actions",
+        "details": "Create app/admin/pagos-deposito/page.tsx:\n\n1. Server component fetches initial data from GET /api/admin/pagos-deposito?estado=PENDIENTE\n2. Client component for interactive table (use 'use client' directive)\n3. Table columns:\n   - Alumno (nombre, apellido, carnet)\n   - Email\n   - Plan (plan.nombre)\n   - Monto (formatted from montoCentavos)\n   - Mes pagado\n   - Fecha envío (creadoEn formatted)\n   - Estado (badge: PENDIENTE=yellow, COMPLETADO=green, RECHAZADO=red)\n   - Comprobante (link button → opens comprobanteUrl in new tab with target='_blank')\n   - Actions (Confirmar / Rechazar buttons for PENDIENTE rows only)\n\n4. Actions:\n   - Confirmar: PATCH /api/admin/pagos-deposito/:id/confirmar, on success refresh table\n   - Rechazar: show prompt for motivo (optional), PATCH /api/admin/pagos-deposito/:id/rechazar with body, refresh\n\n5. Layout: reuse existing admin layout patterns from app/admin/leads/page.tsx or app/admin/finanzas/page.tsx\n   - Same nav/header structure\n   - Same table styling (Tailwind classes)\n   - Same filter/pagination patterns if needed\n\n6. Add navigation link in admin dashboard sidebar/menu\n\nValidation: Page matches visual style of other admin pages, no new design system",
+        "testStrategy": "Manual E2E test: (1) page lists all pending deposito_bi payments with correct student/plan info, (2) clicking 'Ver boleta' opens Drive link in new tab showing uploaded receipt, (3) Confirmar button activates Suscripcion and updates table to show COMPLETADO, (4) Rechazar prompts for motivo and updates to RECHAZADO, (5) table refreshes after actions, (6) verify audit logs are created in AuditoriaAdmin table",
+        "priority": "medium",
+        "dependencies": [
+          "143"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:55:59.094Z"
+      },
+      {
+        "id": "148",
+        "title": "Add environment variable documentation and validation",
+        "description": "Document new GOOGLE_DRIVE_PAGOS_FOLDER_ID environment variable and add runtime validation for Drive configuration",
+        "details": "1. Update backend .env.example with new variable:\n   GOOGLE_DRIVE_PAGOS_FOLDER_ID=  # Google Drive folder ID for 'Pagos con depósito' (create folder, share with service account, paste ID from URL)\n\n2. Add validation in backend/src/lib/drive-comprobantes.ts:\n   - At module level or in subirComprobanteDeposito, check process.env.GOOGLE_DRIVE_PAGOS_FOLDER_ID exists\n   - If missing, throw error: 'GOOGLE_DRIVE_PAGOS_FOLDER_ID not configured. Create Drive folder, share with credentials, and set ID in environment.'\n\n3. Update project README or deployment docs with setup instructions:\n   - Create 'Pagos con depósito' folder in Google Drive\n   - Share with same service account / OAuth credentials used for backups\n   - Copy folder ID from URL (the long string after /folders/)\n   - Set GOOGLE_DRIVE_PAGOS_FOLDER_ID in Railway/production environment\n\n4. Verify existing Drive credentials work: GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN or GOOGLE_SERVICE_ACCOUNT_JSON should already be configured from backup feature\n\nValidation: Deployment checklist updated, 503 error message is clear when var missing",
+        "testStrategy": "Manual test: (1) start backend without GOOGLE_DRIVE_PAGOS_FOLDER_ID, verify upload endpoint returns 503 with clear message, (2) set invalid folder ID, verify Drive API returns permission error, (3) set valid folder ID, verify uploads succeed and files appear in correct Drive location",
+        "priority": "low",
+        "dependencies": [
+          "140"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T06:56:41.586Z"
+      },
+      {
+        "id": "149",
+        "title": "Integration testing and QA validation",
+        "description": "Execute comprehensive end-to-end testing of manual deposit flow from student checkout to admin approval, verify all acceptance criteria",
+        "details": "Execute all acceptance criteria from PRD section 7:\n\n1. Student flow:\n   - Navigate to /checkout/[planPrecioId] as logged-in student\n   - Verify bank account details displayed (Corporacion ME, Cuenta monetaria BI, GTQ-6930015505, exact amount)\n   - Verify NO redirect to Recurrente\n   - Upload receipt image/PDF with month selector\n   - Verify success message shown\n\n2. Drive verification:\n   - Check Google Drive folder structure: 'Pagos con depósito' → '{Apellido}, {Nombre} ({Carnet})' → '{YYYY-MM}'\n   - Verify uploaded file is accessible via comprobanteUrl link\n   - Verify comprobanteDriveId is valid Drive file ID\n\n3. Database verification:\n   - PagoSuscripcion has estado=PENDIENTE, comprobanteUrl, comprobanteDriveId, mesPagado populated\n   - Suscripcion has estado=PENDIENTE, proveedor='manual_deposito'\n\n4. Admin flow:\n   - Open /admin/pagos-deposito\n   - Verify pending payment appears in table with student/plan info\n   - Click 'Ver boleta' link, verify Drive file opens in new tab\n   - Click 'Confirmar', verify:\n     - PagoSuscripcion → estado=COMPLETADO, pagadoEn set\n     - Suscripcion → estado=ACTIVA, fechaInicio set, fechaFin calculated correctly (same logic as Recurrente webhook)\n   - Test reject flow with motivo text\n\n5. Recurrente code integrity:\n   - Verify lib/recurrente.ts unchanged\n   - Verify routes/webhooks-recurrente.ts unchanged\n   - Run 'tsc --noEmit' and production build, verify no compilation errors\n   - Existing Recurrente checkout code path still compiles (even if not called by frontend)\n\n6. Regression testing:\n   - Verify existing features unaffected (CRM, admin panels, alumno login, courses)\n   - No errors in console or server logs\n\nDocumentation: Create QA checklist document with screenshots showing each step completed",
+        "testStrategy": "Full E2E test suite: (1) automated integration tests for all endpoints cover happy path and error cases, (2) manual QA walkthrough of complete student→admin flow with actual Drive uploads, (3) verify audit logs created, (4) load test checkout-manual rate limiting, (5) regression test existing suscripciones features, (6) verify production build succeeds with no TypeScript errors",
+        "priority": "high",
+        "dependencies": [
+          "146",
+          "147",
+          "148"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-12T07:05:55.357Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-21T15:27:14.822Z",
-      "taskCount": 83,
-      "completedCount": 74,
+      "lastModified": "2026-07-12T20:26:36.460Z",
+      "taskCount": 149,
+      "completedCount": 138,
       "tags": [
         "master"
       ]

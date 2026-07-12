@@ -44,6 +44,13 @@ enum CategoriaEgreso {
   MARKETING
 }
 
+enum SuscripcionEstado {
+  PENDIENTE
+  ACTIVA
+  CANCELADA
+  VENCIDA
+}
+
 enum CampanaEstado {
   BORRADOR
   ENVIANDO
@@ -104,6 +111,10 @@ model Alumno {
   inscripciones   Inscripcion[]
   certificados    Certificado[]
   auditoria       AuditoriaAlumno[]
+  inscripcionesOnline InscripcionOnline[]
+  progresoLecciones   ProgresoLeccion[]
+  suscripciones       Suscripcion[]
+  certificadosOnline  CertificadoOnline[]
 }
 
 model Curso {
@@ -288,6 +299,207 @@ model EscalacionLog {
   creadoEn     DateTime  @default(now())
 
   @@index([telefono])
+}
+
+// ─── Cursos Online (catálogo autoguiado, separado de Curso/Edicion por cohorte) ─
+
+model CursoOnline {
+  id            Int                 @id @default(autoincrement())
+  slug          String              @unique
+  titulo        String
+  descripcion   String              @db.Text
+  nivel         String              // "A1" | "A2" | "B1" | "B2" | "C1" | "general" | "oficios"
+  track         String              // "general" | "oficina" | "mecanica" | "restaurantes"
+  orden         Int                 @default(0)
+  publicado     Boolean             @default(false)
+  proximamente  Boolean             @default(false)
+  creadoEn      DateTime            @default(now())
+  actualizadoEn DateTime            @updatedAt
+  capitulos     Capitulo[]
+  inscripciones InscripcionOnline[]
+  certificados  CertificadoOnline[]
+}
+
+model Capitulo {
+  id            Int         @id @default(autoincrement())
+  cursoOnlineId Int
+  cursoOnline   CursoOnline @relation(fields: [cursoOnlineId], references: [id])
+  titulo        String
+  nivel         String      @default("A1") // "A1".."C1"
+  orden         Int
+  lecciones     Leccion[]
+
+  @@index([cursoOnlineId])
+}
+
+model Leccion {
+  id           Int               @id @default(autoincrement())
+  capituloId   Int
+  capitulo     Capitulo          @relation(fields: [capituloId], references: [id])
+  titulo       String
+  slug         String
+  urlContenido String?           // video, audio o markdown
+  content      Json?             // LeccionContenido (LessonPlayer interactivo) — ver leccion-contenido.schema.ts
+  orden        Int
+  esGratis     Boolean           @default(false) // preview desbloqueada sin plan
+  progreso     ProgresoLeccion[]
+  rutas        RutaLeccion[]
+
+  @@index([capituloId])
+}
+
+model InscripcionOnline {
+  id            Int         @id @default(autoincrement())
+  alumnoId      Int
+  alumno        Alumno      @relation(fields: [alumnoId], references: [id])
+  cursoOnlineId Int
+  cursoOnline   CursoOnline @relation(fields: [cursoOnlineId], references: [id])
+  iniciadaEn    DateTime    @default(now())
+
+  @@unique([alumnoId, cursoOnlineId])
+}
+
+model ProgresoLeccion {
+  id           Int       @id @default(autoincrement())
+  alumnoId     Int
+  alumno       Alumno    @relation(fields: [alumnoId], references: [id])
+  leccionId    Int
+  leccion      Leccion   @relation(fields: [leccionId], references: [id])
+  completada   Boolean   @default(false)
+  puntaje      Int?      // % acierto; certificado requiere promedio >= 85
+  completadaEn DateTime?
+
+  @@unique([alumnoId, leccionId])
+}
+
+model CertificadoOnline {
+  id            Int         @id @default(autoincrement())
+  alumnoId      Int
+  alumno        Alumno      @relation(fields: [alumnoId], references: [id])
+  cursoOnlineId Int
+  cursoOnline   CursoOnline @relation(fields: [cursoOnlineId], references: [id])
+  codigo        String      @unique
+  puntaje       Int
+  urlPdf        String?
+  emitidoEn     DateTime    @default(now())
+
+  @@unique([alumnoId, cursoOnlineId])
+}
+
+// ─── Rutas (curación/catálogo de lecciones, no reemplaza CursoOnline) ────────
+
+model Ruta {
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
+  titulo       String
+  descripcion  String        @db.Text
+  nivelMinimo  String
+  nivelMaximo  String
+  icono        String?
+  orden        Int           @default(0)
+  publicada    Boolean       @default(false)
+  proximamente Boolean       @default(false)
+  lecciones    RutaLeccion[]
+}
+
+model RutaLeccion {
+  rutaId    Int
+  ruta      Ruta    @relation(fields: [rutaId], references: [id])
+  leccionId Int
+  leccion   Leccion @relation(fields: [leccionId], references: [id])
+  orden     Int     @default(0)
+
+  @@id([rutaId, leccionId])
+  @@index([leccionId])
+}
+
+// ─── Planes y Suscripciones ──────────────────────────────────────────────────
+
+model Plan {
+  id          Int          @id @default(autoincrement())
+  nombre      String       // "Esencial" | "Profesional"
+  slug        String       @unique
+  descripcion String
+  features    Json         // ["Cursos autoguiados", "Clases en vivo ilimitadas", ...]
+  recomendado Boolean      @default(false)
+  incluyeClasesEnVivo Boolean @default(false)
+  precios     PlanPrecio[]
+}
+
+model PlanPrecio {
+  id                    Int           @id @default(autoincrement())
+  planId                Int
+  plan                  Plan          @relation(fields: [planId], references: [id])
+  duracionMeses         Int           // 1, 3, 6, 12
+  precioMesCentavos     Int           // centavos para evitar floats
+  precioTotalCentavos   Int
+  precioRegularCentavos Int           // precio "tachado" antes de descuento
+  moneda                Moneda        @default(GTQ)
+  suscripciones         Suscripcion[]
+
+  @@unique([planId, duracionMeses])
+  @@index([planId])
+}
+
+model Suscripcion {
+  id           Int               @id @default(autoincrement())
+  alumnoId     Int
+  alumno       Alumno            @relation(fields: [alumnoId], references: [id])
+  planPrecioId Int
+  planPrecio   PlanPrecio        @relation(fields: [planPrecioId], references: [id])
+  estado       SuscripcionEstado @default(PENDIENTE)
+  proveedor    String            // "manual_whatsapp" | "recurrente"
+  idExterno    String?
+  fechaInicio  DateTime?
+  fechaFin     DateTime?
+  creadoEn     DateTime          @default(now())
+  pagos        PagoSuscripcion[]
+
+  @@index([alumnoId])
+}
+
+model PagoSuscripcion {
+  id                 Int         @id @default(autoincrement())
+  suscripcionId      Int
+  suscripcion        Suscripcion @relation(fields: [suscripcionId], references: [id])
+  montoCentavos      Int
+  moneda             Moneda      @default(GTQ)
+  estado             PagoEstado  @default(PENDIENTE)
+  proveedor          String
+  idExterno          String?
+  comprobanteUrl     String?
+  comprobanteDriveId String?
+  mesPagado          String?
+  pagadoEn           DateTime?
+  creadoEn           DateTime    @default(now())
+
+  @@index([suscripcionId])
+}
+
+// ─── Clases en vivo (grupos recurrentes semanales) ───────────────────────────
+
+model GrupoClaseEnVivo {
+  id              Int            @id @default(autoincrement())
+  slug            String         @unique
+  nombre          String
+  audiencia       String         // "ninos" | "adolescentes" | "adultos" | "general"
+  niveles         String         // "A1" | "A2" | "B2,C1" | "PRE_A1" | "PRE_BEGINNERS" | "A1,A2"
+  descripcion     String?        @db.Text
+  profesor        String?
+  urlZoom         String
+  duracionMinutos Int            @default(60)
+  activo          Boolean        @default(true)
+  horarios        HorarioClase[]
+}
+
+model HorarioClase {
+  id         Int              @id @default(autoincrement())
+  grupoId    Int
+  grupo      GrupoClaseEnVivo @relation(fields: [grupoId], references: [id])
+  diaSemana  Int              // 0=domingo .. 6=sábado
+  horaInicio String           // "HH:mm" 24h, hora de Guatemala
+
+  @@unique([grupoId, diaSemana, horaInicio])
 }
 
 // ─── Admin ────────────────────────────────────────────────────────────────────

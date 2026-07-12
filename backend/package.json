@@ -9,6 +9,11 @@
     "start": "node dist/index.js",
     "seed:admin": "ts-node src/scripts/seed-admin.ts",
     "seed:crm": "ts-node src/scripts/seed-crm-etapas.ts",
+    "seed:cursos-online": "ts-node src/scripts/seed-cursos-online.ts",
+    "seed:clases-en-vivo": "ts-node src/scripts/seed-clases-en-vivo.ts",
+    "seed:curriculum": "ts-node src/scripts/seed-curriculum.ts",
+    "test:fase3": "ts-node src/scripts/test-fase3.ts",
+    "test:clases-en-vivo": "ts-node src/scripts/test-clases-en-vivo.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

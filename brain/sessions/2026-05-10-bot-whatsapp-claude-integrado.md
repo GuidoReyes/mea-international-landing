@@ -80,6 +80,9 @@ Continuación directa de la sesión de despliegue inicial. Se implementaron las 
 - [[2026-05-08-backend-railway-desplegado]] — sesión previa que dejó Tasks 4-12 pendientes; esta sesión las implementa todas
 - [[2026-05-06-notion-mcp-activo-query-verificado]] — Notion MCP activo que se usa en esta sesión para RAG de contexto de precios
 - [[2026-05-13-admin-rediseniado-saas-planificado]] — sesión siguiente: las 22 tareas originales completas aquí; luego se agrega roadmap SaaS de 32 tareas
+- [[2026-05-14-crm-fase1-backend-frontend-implementado]] — agentRouter.ts de esta sesión extendido con lógica multi-etapa CRM (6 configs + selectAgent())
+- [[2026-05-17-admin-panel-metricas-reportes-csv]] — Twilio Sandbox descartado para monitoreo del bot; integración Twilio queda bloqueada pendiente decisión de estrategia
+- [[2026-05-19-bot-notificaciones-asesor-implementadas]] — archivos core creados aquí modificados: advisor-notify, Notion inject fix, webhook guard, agentRouter ESCALATION_INSTRUCTION
 
 ## Fuentes
 

@@ -262,6 +262,20 @@ export interface CampanaStatus {
   progreso: number;
 }
 
+export interface PagoDeposito {
+  id: number;
+  estado: string;
+  montoCentavos: number;
+  moneda: string;
+  mesPagado: string | null;
+  comprobanteUrl: string | null;
+  creadoEn: string;
+  pagadoEn: string | null;
+  alumno: { nombre: string; apellido: string; carnet: string; email: string };
+  plan: string;
+  suscripcionId: number;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ token: string; admin: Admin }>("/api/auth/login", {
@@ -394,4 +408,17 @@ export const api = {
 
   getCampanaStatus: (id: number) =>
     apiFetch<CampanaStatus>(`/api/marketing/campanas/${id}/status`),
+
+  getPagosDeposito: (estado?: string) => {
+    const params = estado ? `?estado=${encodeURIComponent(estado)}` : "";
+    return apiFetch<PagoDeposito[]>(`/api/pagos-deposito${params}`);
+  },
+
+  confirmarPagoDeposito: (id: number) =>
+    apiFetch<{ ok: boolean; fechaFin: string }>(`/api/pagos-deposito/${id}/confirmar`, {
+      method: "PATCH",
+    }),
+
+  rechazarPagoDeposito: (id: number) =>
+    apiFetch<{ ok: boolean }>(`/api/pagos-deposito/${id}/rechazar`, { method: "PATCH" }),
 };

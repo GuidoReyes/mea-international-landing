@@ -71,6 +71,10 @@ Continuación directa de la sesión anterior. Las 22 tareas del PRD original est
 
 - [[2026-05-10-bot-whatsapp-claude-integrado]] — sesión anterior: las 22 tareas originales estaban completas aquí; esta sesión agrega 32 tareas de upgrade SaaS
 - [[2026-05-08-backend-railway-desplegado]] — arquitectura backend Railway que se extiende con CRM, pagos, certificados y scheduler en el nuevo roadmap
+- [[2026-05-14-crm-fase1-backend-frontend-implementado]] — ejecución de las 13 tareas de Fase 1 planificadas aquí; backend CRM completo y páginas admin Kanban+alumnos
+- [[2026-05-17-admin-panel-metricas-reportes-csv]] — dashboard admin restructurado y Tasks 35-39 ejecutadas; el diseño SaaS del panel se materializa aquí
+- [[2026-05-17-ceo-finanzas-marketing-cursos-implementados]] — Tasks 50-56 ejecutadas aquí cierran el 100% del roadmap SaaS planificado en esta sesión
+- [[2026-05-21-security-backup-agente-implementado]] — agente de seguridad + backup implementado (tasks 71-83); mismo patrón TaskMaster de planificación y ejecución secuencial
 
 ## Fuentes
 

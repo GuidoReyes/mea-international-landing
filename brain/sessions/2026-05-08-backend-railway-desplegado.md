@@ -73,6 +73,8 @@ Sesión de implementación y despliegue del backend de MEA International. El pun
 - [[2026-05-06-notion-mcp-activo-query-verificado]] — misma área operaciones; Notion MCP activo que se usará en Task 9 (RAG de contexto)
 - [[2026-05-10-bot-whatsapp-claude-integrado]] — sesión que implementa las Tasks 4-12 dejadas pendientes aquí; bot WhatsApp + Claude operativo
 - [[2026-05-13-admin-rediseniado-saas-planificado]] — arquitectura backend de esta sesión se extiende con CRM, pagos, certificados y scheduler en el upgrade SaaS
+- [[2026-05-14-crm-fase1-backend-frontend-implementado]] — Railway backend extendido con Prisma 7 + 6 rutas CRM nuevas + migración SQL manual aplicada en shell
+- [[2026-05-21-security-backup-agente-implementado]] — fundación TypeScript+Express+Railway sobre la que se construye el agente de seguridad y backup (tasks 71-83)
 
 ## Fuentes
 

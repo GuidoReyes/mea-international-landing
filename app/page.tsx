@@ -21,6 +21,7 @@ import {
   ChevronRight,
   GraduationCap,
   Flame,
+  type LucideIcon,
 } from "lucide-react";
 
 const InstagramIcon = () => (
@@ -111,12 +112,20 @@ const stats = [
   { icon: Award, value: 0, suffix: "", label: "4.9★ Calificación", sublabel: "promedio", isFixed: true },
 ];
 
-// ─── Courses ──────────────────────────────────────────────────────────────────
-const courses = [
+// ─── Courses & Planes ─────────────────────────────────────────────────────────
+interface LandingCardData {
+  text: string;
+  title: string;
+  price?: string;
+  features: string[];
+  highlighted: boolean;
+  badge: string;
+}
+
+const courses: LandingCardData[] = [
   {
     text: "Pre A",
     title: "Inglés Pre A",
-    price: "Q300",
     features: [
       "8 clases al mes (2 x Semana)",
       "Material de estudio digital",
@@ -131,7 +140,6 @@ const courses = [
   {
     text: "B1 B2",
     title: "Inglés intermedio-Avanzado Conversacional",
-    price: "Q250",
     features: [
       "8 clases al mes (2 x Semana)",
       "Plan de estudio especializado",
@@ -146,7 +154,6 @@ const courses = [
   {
     text: "VIP",
     title: "Inglés personalizado",
-    price: "Q1,600",
     features: [
       "Clases privadas 1 a 1",
       "Horario 100% flexible",
@@ -157,6 +164,36 @@ const courses = [
     ],
     highlighted: false,
     badge: "Premium",
+  },
+];
+
+const planes: LandingCardData[] = [
+  {
+    text: "Plataforma",
+    title: "Plan Plataforma",
+    price: "Q150",
+    features: [
+      "Acceso completo a la plataforma educativa",
+      "Material de estudio digital",
+      "Acceso a clases grabadas",
+      "Soporte vía WhatsApp",
+    ],
+    highlighted: false,
+    badge: "Acceso digital",
+  },
+  {
+    text: "Plataforma + Grupos",
+    title: "Plan Plataforma + Grupos",
+    price: "Q300",
+    features: [
+      "Todo lo del Plan Plataforma",
+      "Clases grupales en vivo por Zoom",
+      "Material de estudio digital",
+      "Acceso a clases grabadas",
+      "Soporte vía WhatsApp",
+    ],
+    highlighted: true,
+    badge: "Más popular",
   },
 ];
 
@@ -202,6 +239,97 @@ function FadeIn({
     >
       {children}
     </motion.div>
+  );
+}
+
+// ─── Shared pricing/course card ────────────────────────────────────────────────
+function LandingPricingCard({
+  card,
+  ctaLabel,
+  ctaHref,
+  ctaIcon: CtaIcon = MessageCircle,
+}: {
+  card: LandingCardData;
+  ctaLabel: string;
+  ctaHref: string;
+  ctaIcon?: LucideIcon;
+}) {
+  return (
+    <div className="relative group h-full">
+      {card.highlighted && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+          <span className="bg-[#00C4B4] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-[#00C4B4]/30">
+            ⭐ {card.badge}
+          </span>
+        </div>
+      )}
+      <div
+        className={`border ${card.highlighted ? "border-[#00C4B4] shadow-xl shadow-[#00C4B4]/10" : "border-white/10"} rounded-3xl overflow-hidden bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all h-full flex flex-col`}
+      >
+        {/* Evervault visual */}
+        <div className="h-36 relative">
+          <EvervaultCard text={card.text} />
+          <Icon className="absolute h-6 w-6 -top-3 -left-3 text-white/20" />
+          <Icon className="absolute h-6 w-6 -bottom-3 -left-3 text-white/20" />
+          <Icon className="absolute h-6 w-6 -top-3 -right-3 text-white/20" />
+          <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white/20" />
+        </div>
+
+        <div className="p-6 border-t border-white/10 flex flex-col flex-1">
+          {/* Badge (non-highlighted) */}
+          {!card.highlighted && (
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
+              {card.badge}
+            </span>
+          )}
+
+          <h3 className="text-base font-semibold text-slate-300 mb-4 leading-snug">{card.title}</h3>
+
+          {/* ── PRECIO MENSUAL — protagonista (solo si la tarjeta tiene precio) ── */}
+          {card.price && (
+            <div
+              className={`rounded-2xl p-4 mb-5 text-center ${card.highlighted ? "bg-[#00C4B4]/15 border border-[#00C4B4]/30" : "bg-white/5 border border-white/10"}`}
+            >
+              <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Mensualidad</p>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-white/60 text-xl font-light">Q</span>
+                <span
+                  className={`text-5xl font-extrabold tracking-tight ${card.highlighted ? "text-[#00C4B4]" : "text-white"}`}
+                >
+                  {card.price.replace("Q", "")}
+                </span>
+                <span className="text-slate-400 text-sm font-medium">/mes</span>
+              </div>
+            </div>
+          )}
+
+          {/* Features */}
+          <ul className="space-y-2 mb-6 flex-1">
+            {card.features.map((f, fi) => (
+              <li key={fi} className="flex items-start gap-2 text-slate-300 text-sm">
+                <div className="w-4 h-4 rounded-full bg-[#00C4B4]/20 border border-[#00C4B4]/40 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#00C4B4]" />
+                </div>
+                {f}
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA */}
+          <a
+            href={ctaHref}
+            className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all ${
+              card.highlighted
+                ? "bg-[#00C4B4] text-white hover:bg-[#00a898] shadow-lg shadow-[#00C4B4]/30"
+                : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
+            }`}
+          >
+            <CtaIcon className="w-4 h-4" />
+            {ctaLabel}
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -575,7 +703,7 @@ export default function Home() {
           <FadeIn delay={0.1}>
             <div className="text-center mb-14">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                Elige tu plan de inglés
+                Elige tu nivel de inglés
               </h2>
               <p className="text-slate-400 text-lg max-w-2xl mx-auto">
                 Clases en vivo, maestros certificados y resultados garantizados.
@@ -583,97 +711,56 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          {/* Inscription + platform notice */}
+          <div className="grid md:grid-cols-3 gap-8 items-start">
+            {courses.map((course, i) => (
+              <FadeIn key={course.text} delay={i * 0.15}>
+                <LandingPricingCard
+                  card={course}
+                  ctaLabel="Ver planes"
+                  ctaHref="#planes"
+                  ctaIcon={ChevronRight}
+                />
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 7b. PLANES */}
+      <section id="planes" className="py-24 bg-[#0A2540] relative overflow-hidden border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#00C4B415,_transparent_60%)]" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <FadeIn delay={0.1}>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+                Elige tu plan
+              </h2>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                Accedé a la plataforma educativa, con o sin clases grupales en vivo.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Inscription notice */}
           <FadeIn delay={0.15}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+            <div className="flex items-center justify-center mb-10">
               <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-5 py-2.5">
                 <span className="text-[#00C4B4] text-lg font-bold">Q100</span>
                 <span className="text-slate-300 text-sm">inscripción</span>
-                <span className="bg-white/10 text-slate-400 text-xs px-2 py-0.5 rounded-full">pago único</span>
-              </div>
-              <span className="text-slate-600 hidden sm:block">+</span>
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-5 py-2.5">
-                <span className="text-[#00C4B4] text-lg font-bold">Q130</span>
-                <span className="text-slate-300 text-sm">plataforma educativa</span>
-                <span className="bg-white/10 text-slate-400 text-xs px-2 py-0.5 rounded-full">adicional</span>
+                <span className="bg-white/10 text-slate-400 text-xs px-2 py-0.5 rounded-full">solo la primera vez</span>
               </div>
             </div>
           </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            {courses.map((course, i) => (
-              <FadeIn key={i} delay={i * 0.15}>
-                <div className="relative group h-full">
-                  {course.highlighted && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-[#00C4B4] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-[#00C4B4]/30">
-                        ⭐ {course.badge}
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    className={`border ${course.highlighted ? "border-[#00C4B4] shadow-xl shadow-[#00C4B4]/10" : "border-white/10"} rounded-3xl overflow-hidden bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all h-full flex flex-col`}
-                  >
-                    {/* Evervault visual */}
-                    <div className="h-36 relative">
-                      <EvervaultCard text={course.text} />
-                      <Icon className="absolute h-6 w-6 -top-3 -left-3 text-white/20" />
-                      <Icon className="absolute h-6 w-6 -bottom-3 -left-3 text-white/20" />
-                      <Icon className="absolute h-6 w-6 -top-3 -right-3 text-white/20" />
-                      <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white/20" />
-                    </div>
-
-                    <div className="p-6 border-t border-white/10 flex flex-col flex-1">
-                      {/* Badge (non-highlighted) */}
-                      {!course.highlighted && (
-                        <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
-                          {course.badge}
-                        </span>
-                      )}
-
-                      <h3 className="text-base font-semibold text-slate-300 mb-4 leading-snug">
-                        {course.title}
-                      </h3>
-
-                      {/* ── PRECIO MENSUAL — protagonista ── */}
-                      <div className={`rounded-2xl p-4 mb-5 text-center ${course.highlighted ? "bg-[#00C4B4]/15 border border-[#00C4B4]/30" : "bg-white/5 border border-white/10"}`}>
-                        <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Mensualidad</p>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-white/60 text-xl font-light">Q</span>
-                          <span className={`text-5xl font-extrabold tracking-tight ${course.highlighted ? "text-[#00C4B4]" : "text-white"}`}>
-                            {course.price.replace("Q", "").replace("/mes", "")}
-                          </span>
-                          <span className="text-slate-400 text-sm font-medium">/mes</span>
-                        </div>
-                      </div>
-
-                      {/* Features */}
-                      <ul className="space-y-2 mb-6 flex-1">
-                        {course.features.map((f, fi) => (
-                          <li key={fi} className="flex items-start gap-2 text-slate-300 text-sm">
-                            <div className="w-4 h-4 rounded-full bg-[#00C4B4]/20 border border-[#00C4B4]/40 flex items-center justify-center shrink-0 mt-0.5">
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#00C4B4]" />
-                            </div>
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* CTA */}
-                      <a
-                        href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
-                        className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all ${
-                          course.highlighted
-                            ? "bg-[#00C4B4] text-white hover:bg-[#00a898] shadow-lg shadow-[#00C4B4]/30"
-                            : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
-                        }`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        Inscríbete Ahora
-                      </a>
-                    </div>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto items-start">
+            {planes.map((plan, i) => (
+              <FadeIn key={plan.text} delay={i * 0.15}>
+                <LandingPricingCard
+                  card={plan}
+                  ctaLabel="Inscríbete Ahora"
+                  ctaHref="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                />
               </FadeIn>
             ))}
           </div>
@@ -681,9 +768,10 @@ export default function Home() {
           {/* Bottom note */}
           <FadeIn delay={0.5}>
             <p className="text-center text-slate-500 text-sm mt-8">
-              * Todos los planes requieren inscripción de{" "}
-              <span className="text-white font-semibold">Q100 (pago único)</span> y plataforma educativa de{" "}
-              <span className="text-white font-semibold">Q130 adicional</span>.
+              * Todos los planes requieren una inscripción de{" "}
+              <span className="text-white font-semibold">Q100, que se paga solo la primera vez</span>{" "}
+              al inscribirte. No se repite en meses ni renovaciones posteriores, y las mensualidades
+              del plan elegido se pagan por separado, sin acumularse con la inscripción.
             </p>
           </FadeIn>
         </div>
@@ -793,6 +881,7 @@ export default function Home() {
                 {[
                   { label: "Inicio", href: "#inicio" },
                   { label: "Cursos", href: "#cursos" },
+                  { label: "Planes", href: "#planes" },
                   { label: "Nosotros", href: "#nosotros" },
                   { label: "Testimonios", href: "#testimonios" },
                   { label: "FAQ", href: "#faq" },

@@ -68,3 +68,10 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# claude-parallel-orchestrator
+.worktrees/
+.claude-parallel/
+
+# nested repo (skill local)
+backend/humanizer/

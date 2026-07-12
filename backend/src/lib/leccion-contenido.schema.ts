@@ -1,0 +1,74 @@
+import { z } from "zod";
+
+// Contenido interactivo de una lección estilo Duolingo — 6 tipos de paso.
+// Persistido en Leccion.content (Json). Validado en el endpoint de guardado admin.
+
+const pasoBase = {
+  id: z.string().min(1),
+  audioUrl: z.string().url().optional(),
+};
+
+export const pasoVocabularioSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("vocabulario"),
+  palabra: z.string().min(1),
+  traduccion: z.string().min(1),
+  imagenUrl: z.string().url().optional(),
+});
+
+export const pasoOpcionMultipleSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("opcion_multiple"),
+  pregunta: z.string().min(1),
+  opciones: z.array(z.string().min(1)).min(2).max(6),
+  respuestaCorrecta: z.number().int().min(0),
+});
+
+export const pasoCompletarSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("completar"),
+  textoAntes: z.string(),
+  textoDespues: z.string(),
+  respuestaCorrecta: z.string().min(1),
+  opciones: z.array(z.string().min(1)).min(2).max(6).optional(),
+});
+
+export const pasoOrdenarSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("ordenar"),
+  instruccion: z.string().min(1),
+  palabras: z.array(z.string().min(1)).min(2),
+  ordenCorrecto: z.array(z.number().int().min(0)),
+});
+
+export const pasoEmparejarSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("emparejar"),
+  instruccion: z.string().min(1),
+  pares: z.array(z.object({ izquierda: z.string().min(1), derecha: z.string().min(1) })).min(2),
+});
+
+export const pasoEscucharSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("escuchar"),
+  audioUrl: z.string().url(),
+  opciones: z.array(z.string().min(1)).min(2).max(6),
+  respuestaCorrecta: z.number().int().min(0),
+});
+
+export const pasoLeccionSchema = z.discriminatedUnion("tipo", [
+  pasoVocabularioSchema,
+  pasoOpcionMultipleSchema,
+  pasoCompletarSchema,
+  pasoOrdenarSchema,
+  pasoEmparejarSchema,
+  pasoEscucharSchema,
+]);
+
+export const leccionContenidoSchema = z.object({
+  version: z.literal(1),
+  pasos: z.array(pasoLeccionSchema).min(1),
+});
+
+export type PasoLeccion = z.infer<typeof pasoLeccionSchema>;
+export type LeccionContenido = z.infer<typeof leccionContenidoSchema>;

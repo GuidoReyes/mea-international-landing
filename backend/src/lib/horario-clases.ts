@@ -7,6 +7,9 @@ const DIAS_SEMANA = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MINUTOS_POR_DIA = 24 * 60;
 const MINUTOS_POR_SEMANA = 7 * MINUTOS_POR_DIA;
 const VENTANA_GRACIA_MINUTOS = 10;
+// Las clases a veces se extienden más allá de su duración programada: el botón
+// de entrar sigue activo este tiempo extra (el banner "EN VIVO" no se alarga).
+const TOLERANCIA_SALIDA_MINUTOS = 30;
 
 export interface MomentoSemana {
   diaSemana: number; // 0=domingo .. 6=sábado
@@ -127,7 +130,8 @@ export function obtenerProximaClase(
   return mejor;
 }
 
-// Ventana de gracia para permitir entrar unos minutos antes de que empiece.
+// Ventana de gracia para entrar unos minutos antes de que empiece, y tolerancia
+// de salida para reingresar cuando la clase se extiende más allá de lo programado.
 export function puedeEntrarAhora(
   horario: HorarioBase,
   duracionMinutos: number,
@@ -136,5 +140,8 @@ export function puedeEntrarAhora(
   if (estaEnVivo(horario, duracionMinutos, ahora)) return true;
   if (horario.diaSemana !== ahora.diaSemana) return false;
   const inicio = horaAMinutos(horario.horaInicio);
-  return ahora.minutos >= inicio - VENTANA_GRACIA_MINUTOS && ahora.minutos < inicio;
+  const fin = inicio + duracionMinutos;
+  const enGraciaPrevia = ahora.minutos >= inicio - VENTANA_GRACIA_MINUTOS && ahora.minutos < inicio;
+  const enToleranciaSalida = ahora.minutos >= fin && ahora.minutos < fin + TOLERANCIA_SALIDA_MINUTOS;
+  return enGraciaPrevia || enToleranciaSalida;
 }

@@ -130,5 +130,28 @@ assert.strictEqual(
   true
 );
 
-console.log("✓ puedeEntrarAhora: 3 casos OK");
+// ─── Tolerancia de salida (30 min): la clase terminó pero se puede reingresar ──
+
+// Justo al fin programado (20:20) — dentro de la tolerancia
+assert.strictEqual(
+  puedeEntrarAhora(horarioLunes1920, duracion, { diaSemana: 1, minutos: 20 * 60 + 20 }),
+  true
+);
+// 29 min después del fin (20:49) — último minuto de tolerancia
+assert.strictEqual(
+  puedeEntrarAhora(horarioLunes1920, duracion, { diaSemana: 1, minutos: 20 * 60 + 49 }),
+  true
+);
+// 30 min después del fin (20:50) — fuera de la tolerancia
+assert.strictEqual(
+  puedeEntrarAhora(horarioLunes1920, duracion, { diaSemana: 1, minutos: 20 * 60 + 50 }),
+  false
+);
+// El banner "EN VIVO" NO se extiende: al fin programado ya no está en vivo
+assert.strictEqual(
+  estaEnVivo(horarioLunes1920, duracion, { diaSemana: 1, minutos: 20 * 60 + 20 }),
+  false
+);
+
+console.log("✓ puedeEntrarAhora: 6 casos OK (incluye tolerancia de salida de 30 min)");
 console.log("Todos los tests de clases en vivo pasaron.");

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Award, CheckCircle2, ChevronLeft, Lock } from "lucide-react";
 import { RutaCurriculum, LeccionCurriculum, getRutaCurriculum } from "@/lib/rutas";
 import { alumnoApi, getAlumnoToken } from "@/lib/alumno-api";
+import type { LeccionContenido } from "@/lib/leccion-contenido";
+import LessonPlayer from "@/components/leccion-player/LessonPlayer";
 
 interface Props {
   rutaSlug: string;
@@ -69,6 +71,7 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
   const [certificado, setCertificado] = useState<{ codigo: string; urlPdf: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [contenidoJugable, setContenidoJugable] = useState<LeccionContenido | null>(null);
 
   const cargar = useCallback(async () => {
     const detalle = getAlumnoToken()
@@ -92,12 +95,31 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
     cargar();
   }, [cargar]);
 
-  async function handleCompletar() {
+  useEffect(() => {
+    if (!leccion || leccion.bloqueada) {
+      setContenidoJugable(null);
+      return;
+    }
+    let cancelado = false;
+    alumnoApi
+      .getLeccionJugar(leccion.id)
+      .then((resultado) => {
+        if (!cancelado) setContenidoJugable(resultado.contenido);
+      })
+      .catch(() => {
+        if (!cancelado) setContenidoJugable(null);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [leccion?.id, leccion?.bloqueada]);
+
+  async function handleCompletar(puntajeJugador?: number) {
     if (!leccion) return;
     setGuardando(true);
     setError(null);
     try {
-      const puntajeNum = puntaje === "" ? undefined : Number(puntaje);
+      const puntajeNum = puntajeJugador !== undefined ? puntajeJugador : puntaje === "" ? undefined : Number(puntaje);
       const resultado = await alumnoApi.completarLeccion(leccion.id, puntajeNum);
       if (resultado.certificado) setCertificado(resultado.certificado);
       await cargar();
@@ -162,7 +184,11 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
 
       <h1 className="text-2xl md:text-3xl font-bold text-[#0A2540] mb-6">{leccion.titulo}</h1>
 
-      <ContenidoLeccion url={leccion.urlContenido} />
+      {contenidoJugable ? (
+        <LessonPlayer contenido={contenidoJugable} onTerminado={(puntajeJugador) => handleCompletar(puntajeJugador)} />
+      ) : (
+        <ContenidoLeccion url={leccion.urlContenido} />
+      )}
 
       {error && (
         <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3 mt-6">{error}</p>
@@ -204,7 +230,7 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
               />
             </label>
             <button
-              onClick={handleCompletar}
+              onClick={() => handleCompletar()}
               disabled={guardando}
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#00C4B4] text-white rounded-full font-bold hover:bg-[#00a898] transition-all disabled:opacity-50"
             >

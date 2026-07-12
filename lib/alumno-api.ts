@@ -1,6 +1,7 @@
 // Client API del portal de alumno — token separado del admin (lib/api.ts).
 
 import type { RutaCurriculum } from "./rutas";
+import type { LeccionContenido } from "./leccion-contenido";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.mea.edu.gt";
 const TOKEN_KEY = "mea_alumno_token";
@@ -112,6 +113,11 @@ export const alumnoApi = {
   // Curriculum de una Ruta con progreso/desbloqueo — misma ruta pública, con token del alumno
   getRuta: (slug: string) =>
     alumnoFetch<RutaCurriculum>(`/api/rutas/${encodeURIComponent(slug)}/curriculum`),
+
+  getLeccionJugar: (leccionId: number) =>
+    alumnoFetch<{ id: number; titulo: string; contenido: LeccionContenido }>(
+      `/api/lecciones/${leccionId}/jugar`
+    ),
 
   completarLeccion: (leccionId: number, puntaje?: number) =>
     alumnoFetch<ResultadoCompletar>(`/api/lecciones/${leccionId}/completar`, {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { Navbar1 } from "@/components/ui/navbar-1";
 import { SplineScene } from "@/components/ui/splite";
@@ -236,16 +237,29 @@ function LandingPricingCard({
             </div>
           )}
 
-          {/* Features */}
+          {/* Features — "clases en vivo" y "plataforma educativa" enlazan a sus secciones */}
           <ul className="space-y-2 mb-6 flex-1">
-            {card.features.map((f, fi) => (
-              <li key={fi} className="flex items-start gap-2 text-slate-300 text-sm">
-                <div className="w-4 h-4 rounded-full bg-[#00C4B4]/20 border border-[#00C4B4]/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00C4B4]" />
-                </div>
-                {f}
-              </li>
-            ))}
+            {card.features.map((f, fi) => {
+              const featureHref = f.toLowerCase().includes("clases grupales en vivo")
+                ? "/clases-en-vivo"
+                : f.toLowerCase().includes("plataforma educativa")
+                  ? "/cursos"
+                  : null;
+              return (
+                <li key={fi} className="flex items-start gap-2 text-slate-300 text-sm">
+                  <div className="w-4 h-4 rounded-full bg-[#00C4B4]/20 border border-[#00C4B4]/40 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#00C4B4]" />
+                  </div>
+                  {featureHref ? (
+                    <Link href={featureHref} className="hover:text-[#00C4B4] hover:underline transition-colors">
+                      {f}
+                    </Link>
+                  ) : (
+                    f
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           {/* CTA */}
@@ -716,6 +730,16 @@ export default function Home() {
               del plan elegido se pagan por separado, sin acumularse con la inscripción.
             </p>
           </FadeIn>
+
+          <FadeIn delay={0.55}>
+            <p className="text-center text-slate-400 text-sm mt-4">
+              ¿Ya estás inscrito?{" "}
+              <Link href="/alumno/login" className="text-[#00C4B4] font-semibold hover:underline">
+                Entrá al portal de alumnos
+              </Link>{" "}
+              para acceder a tus cursos y clases en vivo.
+            </p>
+          </FadeIn>
         </div>
       </section>
 
@@ -824,6 +848,9 @@ export default function Home() {
                   { label: "Inicio", href: "#inicio" },
                   { label: "Cursos", href: "#cursos" },
                   { label: "Planes", href: "#planes" },
+                  { label: "Plataforma", href: "/cursos" },
+                  { label: "Clases en Vivo", href: "/clases-en-vivo" },
+                  { label: "Portal Alumno", href: "/alumno/login" },
                   { label: "Nosotros", href: "#nosotros" },
                   { label: "Testimonios", href: "#testimonios" },
                   { label: "FAQ", href: "#faq" },

@@ -10,9 +10,11 @@ const navLinks = [
   { label: "Inicio", href: "#inicio" },
   { label: "Cursos", href: "#cursos" },
   { label: "Planes", href: "#planes" },
+  { label: "Plataforma", href: "/cursos" },
   { label: "Nosotros", href: "#nosotros" },
   { label: "Testimonios", href: "#testimonios" },
   { label: "FAQ", href: "#faq" },
+  { label: "Portal Alumno", href: "/alumno/login" },
 ]
 
 const Navbar1 = () => {

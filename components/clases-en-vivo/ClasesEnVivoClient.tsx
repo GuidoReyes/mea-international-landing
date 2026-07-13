@@ -205,7 +205,7 @@ export default function ClasesEnVivoClient({ inicial }: { inicial: HorarioClases
       <h2 className="text-xl font-bold text-[#0A2540] mb-6">¿Cómo funcionan?</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { icon: GraduationCap, titulo: "1. Contratá tu plan", texto: "Elegí el plan Profesional, que incluye clases en vivo grupales ilimitadas." },
+          { icon: GraduationCap, titulo: "1. Contratá tu plan", texto: "Elegí el plan Plataforma + Grupos, que incluye clases en vivo grupales ilimitadas." },
           { icon: Clock, titulo: "2. Revisá tu horario", texto: "Mirá el horario semanal de arriba y ubicá el grupo de tu nivel y edad." },
           { icon: Radio, titulo: "3. Entrá a Zoom", texto: "A la hora de tu clase, volvé a esta página y tocá \"Entrar a la clase en Zoom\"." },
         ].map(({ icon: Icon, titulo, texto }) => (

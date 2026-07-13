@@ -733,11 +733,15 @@ export default function Home() {
 
           <FadeIn delay={0.55}>
             <p className="text-center text-slate-400 text-sm mt-4">
-              ¿Ya estás inscrito?{" "}
+              ¿Preferís inscribirte en línea?{" "}
+              <Link href="/planes" className="text-[#00C4B4] font-semibold hover:underline">
+                Elegí tu plan y pagá con depósito bancario
+              </Link>
+              {" "}subiendo tu boleta desde la web. ¿Ya estás inscrito?{" "}
               <Link href="/alumno/login" className="text-[#00C4B4] font-semibold hover:underline">
                 Entrá al portal de alumnos
-              </Link>{" "}
-              para acceder a tus cursos y clases en vivo.
+              </Link>
+              .
             </p>
           </FadeIn>
         </div>

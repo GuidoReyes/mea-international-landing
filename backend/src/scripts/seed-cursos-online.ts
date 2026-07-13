@@ -123,47 +123,57 @@ interface PlanSeed {
   precios: PrecioSeed[];
 }
 
-// Precios placeholder en GTQ — ajustar cuando Guido defina los reales y re-correr el seed
+// Precios reales (2026-07): Plataforma Q150/mes, Plataforma + Grupos Q300/mes.
+// Descuentos por duración: 3 meses -10%, 6 meses -20%, 12 meses -30%.
+// Mismos precios que muestra la landing (content/site.json). Checkout: depósito BI.
 const PLANES: PlanSeed[] = [
   {
-    slug: "esencial",
-    nombre: "Esencial",
-    descripcion: "Todos los cursos autoguiados a tu ritmo, con certificados incluidos.",
+    slug: "plataforma",
+    nombre: "Plataforma",
+    descripcion: "Acceso completo a la plataforma educativa: cursos, material digital y clases grabadas a tu ritmo.",
     features: [
-      "Acceso a todos los cursos autoguiados",
+      "Acceso completo a la plataforma educativa",
       "Cursos técnicos: talleres, mecánica y oficina",
+      "Material digital y clases grabadas",
       "Certificados verificables al completar",
       "Soporte por WhatsApp",
     ],
     recomendado: false,
     incluyeClasesEnVivo: false,
     precios: [
-      { duracionMeses: 1, precioMesCentavos: 29900, precioRegularMesCentavos: 29900 },
-      { duracionMeses: 3, precioMesCentavos: 26900, precioRegularMesCentavos: 29900 },
-      { duracionMeses: 6, precioMesCentavos: 23900, precioRegularMesCentavos: 29900 },
-      { duracionMeses: 12, precioMesCentavos: 20900, precioRegularMesCentavos: 29900 },
+      { duracionMeses: 1, precioMesCentavos: 15000, precioRegularMesCentavos: 15000 },
+      { duracionMeses: 3, precioMesCentavos: 13500, precioRegularMesCentavos: 15000 },
+      { duracionMeses: 6, precioMesCentavos: 12000, precioRegularMesCentavos: 15000 },
+      { duracionMeses: 12, precioMesCentavos: 10500, precioRegularMesCentavos: 15000 },
     ],
   },
   {
-    slug: "profesional",
-    nombre: "Profesional",
-    descripcion: "Todo lo del plan Esencial más clases en vivo y acompañamiento personalizado.",
+    slug: "plataforma-grupos",
+    nombre: "Plataforma + Grupos",
+    descripcion: "Todo lo del plan Plataforma más clases en vivo grupales por Zoom.",
     features: [
-      "Todo lo del plan Esencial",
-      "Clases en vivo con profesores",
+      "Todo lo del plan Plataforma",
+      "Clases en vivo grupales por Zoom",
       "Acompañamiento personalizado por WhatsApp",
       "Prioridad en soporte y feedback",
     ],
     recomendado: true,
     incluyeClasesEnVivo: true,
     precios: [
-      { duracionMeses: 1, precioMesCentavos: 49900, precioRegularMesCentavos: 49900 },
-      { duracionMeses: 3, precioMesCentavos: 44900, precioRegularMesCentavos: 49900 },
-      { duracionMeses: 6, precioMesCentavos: 39900, precioRegularMesCentavos: 49900 },
-      { duracionMeses: 12, precioMesCentavos: 34900, precioRegularMesCentavos: 49900 },
+      { duracionMeses: 1, precioMesCentavos: 30000, precioRegularMesCentavos: 30000 },
+      { duracionMeses: 3, precioMesCentavos: 27000, precioRegularMesCentavos: 30000 },
+      { duracionMeses: 6, precioMesCentavos: 24000, precioRegularMesCentavos: 30000 },
+      { duracionMeses: 12, precioMesCentavos: 21000, precioRegularMesCentavos: 30000 },
     ],
   },
 ];
+
+// Renombres de planes (mismo patrón que SLUGS_ALTERNOS de cursos): si el plan
+// existe con el slug viejo, se actualiza en el lugar en vez de crear uno nuevo.
+const PLAN_SLUGS_ALTERNOS: Record<string, string> = {
+  plataforma: "esencial",
+  "plataforma-grupos": "profesional",
+};
 
 // "ingles-general-a1" fue renombrado a "ingles-general" por seed-curriculum.ts
 // (Rutas). Buscar por ambos slugs evita crear un CursoOnline duplicado si
@@ -214,24 +224,23 @@ async function seedCursos() {
 
 async function seedPlanes() {
   for (const plan of PLANES) {
-    const guardado = await prisma.plan.upsert({
-      where: { slug: plan.slug },
-      create: {
-        slug: plan.slug,
-        nombre: plan.nombre,
-        descripcion: plan.descripcion,
-        features: plan.features,
-        recomendado: plan.recomendado,
-        incluyeClasesEnVivo: plan.incluyeClasesEnVivo,
-      },
-      update: {
-        nombre: plan.nombre,
-        descripcion: plan.descripcion,
-        features: plan.features,
-        recomendado: plan.recomendado,
-        incluyeClasesEnVivo: plan.incluyeClasesEnVivo,
-      },
+    const slugAlterno = PLAN_SLUGS_ALTERNOS[plan.slug];
+    const existente = await prisma.plan.findFirst({
+      where: { slug: slugAlterno ? { in: [plan.slug, slugAlterno] } : plan.slug },
     });
+
+    const datos = {
+      slug: plan.slug,
+      nombre: plan.nombre,
+      descripcion: plan.descripcion,
+      features: plan.features,
+      recomendado: plan.recomendado,
+      incluyeClasesEnVivo: plan.incluyeClasesEnVivo,
+    };
+
+    const guardado = existente
+      ? await prisma.plan.update({ where: { id: existente.id }, data: datos })
+      : await prisma.plan.create({ data: datos });
 
     for (const precio of plan.precios) {
       const totalCentavos = precio.precioMesCentavos * precio.duracionMeses;

@@ -23,20 +23,23 @@ function mensajePorPuntaje(puntaje: number): string {
   return "Seguí practicando";
 }
 
+// key={paso.id}: sin él, React reutiliza la instancia cuando dos pasos seguidos
+// son del mismo tipo, y el estado interno (audio cacheado, selecciones, inputs)
+// se arrastra del paso anterior.
 function renderPasoView(paso: PasoLeccion, onResultado: (correcto: boolean) => void) {
   switch (paso.tipo) {
     case "vocabulario":
-      return <PasoVocabularioView paso={paso} onResultado={onResultado} />;
+      return <PasoVocabularioView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "opcion_multiple":
-      return <PasoOpcionMultipleView paso={paso} onResultado={onResultado} />;
+      return <PasoOpcionMultipleView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "completar":
-      return <PasoCompletarView paso={paso} onResultado={onResultado} />;
+      return <PasoCompletarView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "ordenar":
-      return <PasoOrdenarView paso={paso} onResultado={onResultado} />;
+      return <PasoOrdenarView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "emparejar":
-      return <PasoEmparejarView paso={paso} onResultado={onResultado} />;
+      return <PasoEmparejarView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "escuchar":
-      return <PasoEscucharView paso={paso} onResultado={onResultado} />;
+      return <PasoEscucharView key={paso.id} paso={paso} onResultado={onResultado} />;
     default: {
       const pasoNuncaAlcanzado: never = paso;
       throw new Error(`Tipo de paso no soportado: ${JSON.stringify(pasoNuncaAlcanzado)}`);

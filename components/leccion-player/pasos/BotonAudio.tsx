@@ -11,11 +11,16 @@ interface BotonAudioProps {
 export default function BotonAudio({ audioUrl, className = "" }: BotonAudioProps) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const urlRef = useRef<string | null>(null);
 
   function reproducir() {
-    if (!audioRef.current) {
+    // Recrear el Audio si la URL cambió: el objeto cacheado del paso anterior
+    // seguiría sonando aunque la prop ya apunte a otro archivo.
+    if (!audioRef.current || urlRef.current !== audioUrl) {
+      audioRef.current?.pause();
       audioRef.current = new Audio(audioUrl);
       audioRef.current.addEventListener("ended", () => setPlaying(false));
+      urlRef.current = audioUrl;
     }
     setPlaying(true);
     audioRef.current.currentTime = 0;

@@ -33,13 +33,29 @@ export const pasoCompletarSchema = z.object({
   opciones: z.array(z.string().min(1)).min(2).max(6).optional(),
 });
 
-export const pasoOrdenarSchema = z.object({
-  ...pasoBase,
-  tipo: z.literal("ordenar"),
-  instruccion: z.string().min(1),
-  palabras: z.array(z.string().min(1)).min(2),
-  ordenCorrecto: z.array(z.number().int().min(0)),
-});
+export const pasoOrdenarSchema = z
+  .object({
+    ...pasoBase,
+    tipo: z.literal("ordenar"),
+    instruccion: z.string().min(1),
+    palabras: z.array(z.string().min(1)).min(2),
+    ordenCorrecto: z.array(z.number().int().min(0)),
+  })
+  // El componente exige colocar TODAS las palabras para habilitar "Verificar"
+  // (no hay señuelos/palabras sobrantes en este tipo de ejercicio) — sin este
+  // refine, un ordenCorrecto más corto que palabras nunca puede dar correcto.
+  .refine(
+    (paso) => {
+      if (paso.ordenCorrecto.length !== paso.palabras.length) return false;
+      const indices = [...paso.ordenCorrecto].sort((a, b) => a - b);
+      return indices.every((idx, i) => idx === i);
+    },
+    {
+      message:
+        "ordenCorrecto debe ser una permutación de TODOS los índices de palabras (mismo largo, sin señuelos ni índices repetidos/faltantes)",
+      path: ["ordenCorrecto"],
+    }
+  );
 
 export const pasoEmparejarSchema = z.object({
   ...pasoBase,

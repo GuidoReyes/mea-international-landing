@@ -78,6 +78,12 @@ Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de lo
    - instruccion: string
    - palabras: string[] (mínimo 2 — las palabras/piezas desordenadas)
    - ordenCorrecto: number[] (índices 0-based que reordenan "palabras" a la frase correcta)
+   - CRÍTICO: "palabras" contiene ÚNICAMENTE las piezas de la frase correcta, en
+     cualquier orden — SIN palabras señuelo/distractoras que no formen parte de
+     la respuesta. "ordenCorrecto" debe ser una permutación de TODOS los índices
+     de "palabras" (mismo largo que "palabras", cada índice de 0 a length-1
+     aparece exactamente una vez). El alumno coloca TODAS las piezas para
+     verificar, así que ninguna puede sobrar.
 
 5. tipo: "emparejar"
    - instruccion: string
@@ -103,41 +109,57 @@ function extraerJSON(texto: string): string {
   return fenceMatch ? fenceMatch[1].trim() : limpio;
 }
 
+const MAX_INTENTOS_GENERACION = 2;
+
 async function generarContenido(tema: string): Promise<LeccionContenido> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    messages: [{ role: "user", content: construirPrompt(tema) }],
-  });
+  let ultimoErrorDetalle = "";
 
-  const firstContent = response.content[0];
-  if (!firstContent || firstContent.type !== "text") {
-    throw new Error("Respuesta inesperada de Claude (sin contenido de texto)");
-  }
+  for (let intento = 1; intento <= MAX_INTENTOS_GENERACION; intento++) {
+    const prompt =
+      intento === 1
+        ? construirPrompt(tema)
+        : `${construirPrompt(tema)}\n\nTu intento anterior falló esta validación — corregila:\n${ultimoErrorDetalle}`;
 
-  const jsonTexto = extraerJSON(firstContent.text);
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(jsonTexto);
-  } catch (err) {
-    console.error("La respuesta de Claude no es JSON válido:");
-    console.error(jsonTexto);
-    throw err instanceof Error ? err : new Error(String(err));
-  }
-
-  const resultado = leccionContenidoSchema.safeParse(parsedJson);
-  if (!resultado.success) {
-    console.error("El contenido generado no cumple leccionContenidoSchema:");
-    for (const issue of resultado.error.issues) {
-      console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+    const firstContent = response.content[0];
+    if (!firstContent || firstContent.type !== "text") {
+      throw new Error("Respuesta inesperada de Claude (sin contenido de texto)");
     }
-    process.exit(1);
+
+    const jsonTexto = extraerJSON(firstContent.text);
+
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(jsonTexto);
+    } catch (err) {
+      console.error("La respuesta de Claude no es JSON válido:");
+      console.error(jsonTexto);
+      if (intento === MAX_INTENTOS_GENERACION) throw err instanceof Error ? err : new Error(String(err));
+      ultimoErrorDetalle = "La respuesta no fue JSON válido. Respondé ÚNICAMENTE con el JSON.";
+      continue;
+    }
+
+    const resultado = leccionContenidoSchema.safeParse(parsedJson);
+    if (resultado.success) return resultado.data;
+
+    const issues = resultado.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`);
+    console.error(`Intento ${intento}/${MAX_INTENTOS_GENERACION}: el contenido no cumple leccionContenidoSchema:`);
+    for (const issue of issues) console.error(issue);
+
+    if (intento === MAX_INTENTOS_GENERACION) {
+      process.exit(1);
+    }
+    ultimoErrorDetalle = issues.join("\n");
   }
 
-  return resultado.data;
+  throw new Error("inalcanzable");
 }
 
 function textoPronunciable(paso: PasoLeccion): string | undefined {

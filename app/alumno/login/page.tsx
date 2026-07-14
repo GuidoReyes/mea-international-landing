@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GraduationCap, Lock } from "lucide-react";
 import { alumnoApi, setAlumnoToken } from "@/lib/alumno-api";
+import RegisterModal from "@/components/alumno/RegisterModal";
 
 export default function AlumnoLoginPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function AlumnoLoginPage() {
   const [primerLogin, setPrimerLogin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -122,10 +124,26 @@ export default function AlumnoLoginPage() {
 
         <p className="text-xs text-slate-400 text-center mt-6">
           ¿No tenés cuenta?{" "}
+          <button
+            onClick={() => setMostrarRegistro(true)}
+            className="text-[#00C4B4] font-semibold hover:underline"
+          >
+            Registrate gratis
+          </button>{" "}
+          o{" "}
           <Link href="/planes" className="text-[#00C4B4] hover:underline">
-            Conocé nuestros planes
+            conocé nuestros planes
           </Link>
         </p>
+
+        {mostrarRegistro && (
+          <RegisterModal
+            titulo="Creá tu cuenta gratis"
+            descripcion="Registrate con tu WhatsApp o tu correo y empezá a aprender."
+            onClose={() => setMostrarRegistro(false)}
+            onRegistrado={() => { window.location.href = "/mis-cursos"; }}
+          />
+        )}
       </div>
     </div>
   );

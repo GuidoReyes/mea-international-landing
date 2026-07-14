@@ -1,5 +1,5 @@
 {
-  "_doc": "Contenido editable de la landing. JARVIS (agents/dev/modules/mea_landing_updater.py) edita este archivo vía GitHub API; cada push a main redeploya en Vercel. No renombrar claves sin actualizar app/page.tsx y el módulo de JARVIS. NOTA (2026-07-12): los cursos ya no llevan price (los niveles no muestran precio); los precios viven en planes[].",
+  "_doc": "Contenido editable de la landing. JARVIS (agents/dev/modules/mea_landing_updater.py) edita este archivo vía GitHub API; cada push a main redeploya en Vercel. No renombrar claves sin actualizar app/page.tsx y el módulo de JARVIS. NOTA (2026-07-12): los cursos ya no llevan price (los niveles no muestran precio); los precios viven en planes[]. niveles[] alimenta las tarjetas A1-C1 de la landing (CTA a /planes?nivel=X).",
   "cursos": [
     {
       "id": "prea",
@@ -80,6 +80,33 @@
       ],
       "highlighted": true,
       "badge": "Más popular"
+    }
+  ],
+  "niveles": [
+    {
+      "id": "A1",
+      "titulo": "Principiante",
+      "descripcion": "Bases del idioma: saludos, presentarte y vocabulario del día a día."
+    },
+    {
+      "id": "A2",
+      "titulo": "Elemental",
+      "descripcion": "Frases simples para rutinas, compras y pedir direcciones."
+    },
+    {
+      "id": "B1",
+      "titulo": "Intermedio",
+      "descripcion": "Conversaciones cotidianas, dar tu opinión y contar experiencias."
+    },
+    {
+      "id": "B2",
+      "titulo": "Intermedio alto",
+      "descripcion": "Fluidez en temas laborales y sociales, defender tus ideas."
+    },
+    {
+      "id": "C1",
+      "titulo": "Avanzado",
+      "descripcion": "Dominio casi nativo: negociar, presentar y redactar formalmente."
     }
   ]
 }

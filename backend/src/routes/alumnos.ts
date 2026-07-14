@@ -113,6 +113,31 @@ router.post("/", verifyJWT, auditLog("CREAR_ALUMNO", "alumnos"), async (req: Req
   res.status(201).json({ ...alumno, tempPassword });
 });
 
+// POST /api/alumnos/:id/reset-password — genera contraseña temporal nueva.
+// El admin NUNCA ve la contraseña actual (solo existe hasheada); esto la reemplaza.
+router.post("/:id/reset-password", verifyJWT, auditLog("RESET_PASSWORD_ALUMNO", "alumnos"), async (req: Request, res: Response) => {
+  const id = parseInt(req.params["id"] as string);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "ID inválido" });
+    return;
+  }
+
+  const alumno = await prisma.alumno.findUnique({ where: { id } });
+  if (!alumno) {
+    res.status(404).json({ error: "Alumno no encontrado" });
+    return;
+  }
+
+  const tempPassword = Math.random().toString(36).slice(-10);
+  const password = await bcrypt.hash(tempPassword, 10);
+  await prisma.alumno.update({
+    where: { id },
+    data: { password, primerLogin: true },
+  });
+
+  res.json({ ok: true, tempPassword });
+});
+
 // PATCH /api/alumnos/:id
 router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_ALUMNO", "alumnos"), async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);

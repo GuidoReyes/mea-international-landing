@@ -7,6 +7,7 @@ import { RutaCurriculum, LeccionCurriculum, getRutaCurriculum } from "@/lib/ruta
 import { alumnoApi, getAlumnoToken } from "@/lib/alumno-api";
 import type { LeccionContenido } from "@/lib/leccion-contenido";
 import LessonPlayer from "@/components/leccion-player/LessonPlayer";
+import RegisterModal from "@/components/alumno/RegisterModal";
 
 interface Props {
   rutaSlug: string;
@@ -69,6 +70,7 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
   const [puntaje, setPuntaje] = useState<string>("");
   const [guardando, setGuardando] = useState(false);
   const [certificado, setCertificado] = useState<{ codigo: string; urlPdf: string | null } | null>(null);
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
   const [contenidoJugable, setContenidoJugable] = useState<LeccionContenido | null>(null);
@@ -146,28 +148,52 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
   }
 
   if (leccion.bloqueada) {
+    const sinSesion = getAlumnoToken() === null;
     return (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center">
+        {mostrarRegistro && (
+          <RegisterModal
+            titulo="Desbloqueá el resto de la ruta"
+            descripcion="Creá tu cuenta gratis y seguí aprendiendo donde te quedaste."
+            onClose={() => setMostrarRegistro(false)}
+            onRegistrado={() => window.location.reload()}
+          />
+        )}
         <div className="w-12 h-12 bg-[#0A2540]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Lock className="w-6 h-6 text-[#0A2540]" />
         </div>
-        <h2 className="text-xl font-bold text-[#0A2540] mb-2">Esta lección está bloqueada</h2>
+        <h2 className="text-xl font-bold text-[#0A2540] mb-2">
+          {sinSesion ? "Desbloqueá el resto de la ruta" : "Esta lección está bloqueada"}
+        </h2>
         <p className="text-slate-500 text-sm mb-6">
-          Desbloqueala con un plan de MEA, o iniciá sesión si ya tenés uno.
+          {sinSesion
+            ? "Creá tu cuenta gratis para guardar tu progreso y seguir con la ruta."
+            : "Desbloqueala con un plan de MEA."}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link
-            href="/planes"
-            className="inline-flex items-center px-6 py-3 bg-[#00C4B4] text-white rounded-full font-bold hover:bg-[#00a898] transition-all"
-          >
-            Ver planes
-          </Link>
-          <Link
-            href="/alumno/login"
-            className="inline-flex items-center px-6 py-3 bg-[#0A2540] text-white rounded-full font-bold hover:bg-[#0d2f4f] transition-all"
-          >
-            Iniciar sesión
-          </Link>
+          {sinSesion ? (
+            <>
+              <button
+                onClick={() => setMostrarRegistro(true)}
+                className="inline-flex items-center px-6 py-3 bg-[#00C4B4] text-white rounded-full font-bold hover:bg-[#00a898] transition-all"
+              >
+                Crear cuenta gratis
+              </button>
+              <Link
+                href="/alumno/login"
+                className="inline-flex items-center px-6 py-3 bg-[#0A2540] text-white rounded-full font-bold hover:bg-[#0d2f4f] transition-all"
+              >
+                Ya tengo cuenta
+              </Link>
+            </>
+          ) : (
+            <Link
+              href="/planes"
+              className="inline-flex items-center px-6 py-3 bg-[#00C4B4] text-white rounded-full font-bold hover:bg-[#00a898] transition-all"
+            >
+              Ver planes
+            </Link>
+          )}
         </div>
       </div>
     );

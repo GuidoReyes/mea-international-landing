@@ -9,6 +9,7 @@ interface TabContent {
   title: string;
   description: string;
   buttonText: string;
+  buttonHref: string;
   imageSrc: string;
   imageAlt: string;
 }
@@ -42,6 +43,7 @@ const Feature108 = ({
         description:
           "Cada estudiante tiene un plan de estudio único adaptado a sus objetivos, ritmo y nivel. Nuestros maestros certificados crean lecciones que se ajustan a tu vida profesional y personal.",
         buttonText: "Inscríbete Ahora",
+        buttonHref: "/planes",
         imageSrc: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop",
         imageAlt: "Clases personalizadas de inglés",
       },
@@ -56,6 +58,7 @@ const Feature108 = ({
         description:
           "Nuestro método intensivo y práctico garantiza resultados visibles desde las primeras semanas. El 98% de nuestros estudiantes reportan mejoras significativas en su inglés en los primeros 30 días.",
         buttonText: "Ver Testimonios",
+        buttonHref: "#testimonios",
         imageSrc: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop",
         imageAlt: "Progreso rápido en inglés",
       },
@@ -70,6 +73,7 @@ const Feature108 = ({
         description:
           "Nuestros profesores son hablantes nativos de inglés, altamente certificados y cuentan con más de 5 años de experiencia especializada en la enseñanza. Su enfoque es 100% conversacional y adaptado a tus objetivos.",
         buttonText: "Inscríbete Ahora",
+        buttonHref: "/planes",
         imageSrc: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop",
         imageAlt: "Profesores nativos de inglés",
       },
@@ -116,10 +120,11 @@ const Feature108 = ({
                     {tab.content.description}
                   </p>
                   <Button
+                    asChild
                     className="mt-2.5 w-fit gap-2 bg-[#00C4B4] hover:bg-[#00a898] text-white"
                     size="lg"
                   >
-                    {tab.content.buttonText}
+                    <a href={tab.content.buttonHref}>{tab.content.buttonText}</a>
                   </Button>
                 </div>
                 <img

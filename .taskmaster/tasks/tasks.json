@@ -3719,13 +3719,211 @@
         "status": "done",
         "subtasks": [],
         "updatedAt": "2026-07-12T07:05:55.357Z"
+      },
+      {
+        "id": "150",
+        "title": "Implement 5-level English tier section on landing page",
+        "description": "Replace current 3-card level section with 5 compact cards (A1-C1) linking to /planes with nivel query param",
+        "details": "Create new NivelCard component displaying 5 English proficiency levels (A1 Principiante, A2 Elemental, B1 Intermedio, B2 Intermedio Alto, C1 Avanzado) with copy from PRD table. Each card links to /planes?nivel={level}. Store card data in content/site.json under new 'niveles[]' key. Update app/page.tsx to render these cards instead of current EvervaultCard levels. Responsive: 1 column mobile, 5 columns desktop. Use brand colors #0A2540/#00C4B4. Reference existing pill styling patterns.",
+        "testStrategy": "Verify 5 cards render correctly, all CTAs link to /planes with correct nivel param, responsive layout works on mobile/desktop, brand colors applied correctly, content/site.json correctly stores nivel data",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.493Z"
+      },
+      {
+        "id": "151",
+        "title": "Add nivel query param support to /planes page",
+        "description": "Enable /planes to accept and handle ?nivel=A1..C1 query parameter for visual preselection",
+        "details": "Modify app/planes/page.tsx to read searchParams.nivel. Pass nivel to PricingPlanes component. In components/planes/PricingPlanes.tsx, add visual highlighting/preselection when nivel is present (e.g., scroll to view, highlight border, or display banner like 'Planes recomendados para nivel {nivel}'). Persist nivel through to checkout or WhatsApp message in fallback flow. Ensure graceful handling of invalid nivel values.",
+        "testStrategy": "Test /planes?nivel=A1, /planes?nivel=C1, /planes without param, /planes?nivel=invalid. Verify visual preselection works, invalid values handled gracefully, checkout flow preserves nivel context",
+        "priority": "high",
+        "dependencies": [
+          "150"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.505Z"
+      },
+      {
+        "id": "152",
+        "title": "Fix dead buttons in Feature108 component",
+        "description": "Update all 3 button CTAs in shadcnblocks-com-feature108.tsx to navigate to proper routes",
+        "details": "In components/ui/shadcnblocks-com-feature108.tsx, replace Button components with Link from next/link. Map buttons: 'Inscríbete Ahora' (×2) → /planes, 'Ver Testimonios' → #testimonios anchor. Also fix href='#' for Política de Privacidad link in cookie modal (app/page.tsx) - either open LegalModal for privacy or remove link entirely. Ensure all navigation works client-side without page reload.",
+        "testStrategy": "Click all 3 buttons in Feature108 section and verify navigation, test Política de Privacidad link in cookie modal, verify no href='#' remain, test on mobile and desktop",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.511Z"
+      },
+      {
+        "id": "153",
+        "title": "Create vocational courses section on landing page",
+        "description": "Add new section displaying 4 vocational course cards (General, Restaurantes, Call Center, Oficina) with CTA to free lessons",
+        "details": "Create CursoVocacionalCard component. Add new section to app/page.tsx after hero or before testimonials. Display 4 cards for Inglés General, Restaurantes, Call Center, Oficina. Each card has CTA 'Ver 3 lecciones gratis' → /cursos/{slug} (general, restaurantes, call-center, oficina). Fetch data from getRutas() in lib/rutas.ts or use static slugs. Design should match existing landing aesthetics with brand colors. Responsive: 1-2 cols mobile, 4 cols desktop.",
+        "testStrategy": "Verify 4 cards render with correct titles/descriptions, all CTAs link to correct /cursos/{slug} routes, data loaded from getRutas or static config, responsive layout works, matches design system",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.516Z"
+      },
+      {
+        "id": "154",
+        "title": "Mark first 3 lessons as free in all 7 rutas",
+        "description": "Create database migration/script to set esGratis=true for first 3 lessons in each ruta",
+        "details": "Write idempotent script (backend/src/scripts/mark-free-lessons.ts or SQL migration) to update Leccion.esGratis = true for the first 3 lessons (by orden in RutaLeccion) of all 7 rutas. Query all rutas, for each ruta get first 3 RutaLeccion entries ordered by orden ASC, update corresponding Leccion records. Ensure script can be run multiple times without issues. Include logging to show which lessons were updated. Currently only 5 lessons are marked free across 3 rutas - this expands to 21 total (3×7).",
+        "testStrategy": "Run script, verify exactly 3 lessons per ruta are esGratis=true, verify idempotency (run twice, same result), check database directly, test lesson access without login confirms first 3 accessible",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.530Z"
+      },
+      {
+        "id": "155",
+        "title": "Implement lesson gate for 4th+ lessons without session",
+        "description": "Show RegisterModal instead of lock screen when unauthenticated user reaches 4th+ lesson",
+        "details": "In components/cursos-online/LeccionClient.tsx, modify gating logic. Currently uses esGratis/subscription check. For 4th+ lesson without session (no getAlumnoToken()), instead of showing Lock screen, render RegisterModal component with copy 'Desbloqueá el resto de la ruta creando tu cuenta gratis'. Create RegisterModal component if doesn't exist (check for existing auth modals first). Modal should have dual registration options (email or WhatsApp). Ensure first 3 lessons remain freely accessible without any modal.",
+        "testStrategy": "Test in incognito: lessons 1-3 play without login, lesson 4+ shows RegisterModal, modal has correct copy, both registration paths visible, successful registration grants access, logged-in users see no gate",
+        "priority": "high",
+        "dependencies": [
+          "154"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.537Z"
+      },
+      {
+        "id": "156",
+        "title": "Create SEO sitemap and robots.txt",
+        "description": "Generate sitemap.ts and robots.ts for Next.js with all public routes and free lessons",
+        "details": "Create app/sitemap.ts exporting default async function returning MetadataRoute.Sitemap array. Include: home /, /cursos, /planes, /clases-en-vivo, all 7 ruta pages /cursos/{slug}, all free lessons (esGratis=true) /cursos/{rutaSlug}/leccion/{leccionSlug}. Fetch rutas and free lessons from API. Set appropriate changeFrequency and priority. Create app/robots.ts exporting default function returning MetadataRoute.Robots with Allow: /, Sitemap reference. Add metadata (title, description) for all free lesson pages in lesson page component or generateMetadata.",
+        "testStrategy": "Access /sitemap.xml and verify all routes listed, verify /robots.txt served correctly, check lesson metadata in page source, validate sitemap XML with online validator, test Google Search Console integration",
+        "priority": "medium",
+        "dependencies": [
+          "154"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.544Z"
+      },
+      {
+        "id": "157",
+        "title": "Create RegisterModal component with dual registration (email/WhatsApp)",
+        "description": "Build reusable registration modal with tabs for email+password and WhatsApp+OTP flows",
+        "details": "Create components/auth/RegisterModal.tsx. Use Radix UI Tabs with 2 tabs: 'WhatsApp' (recommended) and 'Correo electrónico'. WhatsApp tab: phone input + 'Enviar código' button → calls /api/auth-alumno/otp/solicitar, then code input field + verify button → calls /api/auth-alumno/otp/verificar. Email tab: email + password inputs (min 8 chars) + submit → calls /api/auth-alumno/registro. On success both paths: save JWT token, close modal, refresh page or update auth state. Show loading states, error messages. Link to login: '¿Ya tenés cuenta? Iniciá sesión'. Use brand colors, match existing modal patterns (see LegalModal).",
+        "testStrategy": "Test both registration flows end-to-end, verify validation (email format, password length, phone format), test error handling (invalid code, duplicate email, rate limits), verify JWT storage, test modal open/close, responsive design",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.554Z"
+      },
+      {
+        "id": "158",
+        "title": "Update Alumno schema for optional email and unique whatsapp",
+        "description": "Modify Prisma schema to support dual registration: email optional+unique, whatsapp unique, add OtpCode model",
+        "details": "In backend/prisma/schema.prisma: Change Alumno.email to 'String? @unique' (optional), change Alumno.whatsapp to 'String? @unique' (add unique constraint). Create new OtpCode model: { id Int @id @default(autoincrement()), whatsapp String, codigo String (bcrypt hash), expiraEn DateTime, usado Boolean @default(false), creadoEn DateTime @default(now()) } with index on whatsapp. Before db push, write migration script to check for duplicate whatsapp values and resolve them. Application rule: at least one of email or whatsapp must be set (enforce in API validation).",
+        "testStrategy": "Run prisma db push successfully, verify schema changes in database, test creating Alumno with only email, with only whatsapp, with both, verify unique constraints work, verify OtpCode table created with indexes",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.559Z"
+      },
+      {
+        "id": "159",
+        "title": "Implement OTP generation and WhatsApp delivery backend",
+        "description": "Create backend endpoints for OTP request and verification using existing sendWhatsAppMessage",
+        "details": "In backend/src/routes/auth-alumno.ts add: POST /otp/solicitar - validates phone number format, checks rate limit (max 3 codes per hour per number via OtpCode records), generates 6-digit numeric code, hashes with bcrypt (BCRYPT_ROUNDS), stores in OtpCode with 10min expiry, sends via sendWhatsAppMessage() from lib/whatsapp-send.ts with message 'Tu código de verificación MEA: {código}. Válido 10 minutos.'. Returns success/error (don't expose code in response). POST /otp/verificar - takes whatsapp + codigo, finds unexpired unused OtpCode, verifies hash with bcrypt.compare, if valid: mark usado=true, create/login Alumno (generate carnet like WEB-{nextId}), return JWT. Implement cleanup cron to delete expired codes.",
+        "testStrategy": "Test /otp/solicitar with valid/invalid phones, verify WhatsApp message received with 6-digit code, test rate limiting (4th request in hour should fail), test /otp/verificar with correct/incorrect/expired codes, verify Alumno created with only whatsapp, verify JWT returned and works, test error cases",
+        "priority": "high",
+        "dependencies": [
+          "158"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.565Z"
+      },
+      {
+        "id": "160",
+        "title": "Implement email+password registration endpoint",
+        "description": "Create backend endpoint for traditional email/password registration with auto-generated carnet",
+        "details": "In backend/src/routes/auth-alumno.ts add POST /registro endpoint. Accept: nombre, apellido, email, password. Validate: email format (regex), password min 8 chars, all fields present. Check email not already registered. Generate carnet: query max carnet starting with 'WEB-', extract number, increment (e.g., WEB-0001, WEB-0002). Hash password with bcrypt (BCRYPT_ROUNDS=12). Create Alumno with: carnet, nombre, apellido, email, password (hashed), activo=true, primerLogin=true. Generate JWT with alumnoId + email. Return: token, alumno data. Add rate limiting by IP (use existing pattern from login). Include audit logging.",
+        "testStrategy": "Test registration with valid data, verify carnet auto-generated correctly and increments, verify password hashed (never stored plain), verify duplicate email rejected, test weak passwords rejected, test JWT returned works for protected endpoints, verify rate limiting works",
+        "priority": "high",
+        "dependencies": [
+          "158"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.571Z"
+      },
+      {
+        "id": "161",
+        "title": "Add password reset functionality in admin panel",
+        "description": "Create admin UI button and endpoint to reset alumno password and send temp password via WhatsApp",
+        "details": "In admin alumno detail page (app/admin/alumnos/[id]/page.tsx), add 'Resetear contraseña' button. On click, confirm dialog → calls admin endpoint POST /api/admin/alumnos/:id/reset-password (create in backend/src/routes/alumnos.ts under admin auth middleware). Endpoint: generates random 12-char tempPassword (letters+numbers), hashes with bcrypt, updates Alumno.password + sets primerLogin=true. If Alumno.whatsapp exists, calls sendWhatsAppMessage with 'Tu nueva contraseña temporal es: {tempPassword}. Cambiala en tu próximo ingreso.'. Returns success/temp password to admin UI (show in alert for fallback). Include audit log entry. Verify admin session has permission.",
+        "testStrategy": "Test as admin: click reset button, verify confirmation dialog, verify password updated in DB (hashed), verify WhatsApp message sent if whatsapp set, verify primerLogin flag set, verify audit log entry created, test without whatsapp (manual temp password shown), verify alumno can login with temp password and is prompted to change it",
+        "priority": "medium",
+        "dependencies": [
+          "158"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.576Z"
+      },
+      {
+        "id": "162",
+        "title": "Integrate RegisterModal into lesson gate and login page",
+        "description": "Use RegisterModal in LeccionClient lesson gate and add registration link to login page",
+        "details": "Import and use RegisterModal in: (1) components/cursos-online/LeccionClient.tsx - show when 4th+ lesson accessed without auth, (2) app/alumno/login/page.tsx - add '¿No tenés cuenta? Registrate' link/button that opens RegisterModal. Ensure modal state managed properly (open/close). On successful registration, update auth context/state and refresh curriculum data to unlock lessons. Test both entry points work identically. Ensure proper z-index layering and accessibility (focus trap, ESC to close).",
+        "testStrategy": "Test RegisterModal opens from lesson 4+ without login, test modal opens from login page link, verify both instances work identically, test registration from both entry points, verify post-registration state updates (lessons unlock), test modal close behavior, verify accessibility (keyboard nav, focus management)",
+        "priority": "medium",
+        "dependencies": [
+          "157",
+          "159",
+          "160"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.581Z"
+      },
+      {
+        "id": "163",
+        "title": "QA and final integration testing",
+        "description": "Comprehensive end-to-end testing of all Phase 2 features per PRD checklist",
+        "details": "Execute full QA checklist: (1) Verify all landing CTAs navigate correctly, no href='#' or dead buttons. (2) Test 5 nivel cards → /planes?nivel=X with visual preselection. (3) Test 4 vocational course cards → /cursos/{slug}. (4) Verify lessons 1-3 of each ruta accessible in incognito, lesson 4 shows RegisterModal. (5) Complete both registration flows (email+password, WhatsApp+OTP) end-to-end including WhatsApp message receipt. (6) Test admin password reset with WhatsApp notification. (7) Verify no passwords exposed in admin panel. (8) Test responsive layouts on mobile/desktop. (9) Verify brand colors #0A2540/#00C4B4 applied consistently. (10) Access /sitemap.xml and /robots.txt. (11) Run tsc --noEmit in both frontend and backend. (12) Run production build and verify no errors.",
+        "testStrategy": "Document all test results in checklist format. Test on Chrome/Firefox/Safari. Test on iOS/Android mobile browsers. Verify all error states handled gracefully. Check browser console for errors. Verify all API endpoints return correct status codes. Validate database integrity after all operations. Perform load testing on OTP endpoint (rate limiting). Security scan for any exposed credentials.",
+        "priority": "high",
+        "dependencies": [
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "160",
+          "161",
+          "162"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-07-14T04:20:10.587Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-07-12T21:48:26.499Z",
-      "taskCount": 149,
-      "completedCount": 147,
+      "lastModified": "2026-07-14T04:20:10.587Z",
+      "taskCount": 163,
+      "completedCount": 161,
       "tags": [
         "master"
       ]

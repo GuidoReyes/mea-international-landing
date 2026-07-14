@@ -411,6 +411,11 @@ export const api = {
   getCampanaStatus: (id: number) =>
     apiFetch<CampanaStatus>(`/api/marketing/campanas/${id}/status`),
 
+  resetPasswordAlumno: (id: number) =>
+    apiFetch<{ ok: boolean; tempPassword: string }>(`/api/alumnos/${id}/reset-password`, {
+      method: "POST",
+    }),
+
   getPagosDeposito: (estado?: string) => {
     const params = estado ? `?estado=${encodeURIComponent(estado)}` : "";
     return apiFetch<PagoDeposito[]>(`/api/pagos-deposito${params}`);

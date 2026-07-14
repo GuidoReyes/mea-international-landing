@@ -12,6 +12,7 @@
     "seed:cursos-online": "ts-node src/scripts/seed-cursos-online.ts",
     "seed:clases-en-vivo": "ts-node src/scripts/seed-clases-en-vivo.ts",
     "seed:curriculum": "ts-node src/scripts/seed-curriculum.ts",
+    "seed:lecciones-gratis": "ts-node src/scripts/marcar-lecciones-gratis.ts",
     "generate:leccion": "ts-node src/scripts/generate-leccion.ts",
     "test:fase3": "ts-node src/scripts/test-fase3.ts",
     "test:clases-en-vivo": "ts-node src/scripts/test-clases-en-vivo.ts",

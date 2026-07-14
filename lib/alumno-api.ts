@@ -102,6 +102,24 @@ export const alumnoApi = {
       { method: "POST", body: JSON.stringify({ email, password }) }
     ),
 
+  registro: (data: { nombre: string; apellido?: string; email: string; password: string }) =>
+    alumnoFetch<{ token: string; primerLogin: boolean; alumno: Alumno }>(
+      "/api/auth/alumno/registro",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+
+  otpSolicitar: (whatsapp: string) =>
+    alumnoFetch<{ ok: boolean; mensaje: string }>("/api/auth/alumno/otp/solicitar", {
+      method: "POST",
+      body: JSON.stringify({ whatsapp }),
+    }),
+
+  otpVerificar: (whatsapp: string, codigo: string, nombre?: string) =>
+    alumnoFetch<{ token: string; esNuevo: boolean; primerLogin: boolean; alumno: Alumno }>(
+      "/api/auth/alumno/otp/verificar",
+      { method: "POST", body: JSON.stringify({ whatsapp, codigo, nombre }) }
+    ),
+
   cambiarPassword: (passwordActual: string, passwordNueva: string) =>
     alumnoFetch<{ message: string }>("/api/auth/alumno/cambiar-password", {
       method: "POST",

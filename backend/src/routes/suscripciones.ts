@@ -82,6 +82,13 @@ router.post("/checkout", verifyAlumnoJWT, rateLimitCheckout, async (req: Request
     return;
   }
 
+  if (!alumno.email) {
+    res.status(400).json({
+      error: "Completá tu correo en tu perfil para pagar en línea (lo usa la pasarela de pago).",
+    });
+    return;
+  }
+
   const suscripcion = await prisma.suscripcion.create({
     data: {
       alumnoId: alumno.id,

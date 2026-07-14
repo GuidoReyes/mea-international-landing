@@ -100,8 +100,10 @@ model Alumno {
   carnet          String        @unique
   nombre          String
   apellido        String
-  email           String        @unique
-  whatsapp        String?
+  // Registro dual: se exige AL MENOS UNO de email/whatsapp (regla de aplicación,
+  // validada en los endpoints de registro — Prisma no soporta CHECK cross-column).
+  email           String?       @unique
+  whatsapp        String?       @unique
   fechaNacimiento DateTime?
   pais            String        @default("GT")
   activo          Boolean       @default(true)
@@ -503,6 +505,19 @@ model HorarioClase {
 }
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
+
+// Códigos OTP para registro/login por WhatsApp. El código se guarda hasheado
+// (bcrypt) — nunca en texto plano. Expira a los 10 minutos.
+model OtpCode {
+  id         Int      @id @default(autoincrement())
+  whatsapp   String
+  codigoHash String
+  expiraEn   DateTime
+  usado      Boolean  @default(false)
+  creadoEn   DateTime @default(now())
+
+  @@index([whatsapp, usado])
+}
 
 model Admin {
   id        Int              @id @default(autoincrement())

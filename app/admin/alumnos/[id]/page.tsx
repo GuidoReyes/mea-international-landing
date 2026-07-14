@@ -244,6 +244,21 @@ export default function AlumnoDetallePage() {
   const [alumno, setAlumno] = useState<AlumnoDetalle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [reseteando, setReseteando] = useState(false);
+
+  async function handleResetPassword() {
+    if (!confirm("¿Generar una contraseña temporal nueva para este alumno? La actual dejará de funcionar.")) return;
+    setReseteando(true);
+    try {
+      const res = await api.resetPasswordAlumno(id);
+      setTempPassword(res.tempPassword);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Error al resetear la contraseña");
+    } finally {
+      setReseteando(false);
+    }
+  }
 
   function load() {
     setLoading(true);
@@ -293,6 +308,16 @@ export default function AlumnoDetallePage() {
       </button>
 
       {/* Header */}
+      {tempPassword && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-4 text-sm text-amber-800">
+          Contraseña temporal generada:{" "}
+          <span className="font-mono font-bold bg-white border border-amber-200 px-2 py-0.5 rounded">
+            {tempPassword}
+          </span>{" "}
+          — compartila con el alumno por un canal seguro. Solo se muestra esta vez; al iniciar
+          sesión se le pedirá cambiarla.
+        </div>
+      )}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 mb-6 flex items-start gap-5">
         <Avatar nombre={alumno.nombre} apellido={alumno.apellido} />
         <div className="flex-1 min-w-0">
@@ -322,6 +347,13 @@ export default function AlumnoDetallePage() {
             </span>
           </div>
         </div>
+        <button
+          onClick={handleResetPassword}
+          disabled={reseteando}
+          className="shrink-0 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-[#0A2540] hover:bg-slate-50 disabled:opacity-50 transition-colors"
+        >
+          {reseteando ? "Generando..." : "Resetear contraseña"}
+        </button>
       </div>
 
       {/* Tabs */}

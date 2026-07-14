@@ -16,7 +16,15 @@ function DiscountBadge({ porcentaje }: { porcentaje: number }) {
   );
 }
 
-function PriceCard({ plan, duracionMeses }: { plan: PlanPublico; duracionMeses: number }) {
+function PriceCard({
+  plan,
+  duracionMeses,
+  nivel,
+}: {
+  plan: PlanPublico;
+  duracionMeses: number;
+  nivel: string | null;
+}) {
   const precio = plan.precios.find((p) => p.duracionMeses === duracionMeses);
   if (!precio) return null;
 
@@ -71,7 +79,7 @@ function PriceCard({ plan, duracionMeses }: { plan: PlanPublico; duracionMeses: 
       </ul>
 
       <Link
-        href={`/checkout/${precio.id}`}
+        href={`/checkout/${precio.id}${nivel ? `?nivel=${nivel}` : ""}`}
         className={`mt-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full font-bold transition-all ${
           plan.recomendado
             ? "bg-[#00C4B4] text-white hover:bg-[#00a898] shadow-lg shadow-[#00C4B4]/30"
@@ -84,7 +92,13 @@ function PriceCard({ plan, duracionMeses }: { plan: PlanPublico; duracionMeses: 
   );
 }
 
-export default function PricingPlanes({ planes }: { planes: PlanPublico[] }) {
+export default function PricingPlanes({
+  planes,
+  nivel = null,
+}: {
+  planes: PlanPublico[];
+  nivel?: string | null;
+}) {
   const [duracion, setDuracion] = useState<number>(3);
 
   if (planes.length === 0) {
@@ -117,7 +131,7 @@ export default function PricingPlanes({ planes }: { planes: PlanPublico[] }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
         {planes.map((plan) => (
-          <PriceCard key={plan.id} plan={plan} duracionMeses={duracion} />
+          <PriceCard key={plan.id} plan={plan} duracionMeses={duracion} nivel={nivel} />
         ))}
       </div>
     </div>

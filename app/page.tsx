@@ -127,9 +127,25 @@ interface LandingCardData {
   badge: string;
 }
 
-const courses: LandingCardData[] = site.cursos;
 const planes: LandingCardData[] = site.planes;
 const oferta = site.oferta;
+
+interface NivelData {
+  id: string;
+  titulo: string;
+  descripcion: string;
+}
+
+const niveles: NivelData[] = site.niveles;
+
+// Rutas vocacionales destacadas en la landing (el diferenciador de MEA).
+// Los slugs corresponden a Rutas publicadas en /cursos/[slug].
+const rutasVocacionales = [
+  { slug: "general", titulo: "Inglés General", descripcion: "El temario completo de MEA, desde cero (A1) hasta avanzado (C1)." },
+  { slug: "restaurantes", titulo: "Inglés para Restaurantes", descripcion: "Atención al cliente, pedidos y vocabulario de cocina y servicio." },
+  { slug: "call-center", titulo: "Inglés para Call Center", descripcion: "Negociación, atención al cliente y comunicación profesional." },
+  { slug: "oficina", titulo: "Inglés de Oficina", descripcion: "Reuniones, correos, entrevistas y comunicación laboral." },
+];
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCounter({ end, duration = 2 }: { end: number; duration?: number }) {
@@ -326,7 +342,7 @@ const COOKIES_CONTENT = `<h2 class="text-2xl font-bold mb-6">Política de Cookie
 </ul>
 <h3 class="font-semibold mt-6 mb-3">Consentimiento</h3>
 <p>Al continuar navegando en nuestro sitio aceptas el uso de cookies. Puedes gestionarlas o bloquearlas desde la configuración de tu navegador. Ten en cuenta que bloquear cookies esenciales puede afectar el correcto funcionamiento del sitio.</p>
-<p>Para más información sobre cómo ejercemos tus derechos consulta nuestra <a href="#" class="text-primary hover:underline">Política de Privacidad</a>.</p>`;
+<p>Para más información sobre cómo ejercemos tus derechos consulta nuestra <strong>Política de Privacidad</strong> (disponible en el pie de página).</p>`;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
@@ -662,20 +678,59 @@ export default function Home() {
                 Elige tu nivel de inglés
               </h2>
               <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-                Clases en vivo, maestros certificados y resultados garantizados.
+                Cinco niveles, del cero absoluto al dominio avanzado. Empezá donde estés.
               </p>
             </div>
           </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            {courses.map((course, i) => (
-              <FadeIn key={course.text} delay={i * 0.15}>
-                <LandingPricingCard
-                  card={course}
-                  ctaLabel="Ver planes"
-                  ctaHref="#planes"
-                  ctaIcon={ChevronRight}
-                />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
+            {niveles.map((nivel, i) => (
+              <FadeIn key={nivel.id} delay={i * 0.1} className="h-full">
+                <div className="h-full border border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-[#00C4B4]/40 transition-all p-6 flex flex-col">
+                  <span className="text-[#00C4B4] font-extrabold text-3xl tracking-tight">{nivel.id}</span>
+                  <h3 className="text-white font-bold mt-1 mb-2">{nivel.titulo}</h3>
+                  <p className="text-slate-400 text-sm flex-1">{nivel.descripcion}</p>
+                  <Link
+                    href={`/planes?nivel=${nivel.id}`}
+                    className="mt-5 inline-flex items-center justify-center gap-1 py-2.5 px-4 rounded-full text-sm font-bold bg-white/10 text-white border border-white/20 hover:bg-[#00C4B4] hover:border-[#00C4B4] transition-all"
+                  >
+                    Empezar en {nivel.id} <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 7a. RUTAS VOCACIONALES */}
+      <section id="rutas" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <FadeIn>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#0A2540] mb-4">
+                Inglés para tu trabajo
+              </h2>
+              <p className="text-slate-500 text-lg max-w-2xl mx-auto">
+                Rutas vocacionales que ninguna otra academia tiene. Probá 3 lecciones
+                gratis de cada una, sin crear cuenta.
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {rutasVocacionales.map((ruta, i) => (
+              <FadeIn key={ruta.slug} delay={i * 0.1} className="h-full">
+                <div className="h-full bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#00C4B4]/40 transition-all p-6 flex flex-col">
+                  <h3 className="text-lg font-bold text-[#0A2540] mb-2">{ruta.titulo}</h3>
+                  <p className="text-slate-500 text-sm flex-1">{ruta.descripcion}</p>
+                  <Link
+                    href={`/cursos/${ruta.slug}`}
+                    className="mt-5 inline-flex items-center justify-center gap-1.5 py-3 px-5 rounded-full text-sm font-bold bg-[#00C4B4] text-white hover:bg-[#00a898] transition-all"
+                  >
+                    Ver 3 lecciones gratis <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </FadeIn>
             ))}
           </div>

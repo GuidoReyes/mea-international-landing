@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import RutaDetalleClient from "@/components/cursos-online/RutaDetalleClient";
+import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getRutaCurriculum, colorBadgeNivel } from "@/lib/rutas";
 
 interface Props {
@@ -28,7 +29,10 @@ export default async function RutaDetallePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <header className="bg-[#0A2540] text-white">
+      <header className="bg-[#0A2540] text-white relative">
+        <div className="absolute top-5 right-5 z-10">
+          <SesionAlumnoBadge />
+        </div>
         <div className="max-w-4xl mx-auto px-6 py-16">
           <Link
             href="/cursos"

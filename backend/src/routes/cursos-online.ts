@@ -88,6 +88,14 @@ interface CursoOnlineDetalle {
 }
 
 // GET /api/cursos-online/mis/progreso — cursos inscritos del alumno con % de avance
+// El frontend navega por Rutas (/cursos/[rutaSlug]); las inscripciones apuntan
+// al CursoOnline subyacente. Mapa curso→ruta principal para los links de "Continuar".
+const RUTA_PRINCIPAL_POR_CURSO: Record<string, string> = {
+  "ingles-general": "general",
+  "ingles-talleres-mecanicos": "talleres",
+  "ingles-de-oficina": "oficina",
+};
+
 router.get("/mis/progreso", verifyAlumnoJWT, async (req: Request, res: Response) => {
   const alumnoId = req.alumno!.alumnoId;
 
@@ -121,6 +129,7 @@ router.get("/mis/progreso", verifyAlumnoJWT, async (req: Request, res: Response)
       return {
         cursoOnlineId: inscripcion.cursoOnlineId,
         slug: inscripcion.cursoOnline.slug,
+        rutaSlug: RUTA_PRINCIPAL_POR_CURSO[inscripcion.cursoOnline.slug] ?? "general",
         titulo: inscripcion.cursoOnline.titulo,
         nivel: inscripcion.cursoOnline.nivel,
         track: inscripcion.cursoOnline.track,

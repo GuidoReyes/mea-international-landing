@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Award, BookOpen, ChevronRight, LogOut } from "lucide-react";
 import { alumnoApi, clearAlumnoToken, getAlumnoToken, MiCursoProgreso } from "@/lib/alumno-api";
+import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 
 export default function MisCursosPage() {
   const router = useRouter();
@@ -35,7 +36,10 @@ export default function MisCursosPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <header className="bg-[#0A2540] text-white">
+      <header className="bg-[#0A2540] text-white relative">
+        <div className="absolute top-5 right-5 z-10">
+          <SesionAlumnoBadge />
+        </div>
         <div className="max-w-4xl mx-auto px-6 py-12 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold">Mis cursos</h1>
@@ -81,7 +85,7 @@ export default function MisCursosPage() {
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <Link
-                    href={`/cursos/${curso.slug}`}
+                    href={`/cursos/${curso.rutaSlug}`}
                     className="text-lg font-bold text-[#0A2540] hover:text-[#00C4B4] transition-colors"
                   >
                     {curso.titulo}
@@ -92,7 +96,7 @@ export default function MisCursosPage() {
                   </p>
                 </div>
                 <Link
-                  href={`/cursos/${curso.slug}`}
+                  href={`/cursos/${curso.rutaSlug}`}
                   className="inline-flex items-center gap-1 text-sm font-semibold text-[#00C4B4] shrink-0"
                 >
                   Continuar <ChevronRight className="w-4 h-4" />

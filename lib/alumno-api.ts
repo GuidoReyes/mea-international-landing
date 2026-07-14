@@ -54,6 +54,7 @@ export interface Alumno {
 export interface MiCursoProgreso {
   cursoOnlineId: number;
   slug: string;
+  rutaSlug: string;
   titulo: string;
   nivel: string;
   track: string;

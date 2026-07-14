@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ClasesEnVivoClient from "@/components/clases-en-vivo/ClasesEnVivoClient";
+import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getHorarioClases } from "@/lib/clases-en-vivo";
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export default async function ClasesEnVivoPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <header className="bg-[#0A2540] text-white">
+      <header className="bg-[#0A2540] text-white relative">
+        <div className="absolute top-5 right-5 z-10">
+          <SesionAlumnoBadge />
+        </div>
         <div className="max-w-5xl mx-auto px-6 lg:px-16 py-16">
           <Link
             href="/"

@@ -66,13 +66,19 @@ export default function PasoEmparejarView({ paso, onResultado }: PasoViewProps<P
     const seleccionado = seleccion === indice;
     const conError = esIzquierda ? error?.izquierda === indice : error?.derecha === indice;
     if (emparejado) return "border-[#00C4B4] bg-emerald-50 text-[#0A2540] opacity-70";
-    if (conError) return "border-red-500 bg-red-50 text-[#0A2540]";
+    if (conError) return "border-red-500 bg-red-50 text-[#0A2540] animate-shake";
     if (seleccionado) return "border-[#00C4B4] bg-[#00C4B4]/10 text-[#0A2540]";
-    return "border-slate-200 bg-white text-[#0A2540] hover:border-[#00C4B4]/50";
+    return "border-slate-200 bg-white text-[#0A2540] hover:border-[#00C4B4]/50 hover:bg-slate-50";
   }
 
+  const completo = emparejados.size === paso.pares.length;
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col gap-5">
+    <div
+      className={`bg-white rounded-2xl border-2 shadow-sm p-6 flex flex-col gap-5 transition-colors ${
+        completo ? (huboError ? "border-red-400" : "border-[#00C4B4] animate-pop-correct") : "border-slate-100"
+      }`}
+    >
       <p className="text-lg font-bold text-[#0A2540]">{paso.instruccion}</p>
 
       <div className="grid grid-cols-2 gap-3">
@@ -83,7 +89,7 @@ export default function PasoEmparejarView({ paso, onResultado }: PasoViewProps<P
               type="button"
               disabled={emparejados.has(indice)}
               onClick={() => elegirIzquierda(indice)}
-              className={`rounded-xl border px-3 py-3 text-sm font-medium text-left transition-colors disabled:cursor-not-allowed ${estiloBoton(
+              className={`rounded-2xl border-2 px-3 py-3 text-sm font-semibold text-left active:scale-[0.98] transition-all disabled:cursor-not-allowed ${estiloBoton(
                 indice,
                 seleccionIzquierda,
                 true
@@ -101,7 +107,7 @@ export default function PasoEmparejarView({ paso, onResultado }: PasoViewProps<P
               type="button"
               disabled={emparejados.has(item.indice)}
               onClick={() => elegirDerecha(item.indice)}
-              className={`rounded-xl border px-3 py-3 text-sm font-medium text-left transition-colors disabled:cursor-not-allowed ${estiloBoton(
+              className={`rounded-2xl border-2 px-3 py-3 text-sm font-semibold text-left active:scale-[0.98] transition-all disabled:cursor-not-allowed ${estiloBoton(
                 item.indice,
                 seleccionDerecha,
                 false

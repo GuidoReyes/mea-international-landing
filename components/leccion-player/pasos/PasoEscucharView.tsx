@@ -7,6 +7,7 @@ import { PasoViewProps } from "./types";
 
 export default function PasoEscucharView({ paso, onResultado }: PasoViewProps<PasoEscuchar>) {
   const [elegida, setElegida] = useState<number | null>(null);
+  const [correcto, setCorrecto] = useState(false);
   const [reproduciendo, setReproduciendo] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -24,17 +25,23 @@ export default function PasoEscucharView({ paso, onResultado }: PasoViewProps<Pa
 
   function elegir(indice: number) {
     if (elegida !== null) return;
+    const esCorrecto = indice === paso.respuestaCorrecta;
     setElegida(indice);
-    onResultado(indice === paso.respuestaCorrecta);
+    setCorrecto(esCorrecto);
+    onResultado(esCorrecto);
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col items-center gap-6">
+    <div
+      className={`bg-white rounded-2xl border-2 shadow-sm p-6 flex flex-col items-center gap-6 transition-colors ${
+        elegida === null ? "border-slate-100" : correcto ? "border-[#00C4B4]" : "border-red-400"
+      } ${elegida !== null && !correcto ? "animate-shake" : ""} ${elegida !== null && correcto ? "animate-pop-correct" : ""}`}
+    >
       <button
         type="button"
         onClick={reproducir}
         aria-label="Reproducir audio"
-        className={`flex items-center justify-center w-20 h-20 rounded-full bg-[#00C4B4] text-white shadow-md hover:bg-[#00C4B4]/90 transition-colors ${
+        className={`flex items-center justify-center w-20 h-20 rounded-full bg-[#00C4B4] text-white shadow-md hover:bg-[#00C4B4]/90 active:scale-95 transition-all ${
           reproduciendo ? "animate-pulse" : ""
         }`}
       >
@@ -47,7 +54,7 @@ export default function PasoEscucharView({ paso, onResultado }: PasoViewProps<Pa
           const esCorrecta = indice === paso.respuestaCorrecta;
           const mostrarEstado = elegida !== null && (esElegida || esCorrecta);
 
-          let estilo = "border-slate-100 bg-white text-[#0A2540]";
+          let estilo = "border-slate-200 bg-white text-[#0A2540] hover:border-[#00C4B4]/50 hover:bg-slate-50";
           if (mostrarEstado) {
             estilo = esCorrecta
               ? "border-[#00C4B4] bg-emerald-50 text-[#0A2540]"
@@ -60,7 +67,7 @@ export default function PasoEscucharView({ paso, onResultado }: PasoViewProps<Pa
               type="button"
               disabled={elegida !== null}
               onClick={() => elegir(indice)}
-              className={`flex items-center justify-between gap-2 rounded-xl border px-4 py-3 text-left font-medium transition-colors disabled:cursor-not-allowed ${estilo}`}
+              className={`flex items-center justify-between gap-2 rounded-2xl border-2 px-5 py-4 text-left font-semibold active:scale-[0.98] transition-all disabled:cursor-not-allowed ${estilo}`}
             >
               <span>{opcion}</span>
               {mostrarEstado &&

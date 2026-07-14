@@ -116,8 +116,10 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
     };
   }, [leccion?.id, leccion?.bloqueada]);
 
-  async function handleCompletar(puntajeJugador?: number) {
-    if (!leccion) return;
+  // Devuelve true si el progreso quedó guardado (el LessonPlayer usa esto para
+  // mostrar "guardado" vs error real; el botón manual ignora el retorno).
+  async function handleCompletar(puntajeJugador?: number): Promise<boolean> {
+    if (!leccion) return false;
     setGuardando(true);
     setError(null);
     try {
@@ -125,8 +127,10 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
       const resultado = await alumnoApi.completarLeccion(leccion.id, puntajeNum);
       if (resultado.certificado) setCertificado(resultado.certificado);
       await cargar();
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error guardando el progreso");
+      return false;
     } finally {
       setGuardando(false);
     }
@@ -210,8 +214,28 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
 
       <h1 className="text-2xl md:text-3xl font-bold text-[#0A2540] mb-6">{leccion.titulo}</h1>
 
+      {mostrarRegistro && (
+        <RegisterModal
+          titulo="Guardá tu puntaje"
+          descripcion="Creá tu cuenta gratis y tu progreso queda registrado. Después volvé a jugar la lección para guardar tu resultado."
+          onClose={() => setMostrarRegistro(false)}
+          onRegistrado={() => window.location.reload()}
+        />
+      )}
+
       {contenidoJugable ? (
-        <LessonPlayer contenido={contenidoJugable} onTerminado={(puntajeJugador) => handleCompletar(puntajeJugador)} />
+        <LessonPlayer
+          contenido={contenidoJugable}
+          sesionActiva={getAlumnoToken() !== null}
+          onTerminado={async (puntajeJugador) => {
+            if (getAlumnoToken() === null) {
+              setMostrarRegistro(true);
+              return;
+            }
+            const ok = await handleCompletar(puntajeJugador);
+            if (!ok) throw new Error("No se pudo guardar el progreso");
+          }}
+        />
       ) : (
         <ContenidoLeccion url={leccion.urlContenido} />
       )}

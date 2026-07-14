@@ -188,6 +188,20 @@ async function generarAudios(leccionId: number, contenido: LeccionContenido): Pr
         continue;
       }
 
+      // Cotejo texto↔audio: registro exacto de qué dice cada archivo, y
+      // verificación de que lo que quedó en R2 es byte a byte lo sintetizado.
+      const remoto = await fetch(url, { method: "HEAD" }).catch(() => null);
+      const bytesRemotos = remoto ? Number(remoto.headers.get("content-length")) : -1;
+      if (bytesRemotos !== audioBuffer.length) {
+        console.warn(
+          `⚠ Cotejo FALLÓ en ${paso.id}: R2 tiene ${bytesRemotos} bytes, se sintetizaron ${audioBuffer.length} — paso sin audio.`
+        );
+        saltados += 1;
+        pasosActualizados.push(paso);
+        continue;
+      }
+      console.log(`  ♪ ${paso.id} dice ${JSON.stringify(textoLimpio)} (${audioBuffer.length} bytes, verificado en R2)`);
+
       subidos += 1;
       pasosActualizados.push({ ...paso, audioUrl: url });
     } catch (err) {

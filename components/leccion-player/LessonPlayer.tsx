@@ -155,7 +155,6 @@ export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rut
   const respondido = pasoActual ? pasoActual.id in resultados : false;
   const ultimoResultado = pasoActual ? resultados[pasoActual.id] : undefined;
 
-  const esVocabulario = pasoActual?.tipo === "vocabulario";
   const necesitaVerificarExplicito =
     pasoActual?.tipo === "ordenar" || (pasoActual?.tipo === "completar" && !pasoActual.opciones);
 
@@ -255,8 +254,8 @@ export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rut
 
       {renderPasoView(pasoActual, handleResultado, setPuedeVerificar, pasoViewRef)}
 
-      {/* ── Barra de acción inferior fija (misma estructura para los 6 tipos) ── */}
-      {(esVocabulario || necesitaVerificarExplicito || respondido) && (
+      {/* ── Barra de acción inferior fija (vocabulario ya avanza al tocar la tarjeta) ── */}
+      {(necesitaVerificarExplicito || respondido) && (
         <div
           className={`sticky bottom-4 mt-6 rounded-2xl border-2 shadow-lg p-4 flex items-center justify-between gap-4 animate-slide-up ${
             !respondido
@@ -282,14 +281,7 @@ export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rut
             </span>
           )}
 
-          {esVocabulario ? (
-            <button
-              onClick={() => handleResultado(true)}
-              className="shrink-0 inline-flex items-center px-8 py-3 bg-[#0A2540] text-white rounded-full font-bold hover:bg-[#0d2f4f] transition-all"
-            >
-              Continuar
-            </button>
-          ) : respondido ? (
+          {respondido ? (
             <button
               onClick={avanzar}
               className="shrink-0 inline-flex items-center px-8 py-3 bg-[#0A2540] text-white rounded-full font-bold hover:bg-[#0d2f4f] transition-all"

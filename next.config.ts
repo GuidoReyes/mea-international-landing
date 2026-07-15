@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   // así que no hace falta ignorar errores de tipos: si algo truena acá,
   // debe frenar el build y no llegar mudo a producción.
 
+  images: {
+    remotePatterns: [
+      // Fotos reales de las tarjetas de vocabulario del LessonPlayer (Pexels).
+      { protocol: "https", hostname: "images.pexels.com" },
+    ],
+  },
+
   async headers() {
     return [
       {

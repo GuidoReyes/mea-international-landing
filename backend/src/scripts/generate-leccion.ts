@@ -61,6 +61,11 @@ Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de lo
    - palabra: string (la palabra o frase en inglés)
    - traduccion: string (traducción al español)
    - imagenUrl?: opcional, string url — omitilo, no lo inventes
+   - imagenBusqueda: string REQUERIDO — frase corta en inglés (2-5 palabras) que
+     describa una FOTO REAL de una persona/escena ilustrando la palabra (ej. para
+     "Hello" → "person waving hello greeting"; para "Good morning" → "woman
+     drinking morning coffee"). Se usa después para buscar una foto real — no es
+     texto decorativo, tiene que describir algo fotografiable.
    - audioUrl?: opcional, string url — omitilo por completo, se genera después
 
 2. tipo: "opcion_multiple"
@@ -168,6 +173,83 @@ function textoPronunciable(paso: PasoLeccion): string | undefined {
   return undefined;
 }
 
+// ─── Imágenes de las tarjetas de vocabulario (Pexels) ────────────────────────
+// Tolerante: sin PEXELS_API_KEY o sin resultados, el paso queda sin imagenUrl
+// (la tarjeta ya soporta ese campo como opcional) en vez de romper el lote.
+function isPexelsConfigurado(): boolean {
+  return !!process.env.PEXELS_API_KEY;
+}
+
+interface FotoPexels {
+  url: string;
+}
+
+async function buscarImagenPexels(busqueda: string): Promise<FotoPexels | undefined> {
+  const apiKey = process.env.PEXELS_API_KEY;
+  if (!apiKey) return undefined;
+
+  const res = await fetch(
+    `https://api.pexels.com/v1/search?query=${encodeURIComponent(busqueda)}&per_page=1&orientation=landscape`,
+    { headers: { Authorization: apiKey } }
+  );
+  if (!res.ok) {
+    console.warn(`Pexels respondió ${res.status} para "${busqueda}"`);
+    return undefined;
+  }
+  const data = (await res.json()) as { photos?: { src?: { landscape?: string; medium?: string } }[] };
+  const url = data.photos?.[0]?.src?.landscape ?? data.photos?.[0]?.src?.medium;
+  return url ? { url } : undefined;
+}
+
+interface ResultadoImagenes {
+  contenido: LeccionContenido;
+  subidas: number;
+  saltadas: number;
+}
+
+async function generarImagenes(contenido: LeccionContenido): Promise<ResultadoImagenes> {
+  const pasosConBusqueda = contenido.pasos.filter(
+    (p): p is PasoLeccion & { tipo: "vocabulario"; imagenBusqueda: string } =>
+      p.tipo === "vocabulario" && !!p.imagenBusqueda
+  );
+
+  if (!isPexelsConfigurado()) {
+    if (pasosConBusqueda.length > 0) {
+      console.warn(`PEXELS_API_KEY no configurada — se omite imagen para ${pasosConBusqueda.length} paso(s).`);
+    }
+    return { contenido, subidas: 0, saltadas: pasosConBusqueda.length };
+  }
+
+  let subidas = 0;
+  let saltadas = 0;
+  const pasosActualizados: PasoLeccion[] = [];
+
+  for (const paso of contenido.pasos) {
+    if (paso.tipo !== "vocabulario" || !paso.imagenBusqueda) {
+      pasosActualizados.push(paso);
+      continue;
+    }
+    try {
+      const foto = await buscarImagenPexels(paso.imagenBusqueda);
+      if (!foto) {
+        console.warn(`Sin resultados de Pexels para "${paso.imagenBusqueda}" (${paso.id}) — continúa sin imagen.`);
+        saltadas += 1;
+        pasosActualizados.push(paso);
+        continue;
+      }
+      console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → ${foto.url}`);
+      subidas += 1;
+      pasosActualizados.push({ ...paso, imagenUrl: foto.url });
+    } catch (err) {
+      console.warn(`Error buscando imagen para ${paso.id}:`, err instanceof Error ? err.message : err);
+      saltadas += 1;
+      pasosActualizados.push(paso);
+    }
+  }
+
+  return { contenido: { ...contenido, pasos: pasosActualizados }, subidas, saltadas };
+}
+
 interface ResultadoAudio {
   contenido: LeccionContenido;
   subidos: number;
@@ -255,7 +337,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  const { contenido, subidos, saltados } = await generarAudios(leccionId, contenidoGenerado);
+  const { contenido: conAudio, subidos, saltados } = await generarAudios(leccionId, contenidoGenerado);
+  const { contenido, subidas: imagenesSubidas, saltadas: imagenesSaltadas } = await generarImagenes(conAudio);
 
   await prisma.leccion.update({
     where: { id: leccionId },
@@ -266,6 +349,8 @@ async function main(): Promise<void> {
   console.log(`Pasos generados: ${contenido.pasos.length}`);
   console.log(`Audios subidos:  ${subidos}`);
   console.log(`Audios saltados: ${saltados}`);
+  console.log(`Imágenes encontradas: ${imagenesSubidas}`);
+  console.log(`Imágenes saltadas:    ${imagenesSaltadas}`);
   console.log(`Leccion #${leccionId} actualizada.`);
 }
 

@@ -14,6 +14,10 @@ export const pasoVocabularioSchema = z.object({
   palabra: z.string().min(1),
   traduccion: z.string().min(1),
   imagenUrl: z.string().url().optional(),
+  // Frase corta en inglés para buscar una foto real que ilustre la palabra
+  // (ej. "person waving hello"). La rellena el LLM; se resuelve a imagenUrl
+  // después vía Pexels — ver generate-leccion.ts.
+  imagenBusqueda: z.string().min(1).optional(),
 });
 
 export const pasoOpcionMultipleSchema = z.object({

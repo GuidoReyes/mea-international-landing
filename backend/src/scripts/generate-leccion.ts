@@ -14,8 +14,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../lib/prisma";
 import { leccionContenidoSchema, LeccionContenido, PasoLeccion } from "../lib/leccion-contenido.schema";
 import { isPiperConfigurado, sintetizarAudioPiper, limpiarTextoParaVoz } from "../lib/piper-tts";
-import { subirArchivoR2, existeArchivoR2 } from "../lib/storage";
-import { isGeminiConfigurado, generarImagenGemini } from "../lib/gemini-image";
+import { subirArchivoR2 } from "../lib/storage";
+import { isGeminiConfigurado } from "../lib/gemini-image";
+import { resolverImagenVocabulario } from "../lib/imagen-vocabulario";
 
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 8192;
@@ -175,22 +176,12 @@ function textoPronunciable(paso: PasoLeccion): string | undefined {
 }
 
 // ─── Imágenes de las tarjetas de vocabulario (librería propia en R2) ────────
-// 100% generadas con IA (Gemini/Imagen) — nunca fotos de personas reales, sin
-// riesgo de derechos de autor de terceros. Cada palabra se genera UNA sola
-// vez: antes de llamar a Gemini se busca por key en R2 (slug de la frase de
-// búsqueda) y, si ya existe, se reusa esa imagen. Con el tiempo esto arma una
-// librería propia y creciente que cubre cada vez más palabras sin gasto
-// adicional. Tolerante: sin GEMINI_API_KEY o si falla, el paso queda sin
-// imagenUrl (la tarjeta ya soporta ese campo como opcional) en vez de romper
-// el lote.
-function slugificarBusqueda(busqueda: string): string {
-  return busqueda
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+// 100% generadas con IA (Gemini Interactions API) — nunca fotos de personas
+// reales, sin riesgo de derechos de autor de terceros. resolverImagenVocabulario
+// (imagen-vocabulario.ts) cachea por concepto: cada palabra se genera UNA
+// sola vez y las lecciones futuras que la repitan reusan la misma imagen.
+// Tolerante: sin GEMINI_API_KEY o si falla, el paso queda sin imagenUrl (la
+// tarjeta ya soporta ese campo como opcional) en vez de romper el lote.
 
 interface ResultadoImagenes {
   contenido: LeccionContenido;
@@ -223,29 +214,20 @@ async function generarImagenes(contenido: LeccionContenido): Promise<ResultadoIm
       continue;
     }
 
-    const key = `imagenes/vocabulario/${slugificarBusqueda(paso.imagenBusqueda)}.png`;
-
     try {
-      const existente = await existeArchivoR2(key);
-      if (existente) {
-        console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → reusada de la librería: ${existente}`);
-        reusadas += 1;
-        pasosActualizados.push({ ...paso, imagenUrl: existente });
-        continue;
-      }
-
-      const imagenBuffer = await generarImagenGemini(paso.imagenBusqueda);
-      const url = await subirArchivoR2(key, imagenBuffer, "image/png");
-      if (!url) {
-        console.warn(`No se pudo subir la imagen del paso ${paso.id} (R2 no configurado o falló) — continúa sin imagen.`);
+      const resuelta = await resolverImagenVocabulario(paso.imagenBusqueda);
+      if (!resuelta) {
+        console.warn(`No se pudo resolver imagen para el paso ${paso.id} (R2 no configurado o falló) — continúa sin imagen.`);
         saltadas += 1;
         pasosActualizados.push(paso);
         continue;
       }
 
-      console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → generada y agregada a la librería: ${url}`);
-      generadas += 1;
-      pasosActualizados.push({ ...paso, imagenUrl: url });
+      const etiqueta = resuelta.fuente === "cache" ? "reusada de la librería" : "generada y agregada a la librería";
+      console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → ${etiqueta}: ${resuelta.url}`);
+      if (resuelta.fuente === "cache") reusadas += 1;
+      else generadas += 1;
+      pasosActualizados.push({ ...paso, imagenUrl: resuelta.url });
     } catch (err) {
       console.warn(`Error generando imagen para ${paso.id}:`, err instanceof Error ? err.message : err);
       saltadas += 1;

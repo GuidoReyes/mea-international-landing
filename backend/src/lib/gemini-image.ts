@@ -1,18 +1,21 @@
 import { log } from "./logger";
 
-const GEMINI_IMAGE_MODEL = "imagen-4.0-generate-001";
+// imagen-4.0-generate-001 (endpoint :predict) fue retirado para cuentas
+// nuevas — Google migró la generación de imágenes al modelo multimodal
+// "Nano Banana" vía el endpoint clásico :generateContent.
+const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 
 export function isGeminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
-interface PrediccionImagen {
-  bytesBase64Encoded?: string;
-  mimeType?: string;
+interface ParteRespuesta {
+  text?: string;
+  inlineData?: { mimeType?: string; data?: string };
 }
 
-interface RespuestaGeminiImagen {
-  predictions?: PrediccionImagen[];
+interface RespuestaGeminiGenerateContent {
+  candidates?: { content?: { parts?: ParteRespuesta[] } }[];
 }
 
 // Genera una ilustración 100% con IA a partir de una frase corta en inglés
@@ -26,31 +29,31 @@ export async function generarImagenGemini(prompt: string): Promise<Buffer> {
     throw new Error("GEMINI_API_KEY no configurada");
   }
 
-  const promptIlustracion = `Simple friendly flat-illustration, colorful, no text or letters anywhere in the image, clean background: ${prompt}`;
+  const promptIlustracion = `Simple friendly flat-illustration, colorful, widescreen 16:9, no text or letters anywhere in the image, clean background: ${prompt}`;
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:predict?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        instances: [{ prompt: promptIlustracion }],
-        parameters: { sampleCount: 1, aspectRatio: "16:9" },
+        contents: [{ parts: [{ text: promptIlustracion }] }],
+        generationConfig: { responseModalities: ["IMAGE"] },
       }),
     }
   );
 
   if (!res.ok) {
     const detalle = await res.text().catch(() => "");
-    throw new Error(`Gemini Imagen respondió ${res.status}: ${detalle}`);
+    throw new Error(`Gemini respondió ${res.status}: ${detalle}`);
   }
 
-  const data = (await res.json()) as RespuestaGeminiImagen;
-  const bytesBase64 = data.predictions?.[0]?.bytesBase64Encoded;
-  if (!bytesBase64) {
+  const data = (await res.json()) as RespuestaGeminiGenerateContent;
+  const parte = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
+  if (!parte?.inlineData?.data) {
     log("warn", "[GeminiImage] La respuesta no trajo ninguna imagen", data);
-    throw new Error("Gemini Imagen no devolvió ninguna imagen");
+    throw new Error("Gemini no devolvió ninguna imagen");
   }
 
-  return Buffer.from(bytesBase64, "base64");
+  return Buffer.from(parte.inlineData.data, "base64");
 }

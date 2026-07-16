@@ -1,8 +1,11 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { Volume2 } from "lucide-react";
 import { PasoCompletar } from "@/lib/leccion-contenido";
 import { PasoViewHandle, PasoViewProps } from "./types";
+import FraseConAudio from "./FraseConAudio";
+import { sayWord } from "@/lib/say-word";
 
 function normalizar(valor: string): string {
   return valor.trim().toLowerCase();
@@ -51,11 +54,21 @@ const PasoCompletarView = forwardRef<PasoViewHandle, PasoViewProps<PasoCompletar
         } ${verificado && !correcto ? "animate-shake" : ""} ${verificado && correcto ? "animate-pop-correct" : ""}`}
       >
         <p className="text-lg text-[#0A2540] leading-relaxed">
-          {paso.textoAntes}
+          <FraseConAudio texto={paso.textoAntes} mostrarBotonFrase={false} />
           <span className={`inline-block min-w-[3rem] mx-1 px-2 border-b-2 text-center font-semibold ${estiloResultado}`}>
             {respuesta || " "}
           </span>
-          {paso.textoDespues}
+          <FraseConAudio texto={paso.textoDespues} mostrarBotonFrase={false} />
+          {verificado && (
+            <button
+              type="button"
+              onClick={() => sayWord(`${paso.textoAntes} ${paso.respuestaCorrecta} ${paso.textoDespues}`)}
+              aria-label="Escuchar frase completa"
+              className="inline-flex items-center justify-center rounded-full bg-[#00C4B4]/10 text-[#00C4B4] hover:bg-[#00C4B4]/20 transition-colors p-1.5 ml-1 align-middle"
+            >
+              <Volume2 className="w-4 h-4" />
+            </button>
+          )}
         </p>
 
         {paso.opciones ? (

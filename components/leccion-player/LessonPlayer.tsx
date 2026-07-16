@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, XCircle, Loader2, X } from "lucide-react";
 import type { LeccionContenido, PasoLeccion } from "@/lib/leccion-contenido";
@@ -11,6 +11,7 @@ import PasoOrdenarView from "./pasos/PasoOrdenarView";
 import PasoEmparejarView from "./pasos/PasoEmparejarView";
 import PasoEscucharView from "./pasos/PasoEscucharView";
 import type { PasoViewHandle } from "./pasos/types";
+import { primeVoices } from "@/lib/say-word";
 
 interface Props {
   contenido: LeccionContenido;
@@ -136,6 +137,13 @@ export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rut
   const [puedeVerificar, setPuedeVerificar] = useState(false);
   const [confirmandoSalida, setConfirmandoSalida] = useState(false);
   const pasoViewRef = useRef<PasoViewHandle>(null);
+
+  // Cargar las voces de speechSynthesis por adelantado — algunos navegadores
+  // las devuelven vacías hasta el primer gesto/evento, y el tap-para-hablar
+  // de FraseConAudio necesita que ya estén listas.
+  useEffect(() => {
+    primeVoices();
+  }, []);
 
   const pasosEvaluables = useMemo(() => pasos.filter((p) => p.tipo !== "vocabulario"), [pasos]);
   const puntosPorPregunta =

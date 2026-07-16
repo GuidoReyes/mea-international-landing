@@ -172,6 +172,9 @@ async function generarContenido(tema: string): Promise<LeccionContenido> {
 function textoPronunciable(paso: PasoLeccion): string | undefined {
   if (paso.tipo === "vocabulario") return paso.palabra;
   if (paso.tipo === "escuchar") return paso.opciones[paso.respuestaCorrecta];
+  // "ordenar": la frase correcta ensamblada — deja lista un audioUrl real
+  // para el botón 🔊 que PasoOrdenarView muestra después de verificar.
+  if (paso.tipo === "ordenar") return paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ");
   return undefined;
 }
 

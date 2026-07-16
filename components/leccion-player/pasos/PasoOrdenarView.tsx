@@ -1,8 +1,10 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { Volume2 } from "lucide-react";
 import { PasoOrdenar } from "@/lib/leccion-contenido";
 import { PasoViewHandle, PasoViewProps } from "./types";
+import { sayWord } from "@/lib/say-word";
 
 const PasoOrdenarView = forwardRef<PasoViewHandle, PasoViewProps<PasoOrdenar>>(
   ({ paso, onResultado, onPuedeVerificarChange }, ref) => {
@@ -78,12 +80,24 @@ const PasoOrdenarView = forwardRef<PasoViewHandle, PasoViewProps<PasoOrdenar>>(
           ))}
         </div>
 
-        {verificado && !correcto && (
-          <p className="text-sm text-slate-500">
-            Orden correcto:{" "}
-            <span className="font-semibold text-[#0A2540]">
-              {paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ")}
-            </span>
+        {verificado && (
+          <p className="text-sm text-slate-500 flex items-center gap-2">
+            {!correcto && (
+              <>
+                Orden correcto:{" "}
+                <span className="font-semibold text-[#0A2540]">
+                  {paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ")}
+                </span>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => sayWord(paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" "), paso.audioUrl)}
+              aria-label="Escuchar frase correcta"
+              className="inline-flex items-center justify-center rounded-full bg-[#00C4B4]/10 text-[#00C4B4] hover:bg-[#00C4B4]/20 transition-colors p-1.5 shrink-0"
+            >
+              <Volume2 className="w-4 h-4" />
+            </button>
           </p>
         )}
       </div>

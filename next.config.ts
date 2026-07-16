@@ -7,8 +7,9 @@ const nextConfig: NextConfig = {
 
   images: {
     remotePatterns: [
-      // Fotos reales de las tarjetas de vocabulario del LessonPlayer (Pexels).
-      { protocol: "https", hostname: "images.pexels.com" },
+      // Imágenes de vocabulario del LessonPlayer: generadas con IA (Gemini) y
+      // cacheadas en Cloudflare R2 — mismo dominio que el audio de lecciones.
+      { protocol: "https", hostname: "*.r2.dev" },
     ],
   },
 

@@ -227,6 +227,7 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
         <LessonPlayer
           contenido={contenidoJugable}
           sesionActiva={getAlumnoToken() !== null}
+          rutaHref={`/cursos/${rutaSlug}`}
           onTerminado={async (puntajeJugador) => {
             if (getAlumnoToken() === null) {
               setMostrarRegistro(true);

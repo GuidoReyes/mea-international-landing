@@ -14,9 +14,9 @@ export const pasoVocabularioSchema = z.object({
   palabra: z.string().min(1),
   traduccion: z.string().min(1),
   imagenUrl: z.string().url().optional(),
-  // Frase corta en inglés para buscar una foto real que ilustre la palabra
-  // (ej. "person waving hello"). La rellena el LLM; se resuelve a imagenUrl
-  // después vía Pexels — ver generate-leccion.ts.
+  // Frase corta en inglés que describe la escena a ilustrar (ej. "person
+  // waving hello"). La rellena el LLM; se resuelve a imagenUrl generándola
+  // con IA (Gemini) y cacheándola en R2 — ver generate-leccion.ts.
   imagenBusqueda: z.string().min(1).optional(),
 });
 

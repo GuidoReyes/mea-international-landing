@@ -14,7 +14,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../lib/prisma";
 import { leccionContenidoSchema, LeccionContenido, PasoLeccion } from "../lib/leccion-contenido.schema";
 import { isPiperConfigurado, sintetizarAudioPiper, limpiarTextoParaVoz } from "../lib/piper-tts";
-import { subirArchivoR2 } from "../lib/storage";
+import { subirArchivoR2, existeArchivoR2 } from "../lib/storage";
+import { isGeminiConfigurado, generarImagenGemini } from "../lib/gemini-image";
 
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 8192;
@@ -173,37 +174,28 @@ function textoPronunciable(paso: PasoLeccion): string | undefined {
   return undefined;
 }
 
-// ─── Imágenes de las tarjetas de vocabulario (Pexels) ────────────────────────
-// Tolerante: sin PEXELS_API_KEY o sin resultados, el paso queda sin imagenUrl
-// (la tarjeta ya soporta ese campo como opcional) en vez de romper el lote.
-function isPexelsConfigurado(): boolean {
-  return !!process.env.PEXELS_API_KEY;
-}
-
-interface FotoPexels {
-  url: string;
-}
-
-async function buscarImagenPexels(busqueda: string): Promise<FotoPexels | undefined> {
-  const apiKey = process.env.PEXELS_API_KEY;
-  if (!apiKey) return undefined;
-
-  const res = await fetch(
-    `https://api.pexels.com/v1/search?query=${encodeURIComponent(busqueda)}&per_page=1&orientation=landscape`,
-    { headers: { Authorization: apiKey } }
-  );
-  if (!res.ok) {
-    console.warn(`Pexels respondió ${res.status} para "${busqueda}"`);
-    return undefined;
-  }
-  const data = (await res.json()) as { photos?: { src?: { landscape?: string; medium?: string } }[] };
-  const url = data.photos?.[0]?.src?.landscape ?? data.photos?.[0]?.src?.medium;
-  return url ? { url } : undefined;
+// ─── Imágenes de las tarjetas de vocabulario (librería propia en R2) ────────
+// 100% generadas con IA (Gemini/Imagen) — nunca fotos de personas reales, sin
+// riesgo de derechos de autor de terceros. Cada palabra se genera UNA sola
+// vez: antes de llamar a Gemini se busca por key en R2 (slug de la frase de
+// búsqueda) y, si ya existe, se reusa esa imagen. Con el tiempo esto arma una
+// librería propia y creciente que cubre cada vez más palabras sin gasto
+// adicional. Tolerante: sin GEMINI_API_KEY o si falla, el paso queda sin
+// imagenUrl (la tarjeta ya soporta ese campo como opcional) en vez de romper
+// el lote.
+function slugificarBusqueda(busqueda: string): string {
+  return busqueda
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 interface ResultadoImagenes {
   contenido: LeccionContenido;
-  subidas: number;
+  generadas: number;
+  reusadas: number;
   saltadas: number;
 }
 
@@ -213,14 +205,15 @@ async function generarImagenes(contenido: LeccionContenido): Promise<ResultadoIm
       p.tipo === "vocabulario" && !!p.imagenBusqueda
   );
 
-  if (!isPexelsConfigurado()) {
+  if (!isGeminiConfigurado()) {
     if (pasosConBusqueda.length > 0) {
-      console.warn(`PEXELS_API_KEY no configurada — se omite imagen para ${pasosConBusqueda.length} paso(s).`);
+      console.warn(`GEMINI_API_KEY no configurada — se omite imagen para ${pasosConBusqueda.length} paso(s).`);
     }
-    return { contenido, subidas: 0, saltadas: pasosConBusqueda.length };
+    return { contenido, generadas: 0, reusadas: 0, saltadas: pasosConBusqueda.length };
   }
 
-  let subidas = 0;
+  let generadas = 0;
+  let reusadas = 0;
   let saltadas = 0;
   const pasosActualizados: PasoLeccion[] = [];
 
@@ -229,25 +222,38 @@ async function generarImagenes(contenido: LeccionContenido): Promise<ResultadoIm
       pasosActualizados.push(paso);
       continue;
     }
+
+    const key = `imagenes/vocabulario/${slugificarBusqueda(paso.imagenBusqueda)}.png`;
+
     try {
-      const foto = await buscarImagenPexels(paso.imagenBusqueda);
-      if (!foto) {
-        console.warn(`Sin resultados de Pexels para "${paso.imagenBusqueda}" (${paso.id}) — continúa sin imagen.`);
+      const existente = await existeArchivoR2(key);
+      if (existente) {
+        console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → reusada de la librería: ${existente}`);
+        reusadas += 1;
+        pasosActualizados.push({ ...paso, imagenUrl: existente });
+        continue;
+      }
+
+      const imagenBuffer = await generarImagenGemini(paso.imagenBusqueda);
+      const url = await subirArchivoR2(key, imagenBuffer, "image/png");
+      if (!url) {
+        console.warn(`No se pudo subir la imagen del paso ${paso.id} (R2 no configurado o falló) — continúa sin imagen.`);
         saltadas += 1;
         pasosActualizados.push(paso);
         continue;
       }
-      console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → ${foto.url}`);
-      subidas += 1;
-      pasosActualizados.push({ ...paso, imagenUrl: foto.url });
+
+      console.log(`  🖼  ${paso.id} ("${paso.imagenBusqueda}") → generada y agregada a la librería: ${url}`);
+      generadas += 1;
+      pasosActualizados.push({ ...paso, imagenUrl: url });
     } catch (err) {
-      console.warn(`Error buscando imagen para ${paso.id}:`, err instanceof Error ? err.message : err);
+      console.warn(`Error generando imagen para ${paso.id}:`, err instanceof Error ? err.message : err);
       saltadas += 1;
       pasosActualizados.push(paso);
     }
   }
 
-  return { contenido: { ...contenido, pasos: pasosActualizados }, subidas, saltadas };
+  return { contenido: { ...contenido, pasos: pasosActualizados }, generadas, reusadas, saltadas };
 }
 
 interface ResultadoAudio {
@@ -338,7 +344,12 @@ async function main(): Promise<void> {
   }
 
   const { contenido: conAudio, subidos, saltados } = await generarAudios(leccionId, contenidoGenerado);
-  const { contenido, subidas: imagenesSubidas, saltadas: imagenesSaltadas } = await generarImagenes(conAudio);
+  const {
+    contenido,
+    generadas: imagenesGeneradas,
+    reusadas: imagenesReusadas,
+    saltadas: imagenesSaltadas,
+  } = await generarImagenes(conAudio);
 
   await prisma.leccion.update({
     where: { id: leccionId },
@@ -349,8 +360,9 @@ async function main(): Promise<void> {
   console.log(`Pasos generados: ${contenido.pasos.length}`);
   console.log(`Audios subidos:  ${subidos}`);
   console.log(`Audios saltados: ${saltados}`);
-  console.log(`Imágenes encontradas: ${imagenesSubidas}`);
-  console.log(`Imágenes saltadas:    ${imagenesSaltadas}`);
+  console.log(`Imágenes nuevas (Gemini):     ${imagenesGeneradas}`);
+  console.log(`Imágenes reusadas (librería): ${imagenesReusadas}`);
+  console.log(`Imágenes saltadas:            ${imagenesSaltadas}`);
   console.log(`Leccion #${leccionId} actualizada.`);
 }
 

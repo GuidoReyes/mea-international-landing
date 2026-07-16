@@ -4,6 +4,18 @@ import { log } from "./logger";
 
 // Sube un archivo genérico a R2 y devuelve la URL pública, o undefined si R2
 // no está configurado o falla (mismo patrón tolerante que subirCertificadoPdf).
+// HEAD-check contra R2: devuelve la URL pública si la key ya existe (para
+// reusar un archivo ya subido, ej. la librería de imágenes de vocabulario),
+// undefined si no existe o R2 no está configurado.
+export async function existeArchivoR2(key: string): Promise<string | undefined> {
+  const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
+  if (!publicUrl) return undefined;
+
+  const url = `${publicUrl}/${key}`;
+  const res = await fetch(url, { method: "HEAD" }).catch(() => null);
+  return res?.ok ? url : undefined;
+}
+
 export async function subirArchivoR2(
   key: string,
   body: Buffer,

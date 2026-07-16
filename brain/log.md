@@ -51,3 +51,11 @@
 ## [2026-05-21 00:00] ingest | security-backup-agente-implementado
 - Área: operaciones
 - Cross-refs: 2026-05-19-bot-notificaciones-asesor-implementadas (bidireccional), 2026-05-13-admin-rediseniado-saas-planificado (bidireccional), 2026-05-08-backend-railway-desplegado (bidireccional)
+
+## [2026-07-15 00:00] ingest | leccion-duolingo-audio-imagenes-reales
+- Área: cursos
+- Cross-refs: 2026-07-15-auditoria-flujo-conversion-precios-admin (bidireccional, nodo hermano de la misma sesión), 2026-05-13-admin-rediseniado-saas-planificado (bidireccional)
+
+## [2026-07-15 00:05] ingest | auditoria-flujo-conversion-precios-admin
+- Área: operaciones
+- Cross-refs: 2026-07-15-leccion-duolingo-audio-imagenes-reales (bidireccional, nodo hermano de la misma sesión), 2026-05-13-admin-rediseniado-saas-planificado (bidireccional), 2026-05-08-backend-railway-desplegado (bidireccional)

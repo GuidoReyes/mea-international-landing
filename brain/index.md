@@ -4,8 +4,8 @@
 > Para operar este wiki, leer `CLAUDE.md` en este directorio.
 > Al hacer una query, leer este archivo primero para decidir qué nodos abrir.
 
-**Última actualización:** 2026-05-21
-**Total de nodos:** 10 sesiones | 0 conceptos | 0 ADRs
+**Última actualización:** 2026-07-15
+**Total de nodos:** 12 sesiones | 0 conceptos | 0 ADRs
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### cursos
 
-*(vacío)*
+- [[2026-07-15-leccion-duolingo-audio-imagenes-reales]] — LessonPlayer rediseñado estilo Duolingo (tarjeta=botón), audio corregido (CSP+key+cotejo R2), ordenar sin señuelos (Zod refine), imágenes reales vía Pexels
 
 ### diseño
 
@@ -25,6 +25,7 @@
 
 ### operaciones
 
+- [[2026-07-15-auditoria-flujo-conversion-precios-admin]] — auditoría de flujo (Fase 1 diagnóstico + Fase 2 ejecución autónoma), precios reales Q150/Q300, registro dual OTP-WhatsApp, lecciones gratis por nivel, admin fantasma eliminado
 - [[2026-05-21-security-backup-agente-implementado]] — agente seguridad (Claude API, scanner, analyzer) + backup MySQL→Google Drive (dumper, uploader); tasks 71-76 completadas, tasks 77-83 pendientes
 - [[2026-05-19-bot-notificaciones-asesor-implementadas]] — advisor-notify.ts nuevo: detección 4 intents, notificación proactiva al asesor; fixes Notion inject anchor, webhook empty guard, bot no pide WhatsApp al cliente
 - [[2026-05-17-ceo-finanzas-marketing-cursos-implementados]] — CEO dashboard SUPER_ADMIN, Finanzas egresos+reconciliación, Marketing broadcast WA con progreso, /admin/cursos CRUD. 68/68 tasks completadas.

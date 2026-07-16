@@ -75,6 +75,8 @@ Continuación directa de la sesión anterior. Las 22 tareas del PRD original est
 - [[2026-05-17-admin-panel-metricas-reportes-csv]] — dashboard admin restructurado y Tasks 35-39 ejecutadas; el diseño SaaS del panel se materializa aquí
 - [[2026-05-17-ceo-finanzas-marketing-cursos-implementados]] — Tasks 50-56 ejecutadas aquí cierran el 100% del roadmap SaaS planificado en esta sesión
 - [[2026-05-21-security-backup-agente-implementado]] — agente de seguridad + backup implementado (tasks 71-83); mismo patrón TaskMaster de planificación y ejecución secuencial
+- [[2026-07-15-auditoria-flujo-conversion-precios-admin]] — refuerzo de seguridad de cuentas admin (reset de contraseña, eliminación de admin fantasma) sobre el panel diseñado en esta sesión
+- [[2026-07-15-leccion-duolingo-audio-imagenes-reales]] — LessonPlayer que materializa la pieza de contenido/portal alumno contemplada en el roadmap SaaS de esta sesión
 
 ## Fuentes
 

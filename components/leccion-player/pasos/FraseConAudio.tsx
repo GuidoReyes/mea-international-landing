@@ -41,6 +41,14 @@ export default function FraseConAudio({
               role="button"
               tabIndex={0}
               onClick={() => sayWord(palabraLimpia, undefined, lang)}
+              onMouseEnter={() => {
+                // Refuerzo solo en desktop real (mouse fino) — en touch,
+                // "mouseenter" puede dispararse junto con el tap y duplicar
+                // el audio, así que ahí el tap solo (onClick) alcanza.
+                if (typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                  sayWord(palabraLimpia, undefined, lang);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();

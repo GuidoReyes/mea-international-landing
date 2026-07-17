@@ -76,7 +76,7 @@ export default function PasoSpeakCheckView({ paso, onResultado }: PasoViewProps<
       ) : estado === "incorrecto" ? (
         <div className="flex flex-col items-center gap-3">
           <p className="inline-flex items-center gap-1.5 text-sm font-bold text-red-600">
-            <XCircle className="w-5 h-5" /> Casi — escuchamos "{transcript}"
+            <XCircle className="w-5 h-5" /> Casi — escuchamos &quot;{transcript}&quot;
           </p>
           <button
             type="button"

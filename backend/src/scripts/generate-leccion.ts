@@ -54,10 +54,10 @@ Devolvé SOLO JSON válido (sin \`\`\`json ni texto adicional, sin comentarios) 
 
 {
   "version": 1,
-  "pasos": [ ... entre ${MIN_PASOS} y ${MAX_PASOS} pasos, mezclando los 6 tipos siguientes ... ]
+  "pasos": [ ... entre ${MIN_PASOS} y ${MAX_PASOS} pasos, mezclando los tipos siguientes ... ]
 }
 
-Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de los 6 siguientes). Los tipos y sus campos EXACTOS son:
+Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de los 7 siguientes). Los tipos y sus campos EXACTOS son:
 
 1. tipo: "vocabulario"
    - palabra: string (la palabra o frase en inglés)
@@ -101,8 +101,16 @@ Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de lo
    - opciones: string[] (entre 2 y 6 opciones de texto)
    - respuestaCorrecta: number (índice 0-based de la opción que coincide con lo que se "escucha")
 
+7. tipo: "speak-check" (práctica de pronunciación, OPCIONAL — incluí 0 a 2 por lección)
+   - target: string, REQUERIDO — DEBE ser exactamente la misma palabra/frase de un
+     paso "vocabulario" o "escuchar" YA introducido ANTES en el array "pasos" (no
+     inventes una palabra nueva acá, reusá una que el alumno ya vio).
+   - lang?: opcional, string (ej. "en-US") — omitilo si no aplica.
+   - imagenUrl?: opcional, string url — omitilo, no lo inventes.
+   - Colocalo DESPUÉS del paso de vocabulario/escuchar cuyo texto reusa.
+
 Reglas importantes:
-- Usá los 6 tipos, mezclados, en un orden pedagógico razonable (vocabulario nuevo primero, práctica después).
+- Usá los tipos disponibles, mezclados, en un orden pedagógico razonable (vocabulario nuevo primero, práctica después).
 - Todo el contenido en inglés debe ser apropiado para el tema "${tema}".
 - Los "id" de cada paso deben ser únicos dentro del array (ej: "paso-1", "paso-2", ...).
 - NO incluyas el campo audioUrl en pasos que no sean "escuchar".

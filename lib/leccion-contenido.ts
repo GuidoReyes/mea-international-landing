@@ -53,13 +53,21 @@ export interface PasoEscuchar extends PasoBase {
   respuestaCorrecta: number;
 }
 
+export interface PasoSpeakCheck extends PasoBase {
+  tipo: "speak-check";
+  target: string;
+  lang?: string;
+  imagenUrl?: string;
+}
+
 export type PasoLeccion =
   | PasoVocabulario
   | PasoOpcionMultiple
   | PasoCompletar
   | PasoOrdenar
   | PasoEmparejar
-  | PasoEscuchar;
+  | PasoEscuchar
+  | PasoSpeakCheck;
 
 export interface LeccionContenido {
   version: 1;

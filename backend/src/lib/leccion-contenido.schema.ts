@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-// Contenido interactivo de una lección estilo Duolingo — 6 tipos de paso.
+// Contenido interactivo de una lección estilo Duolingo — 7 tipos de paso.
 // Persistido en Leccion.content (Json). Validado en el endpoint de guardado admin.
+// IMPORTANTE: espejo manual en lib/leccion-contenido.ts (frontend, sin zod)
+// — cualquier cambio acá hay que replicarlo ahí también.
 
 const pasoBase = {
   id: z.string().min(1),
@@ -76,6 +78,16 @@ export const pasoEscucharSchema = z.object({
   respuestaCorrecta: z.number().int().min(0),
 });
 
+export const pasoSpeakCheckSchema = z.object({
+  ...pasoBase,
+  tipo: z.literal("speak-check"),
+  // Reusa texto ya introducido antes en la lección (ej. paso.palabra de un
+  // "vocabulario" previo) — no es contenido nuevo, es práctica de pronunciación.
+  target: z.string().min(1),
+  lang: z.string().optional(),
+  imagenUrl: z.string().url().optional(),
+});
+
 export const pasoLeccionSchema = z.discriminatedUnion("tipo", [
   pasoVocabularioSchema,
   pasoOpcionMultipleSchema,
@@ -83,6 +95,7 @@ export const pasoLeccionSchema = z.discriminatedUnion("tipo", [
   pasoOrdenarSchema,
   pasoEmparejarSchema,
   pasoEscucharSchema,
+  pasoSpeakCheckSchema,
 ]);
 
 export const leccionContenidoSchema = z.object({

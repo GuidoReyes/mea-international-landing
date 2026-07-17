@@ -10,6 +10,7 @@ import PasoCompletarView from "./pasos/PasoCompletarView";
 import PasoOrdenarView from "./pasos/PasoOrdenarView";
 import PasoEmparejarView from "./pasos/PasoEmparejarView";
 import PasoEscucharView from "./pasos/PasoEscucharView";
+import PasoSpeakCheckView from "./pasos/PasoSpeakCheckView";
 import type { PasoViewHandle } from "./pasos/types";
 import { primeVoices } from "@/lib/say-word";
 
@@ -118,6 +119,8 @@ function renderPasoView(
       return <PasoEmparejarView key={paso.id} paso={paso} onResultado={onResultado} />;
     case "escuchar":
       return <PasoEscucharView key={paso.id} paso={paso} onResultado={onResultado} />;
+    case "speak-check":
+      return <PasoSpeakCheckView key={paso.id} paso={paso} onResultado={onResultado} />;
     default: {
       const pasoNuncaAlcanzado: never = paso;
       throw new Error(`Tipo de paso no soportado: ${JSON.stringify(pasoNuncaAlcanzado)}`);

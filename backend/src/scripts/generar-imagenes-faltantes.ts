@@ -1,14 +1,15 @@
 /**
- * Recorre TODAS las lecciones que ya tienen contenido guardado y genera
- * imagen solo para los pasos de vocabulario que aún no la tienen — no toca
- * Claude, no regenera texto ni audio, no re-sube lo que ya está en la
- * librería de R2 (usa el mismo cache por concepto que generate-leccion.ts).
+ * Recorre lecciones que ya tienen contenido guardado y genera imagen para
+ * sus pasos de vocabulario — no toca Claude, no regenera texto ni audio.
  *
  * Uso:
- *   npx ts-node src/scripts/generar-imagenes-faltantes.ts [--dry-run]
+ *   npx ts-node src/scripts/generar-imagenes-faltantes.ts [--dry-run] [--forzar] [--leccion <id>]
  *
- * --dry-run: solo cuenta cuántos pasos les falta imagen, no llama a Gemini
- * ni guarda nada.
+ * --dry-run: solo cuenta cuántos pasos procesaría, no llama a Gemini ni guarda nada.
+ * --forzar: regenera y SOBREESCRIBE también los pasos que ya tienen imagen
+ *   (por defecto solo rellena los que no tienen ninguna) — para cuando cambia
+ *   el estilo de arte y hay que rehacer imágenes ya existentes.
+ * --leccion <id>: limita a una sola Leccion (por defecto recorre todas).
  */
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
@@ -16,16 +17,31 @@ import { leccionContenidoSchema, PasoLeccion } from "../lib/leccion-contenido.sc
 import { isGeminiConfigurado } from "../lib/gemini-image";
 import { resolverImagenVocabulario } from "../lib/imagen-vocabulario";
 
+function parseLeccionId(argv: string[]): number | undefined {
+  const idx = argv.indexOf("--leccion");
+  if (idx === -1) return undefined;
+  const valor = Number(argv[idx + 1]);
+  if (!Number.isInteger(valor) || valor <= 0) {
+    console.error("--leccion requiere un id numérico válido.");
+    process.exit(1);
+  }
+  return valor;
+}
+
 async function main(): Promise<void> {
   const dryRun = process.argv.includes("--dry-run");
+  const forzar = process.argv.includes("--forzar");
+  const leccionId = parseLeccionId(process.argv);
 
   if (!dryRun && !isGeminiConfigurado()) {
     console.error("GEMINI_API_KEY no configurada — no hay nada que generar (corré con --dry-run para solo contar).");
     process.exit(1);
   }
 
-  const lecciones = await prisma.leccion.findMany({ where: { content: { not: Prisma.DbNull } } });
-  console.log(`${lecciones.length} lecciones con contenido guardado.`);
+  const lecciones = await prisma.leccion.findMany({
+    where: { content: { not: Prisma.DbNull }, ...(leccionId ? { id: leccionId } : {}) },
+  });
+  console.log(`${lecciones.length} lecciones con contenido guardado${leccionId ? ` (filtrado a #${leccionId})` : ""}.`);
 
   let leccionesActualizadas = 0;
   let generadas = 0;
@@ -45,7 +61,7 @@ async function main(): Promise<void> {
     const pasosActualizados: PasoLeccion[] = [];
 
     for (const paso of parsed.data.pasos) {
-      if (paso.tipo !== "vocabulario" || !paso.imagenBusqueda || paso.imagenUrl) {
+      if (paso.tipo !== "vocabulario" || !paso.imagenBusqueda || (!forzar && paso.imagenUrl)) {
         pasosActualizados.push(paso);
         continue;
       }
@@ -57,7 +73,7 @@ async function main(): Promise<void> {
       }
 
       try {
-        const resuelta = await resolverImagenVocabulario(paso.imagenBusqueda);
+        const resuelta = await resolverImagenVocabulario(paso.imagenBusqueda, forzar);
         if (!resuelta) {
           saltadas += 1;
           pasosActualizados.push(paso);

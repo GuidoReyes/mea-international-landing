@@ -22,12 +22,20 @@ export interface ImagenResuelta {
 // Punto único de verdad para "¿ya existe una imagen para este concepto, o
 // hay que generarla?" — usado tanto por generate-leccion.ts (una lección a
 // la vez) como por generar-imagenes-faltantes.ts (lote sobre toda la BD).
-// Nunca regenera un concepto que ya está en la librería de R2.
-export async function resolverImagenVocabulario(concepto: string): Promise<ImagenResuelta | undefined> {
+// Por defecto nunca regenera un concepto que ya está en la librería de R2.
+// forzar=true salta el cache-check y sobreescribe la key existente (misma
+// URL) — para cuando cambia el estilo de arte y hay que rehacer imágenes
+// que ya existían.
+export async function resolverImagenVocabulario(
+  concepto: string,
+  forzar = false
+): Promise<ImagenResuelta | undefined> {
   const key = `imagenes/vocabulario/${slugificarConcepto(concepto)}.png`;
 
-  const existente = await existeArchivoR2(key);
-  if (existente) return { url: existente, fuente: "cache" };
+  if (!forzar) {
+    const existente = await existeArchivoR2(key);
+    if (existente) return { url: existente, fuente: "cache" };
+  }
 
   const buffer = await generarImagenGemini(concepto);
   const url = await subirArchivoR2(key, buffer, "image/png");

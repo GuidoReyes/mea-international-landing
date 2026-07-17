@@ -11,19 +11,22 @@ export function isGeminiConfigurado(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
-// ─── Art direction: estilo Duolingo adaptado a marca MEA ─────────────────────
-// Mismas reglas visuales para TODAS las ilustraciones de la plataforma, para
-// que el catálogo se vea coherente aunque se generen en sesiones distintas.
+// ─── Art direction: fotos realistas de personas ficticias generadas por IA ───
+// Mismas reglas visuales para TODAS las fotos de la plataforma, para que el
+// catálogo se vea coherente aunque se generen en sesiones distintas.
+// CRÍTICO: "realista" NO es lo mismo que "foto de una persona real". Sigue
+// siendo una persona 100% ficticia/sintética — eso es lo que evita cualquier
+// riesgo de derechos de autor o de imagen de un tercero real.
 export function buildImagePrompt(concept: string): string {
   return `
-Flat vector illustration of: ${concept}.
-Minimalist, friendly, playful language-learning app art.
-Built ONLY from rounded shapes (circles, rounded rectangles, rounded triangles), no sharp corners.
-Single clear subject, bold clean silhouette, instantly readable at small size, few details.
-Vibrant flat colors with subtle brand accents navy #1F3D61 and coral red #D96371.
-Plain solid white background, generous negative space, no gradients, no photorealism, no text in the image.
-If a character appears: expressive slightly-exaggerated pose, geometric eyes, simple hands (max 4 fingers).
-Do NOT depict Duolingo's owl mascot or any Duolingo character; generic original characters only. Style inspiration only.
+Photorealistic photograph of: ${concept}.
+Real-looking human subject, natural skin texture, natural lighting, candid everyday moment — shot like a
+genuine lifestyle/stock photograph, NOT an illustration, NOT a cartoon, NOT a vector drawing, NOT 3D render.
+Warm, friendly, everyday setting appropriate to a language-learning app. Natural colors, soft depth of field,
+subject in sharp focus, clean uncluttered background. No text, no logos, no watermarks in the image.
+CRITICAL — the person must be entirely fictional/synthetic, invented by you: do NOT depict any real, named,
+identifiable, or famous individual, and do NOT copy any existing photograph. A completely original, generated
+person only. Do NOT depict Duolingo's owl mascot or any Duolingo character.
 `.trim();
 }
 

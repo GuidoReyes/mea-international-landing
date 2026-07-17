@@ -41,5 +41,11 @@ export async function resolverImagenVocabulario(
   const url = await subirArchivoR2(key, buffer, "image/png");
   if (!url) return undefined;
 
-  return { url, fuente: "generada" };
+  // Cache-busting cuando se sobreescribe una key ya existente: la URL en sí
+  // no cambia, así que el optimizador de imágenes de Next.js (y el caché del
+  // navegador) puede seguir sirviendo los bytes viejos indefinidamente si no
+  // se lo forzamos con un query param nuevo.
+  const urlFinal = forzar ? `${url}?v=${Date.now()}` : url;
+
+  return { url: urlFinal, fuente: "generada" };
 }

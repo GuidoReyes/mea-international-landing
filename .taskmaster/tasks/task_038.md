@@ -2,9 +2,9 @@
 
 **Title:** Install Recharts and create /admin/metricas dashboard page
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 37
+**Dependencies:** 37 ✓
 
 **Priority:** medium
 

@@ -2,9 +2,9 @@
 
 **Title:** Add CSV export button to admin leads page
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 35
+**Dependencies:** 35 ✓
 
 **Priority:** low
 

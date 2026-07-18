@@ -2,7 +2,7 @@
 
 **Title:** Create /api/reportes endpoints for dashboard metrics
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 28 ✓
 

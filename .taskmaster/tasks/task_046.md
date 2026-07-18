@@ -2,9 +2,9 @@
 
 **Title:** Install node-cron and create scheduler for cuota alerts
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 45, 34 ✓
+**Dependencies:** 45 ✓, 34 ✓
 
 **Priority:** high
 

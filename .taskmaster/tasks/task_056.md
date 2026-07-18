@@ -2,9 +2,9 @@
 
 **Title:** Modelo Escalada — Log de escaladas en Prisma
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 45
+**Dependencies:** 45 ✓
 
 **Priority:** medium
 

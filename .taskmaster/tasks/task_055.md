@@ -2,7 +2,7 @@
 
 **Title:** Human Handoff — Traspaso a Asesor Humano
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 34 ✓
 

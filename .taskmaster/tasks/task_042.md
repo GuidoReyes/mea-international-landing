@@ -2,7 +2,7 @@
 
 **Title:** Create /admin/ediciones page with grouping by curso
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 30 ✓
 

@@ -2,9 +2,9 @@
 
 **Title:** Create public /verify/[codigo] certificate validation page
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 47
+**Dependencies:** 47 ✓
 
 **Priority:** low
 

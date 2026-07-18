@@ -2,9 +2,9 @@
 
 **Title:** Add Métricas link to admin sidebar
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 38
+**Dependencies:** 38 ✓
 
 **Priority:** low
 

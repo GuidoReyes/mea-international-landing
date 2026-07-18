@@ -2,7 +2,7 @@
 
 **Title:** Add CRM link to admin sidebar with Kanban icon
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 43 ✓
 

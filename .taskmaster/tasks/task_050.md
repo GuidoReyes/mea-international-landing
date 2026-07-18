@@ -2,9 +2,9 @@
 
 **Title:** Create /admin/ceo dashboard with P&L charts and role restriction
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 49, 38
+**Dependencies:** 49 ✓, 38 ✓
 
 **Priority:** medium
 

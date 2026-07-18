@@ -2,7 +2,7 @@
 
 **Title:** Add CSV export endpoint to leads API
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 25 ✓
 

@@ -2,9 +2,9 @@
 
 **Title:** Create /admin/marketing broadcast page with preview and progress tracking
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 53
+**Dependencies:** 53 ✓
 
 **Priority:** medium
 

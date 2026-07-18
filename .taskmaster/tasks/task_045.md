@@ -2,7 +2,7 @@
 
 **Title:** Add Phase 2 models: Abono, Certificado, AuditoriaAlumno, Egreso, Campana
 
-**Status:** pending
+**Status:** done
 
 **Dependencies:** 28 ✓
 

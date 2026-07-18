@@ -2,9 +2,9 @@
 
 **Title:** Create /admin/finanzas page with egresos and reconciliation tabs
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 49
+**Dependencies:** 49 ✓
 
 **Priority:** medium
 

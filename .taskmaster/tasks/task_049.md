@@ -2,9 +2,9 @@
 
 **Title:** Create /api/reportes/pl and /api/finanzas routes for CEO dashboard
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 45
+**Dependencies:** 45 ✓
 
 **Priority:** medium
 

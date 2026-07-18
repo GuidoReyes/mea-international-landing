@@ -2,9 +2,9 @@
 
 **Title:** Create /api/marketing/campanas routes for WhatsApp broadcast
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 45
+**Dependencies:** 45 ✓
 
 **Priority:** medium
 

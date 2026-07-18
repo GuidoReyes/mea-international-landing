@@ -2,9 +2,9 @@
 
 **Title:** Install PDF generation libraries and create /api/certificados routes
 
-**Status:** pending
+**Status:** done
 
-**Dependencies:** 45
+**Dependencies:** 45 ✓
 
 **Priority:** medium
 

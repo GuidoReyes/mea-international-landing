@@ -83,14 +83,22 @@ Cada paso tiene un campo base "id" (string único no vacío) y "tipo" (uno de lo
 
 4. tipo: "ordenar"
    - instruccion: string
-   - palabras: string[] (mínimo 2 — las palabras/piezas desordenadas)
-   - ordenCorrecto: number[] (índices 0-based que reordenan "palabras" a la frase correcta)
-   - CRÍTICO: "palabras" contiene ÚNICAMENTE las piezas de la frase correcta, en
+   - fraseCorrecta: string REQUERIDO — escribí PRIMERO la frase completa y
+     gramaticalmente correcta en inglés que el ejercicio va a armar (ej. "How
+     many in your party?"). Esto es lo que el alumno debe terminar formando.
+   - palabras: string[] (mínimo 2) — la tokenización EXACTA de "fraseCorrecta"
+     en piezas, desordenadas. NO agregues ni quites ninguna palabra respecto a
+     "fraseCorrecta" (nada de piezas extra tipo "are" que no estén en la frase
+     que escribiste, ni piezas faltantes) — cada palabra de "fraseCorrecta"
+     debe aparecer una vez en "palabras", ni una más.
+   - ordenCorrecto: number[] (índices 0-based) — al aplicar estos índices sobre
+     "palabras" (palabras[ordenCorrecto[0]], palabras[ordenCorrecto[1]], ...)
+     el resultado unido con espacios debe ser EXACTAMENTE "fraseCorrecta". Esto
+     se verifica automáticamente — si no coincide, el intento se rechaza.
+   - CRÍTICO: "palabras" contiene ÚNICAMENTE las piezas de "fraseCorrecta", en
      cualquier orden — SIN palabras señuelo/distractoras que no formen parte de
-     la respuesta. "ordenCorrecto" debe ser una permutación de TODOS los índices
-     de "palabras" (mismo largo que "palabras", cada índice de 0 a length-1
-     aparece exactamente una vez). El alumno coloca TODAS las piezas para
-     verificar, así que ninguna puede sobrar.
+     la respuesta. El alumno coloca TODAS las piezas para verificar, así que
+     ninguna puede sobrar ni faltar.
 
 5. tipo: "emparejar"
    - instruccion: string
@@ -182,7 +190,7 @@ function textoPronunciable(paso: PasoLeccion): string | undefined {
   if (paso.tipo === "escuchar") return paso.opciones[paso.respuestaCorrecta];
   // "ordenar": la frase correcta ensamblada — deja lista un audioUrl real
   // para el botón 🔊 que PasoOrdenarView muestra después de verificar.
-  if (paso.tipo === "ordenar") return paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ");
+  if (paso.tipo === "ordenar") return paso.fraseCorrecta;
   return undefined;
 }
 

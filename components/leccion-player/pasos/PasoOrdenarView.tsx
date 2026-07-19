@@ -85,14 +85,12 @@ const PasoOrdenarView = forwardRef<PasoViewHandle, PasoViewProps<PasoOrdenar>>(
             {!correcto && (
               <>
                 Orden correcto:{" "}
-                <span className="font-semibold text-[#0A2540]">
-                  {paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ")}
-                </span>
+                <span className="font-semibold text-[#0A2540]">{paso.fraseCorrecta}</span>
               </>
             )}
             <button
               type="button"
-              onClick={() => sayWord(paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" "), paso.audioUrl)}
+              onClick={() => sayWord(paso.fraseCorrecta, paso.audioUrl)}
               aria-label="Escuchar frase correcta"
               className="inline-flex items-center justify-center rounded-full bg-[#00C4B4]/10 text-[#00C4B4] hover:bg-[#00C4B4]/20 transition-colors p-1.5 shrink-0"
             >

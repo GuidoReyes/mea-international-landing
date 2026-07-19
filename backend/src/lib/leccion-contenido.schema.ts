@@ -39,6 +39,14 @@ export const pasoCompletarSchema = z.object({
   opciones: z.array(z.string().min(1)).min(2).max(6).optional(),
 });
 
+function normalizarFrase(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
 export const pasoOrdenarSchema = z
   .object({
     ...pasoBase,
@@ -46,10 +54,15 @@ export const pasoOrdenarSchema = z
     instruccion: z.string().min(1),
     palabras: z.array(z.string().min(1)).min(2),
     ordenCorrecto: z.array(z.number().int().min(0)),
+    // La frase completa que el LLM INTENTA armar (ej. "How many in your
+    // party?"). No se muestra en la UI — es un ancla de autoconsistencia:
+    // el refine de abajo verifica que palabras+ordenCorrecto realmente
+    // reconstruyan ESTA frase, no cualquier permutación estructuralmente
+    // válida pero gramaticalmente rota (bug real detectado: "How are party
+    // in your many?" pasaba el refine anterior porque tenía el mismo largo
+    // y cubría todos los índices, pero no tenía sentido).
+    fraseCorrecta: z.string().min(1),
   })
-  // El componente exige colocar TODAS las palabras para habilitar "Verificar"
-  // (no hay señuelos/palabras sobrantes en este tipo de ejercicio) — sin este
-  // refine, un ordenCorrecto más corto que palabras nunca puede dar correcto.
   .refine(
     (paso) => {
       if (paso.ordenCorrecto.length !== paso.palabras.length) return false;
@@ -59,6 +72,17 @@ export const pasoOrdenarSchema = z
     {
       message:
         "ordenCorrecto debe ser una permutación de TODOS los índices de palabras (mismo largo, sin señuelos ni índices repetidos/faltantes)",
+      path: ["ordenCorrecto"],
+    }
+  )
+  .refine(
+    (paso) => {
+      const reconstruida = paso.ordenCorrecto.map((i) => paso.palabras[i]).join(" ");
+      return normalizarFrase(reconstruida) === normalizarFrase(paso.fraseCorrecta);
+    },
+    {
+      message:
+        "ordenCorrecto no reconstruye fraseCorrecta — la frase armada con esos índices debe ser EXACTAMENTE fraseCorrecta (mismas palabras, mismo orden), no solo una permutación válida de palabras",
       path: ["ordenCorrecto"],
     }
   );

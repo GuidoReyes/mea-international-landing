@@ -33,6 +33,7 @@ export interface PasoOrdenar extends PasoBase {
   instruccion: string;
   palabras: string[];
   ordenCorrecto: number[];
+  fraseCorrecta: string;
 }
 
 export interface PasoEmparejarPar {

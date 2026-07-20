@@ -1,12 +1,18 @@
-// Marca esGratis en las lecciones de prueba del funnel:
-//  - Ruta "general" (A1→C1): las primeras 3 lecciones DE CADA NIVEL (15 en total),
-//    para que cada nivel se pueda probar gratis, no solo A1.
-//  - Rutas vocacionales: las primeras 3 de cada una.
-// Idempotente. Una lección compartida entre rutas queda gratis en todas.
+// Marca esGratis en las lecciones de prueba del funnel: SIEMPRE las primeras
+// N lecciones de CADA ruta completa, en el orden real en que se muestran
+// (RutaLeccion.orden) — nunca agrupado por nivel. Antes "general" marcaba
+// las primeras 3 de CADA nivel (A1, A2, B1...), lo que dejaba lecciones
+// gratis dispersas por todo el curso (una tanda cerca del final, en C1).
+// Ahora es consistente con las demás rutas: las primeras N y nada más.
+//
+// Autoritativo, no solo aditivo: una lección que ya no cae en las primeras
+// N de NINGUNA de sus rutas se desmarca. Una lección compartida entre rutas
+// (vía RutaLeccion) queda gratis si está entre las primeras N en AL MENOS
+// una de ellas.
 
 import prisma from "../lib/prisma";
 
-const GRATIS_POR_GRUPO = 3;
+const GRATIS_POR_RUTA = 3;
 
 async function main() {
   const rutas = await prisma.ruta.findMany({
@@ -14,44 +20,34 @@ async function main() {
     include: {
       lecciones: {
         orderBy: { orden: "asc" },
-        include: {
-          leccion: {
-            select: { id: true, titulo: true, esGratis: true, capitulo: { select: { nivel: true } } },
-          },
-        },
+        include: { leccion: { select: { id: true, titulo: true } } },
       },
     },
     orderBy: { orden: "asc" },
   });
 
-  let marcadas = 0;
-  for (const ruta of rutas) {
-    // En "general" el grupo es el nivel del capítulo; en las demás, la ruta entera.
-    const porGrupo = new Map<string, typeof ruta.lecciones>();
-    for (const rl of ruta.lecciones) {
-      const grupo = ruta.slug === "general" ? rl.leccion.capitulo.nivel : "unica";
-      if (!porGrupo.has(grupo)) porGrupo.set(grupo, []);
-      porGrupo.get(grupo)!.push(rl);
-    }
+  const idsGratisCorrectos = new Set<number>();
 
-    for (const [grupo, leccionesGrupo] of porGrupo) {
-      const primeras = leccionesGrupo.slice(0, GRATIS_POR_GRUPO);
-      const pendientes = primeras.filter((rl) => !rl.leccion.esGratis);
-      for (const rl of pendientes) {
-        await prisma.leccion.update({ where: { id: rl.leccion.id }, data: { esGratis: true } });
-        marcadas++;
-      }
-      const etiqueta = grupo === "unica" ? ruta.slug : `${ruta.slug}/${grupo}`;
-      console.log(
-        `${etiqueta}: ${primeras.length} gratis (${pendientes.length} nuevas) → ${primeras
-          .map((rl) => rl.leccion.titulo)
-          .join(" | ")}`
-      );
-    }
+  for (const ruta of rutas) {
+    const primeras = ruta.lecciones.slice(0, GRATIS_POR_RUTA);
+    for (const rl of primeras) idsGratisCorrectos.add(rl.leccion.id);
+    console.log(`${ruta.slug}: ${primeras.map((rl) => rl.leccion.titulo).join(" | ")}`);
   }
 
+  const marcarGratis = await prisma.leccion.updateMany({
+    where: { id: { in: [...idsGratisCorrectos] }, esGratis: false },
+    data: { esGratis: true },
+  });
+  const desmarcar = await prisma.leccion.updateMany({
+    where: { id: { notIn: [...idsGratisCorrectos] }, esGratis: true },
+    data: { esGratis: false },
+  });
+
   const totalGratis = await prisma.leccion.count({ where: { esGratis: true } });
-  console.log(`\nMarcadas ahora: ${marcadas}. Total lecciones gratis en la plataforma: ${totalGratis}.`);
+  console.log(
+    `\nMarcadas gratis: +${marcarGratis.count}. Desmarcadas (ya no eran "primeras N"): -${desmarcar.count}.`
+  );
+  console.log(`Total lecciones gratis en la plataforma ahora: ${totalGratis} (esperado: ~${rutas.length * GRATIS_POR_RUTA}, puede ser menor por lecciones compartidas entre rutas).`);
 }
 
 main().finally(() => prisma.$disconnect());

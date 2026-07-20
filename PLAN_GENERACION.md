@@ -79,7 +79,7 @@ punto 2, tipo "ordenar" — ya implementado como `fraseCorrecta` + segundo
 
 ## Siguiente paso
 
-Esperando tu confirmación sobre 4.1 y 4.2. Si confirmás "mantener lo ya
-construido" en ambos, Fase 1 es simplemente: seguir ejecutando las 256 tareas
-`pending` de Task Master (164-422) — no hace falta código nuevo, el
-generador y el schema ya están al día con E1-E4, E7 y el fix de E8.
+**Confirmado por el Ingeniero (2026-07-19): mantener lo ya construido en 4.1
+y 4.2.** Fase 1 = seguir ejecutando las 256 tareas `pending` de Task Master
+(164-422), sin código nuevo — el generador y el schema ya están al día con
+E1-E4, E7 y el fix de E8. 4.3 queda sin efecto (ver 4.1).

@@ -129,10 +129,20 @@ Reglas importantes:
 function extraerJSON(texto: string): string {
   const limpio = texto.trim();
   const fenceMatch = limpio.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-  return fenceMatch ? fenceMatch[1].trim() : limpio;
+  const json = fenceMatch ? fenceMatch[1].trim() : limpio;
+  // Claude a veces escribe `"campo":undefined` (JS válido, JSON inválido) en
+  // vez de omitir directamente un campo opcional — bug real visto en
+  // producción (crasheaba JSON.parse). undefined nunca es un valor JSON
+  // legítimo, así que quitar la key entera equivale a omitirla. Dos pasadas
+  // para no dejar una coma huérfana sin importar si la key está al
+  // principio, en medio o al final del objeto.
+  return json
+    .replace(/"[a-zA-Z0-9_]+"\s*:\s*undefined\s*,\s*/g, "")
+    .replace(/,\s*"[a-zA-Z0-9_]+"\s*:\s*undefined\s*/g, "")
+    .replace(/"[a-zA-Z0-9_]+"\s*:\s*undefined\s*/g, "");
 }
 
-const MAX_INTENTOS_GENERACION = 2;
+const MAX_INTENTOS_GENERACION = 3;
 
 async function generarContenido(tema: string): Promise<LeccionContenido> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

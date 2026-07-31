@@ -34,7 +34,7 @@ import jarvisBridgeRouter from "./routes/jarvis-bridge";
 import { startScheduler } from "./scheduler";
 import { startBackupScheduler } from "./backup/scheduler";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const app = express();
 const PORT = process.env.PORT || 4000;

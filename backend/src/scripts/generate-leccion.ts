@@ -189,7 +189,25 @@ async function generarContenido(tema: string): Promise<LeccionContenido> {
     if (intento === MAX_INTENTOS_GENERACION) {
       process.exit(1);
     }
-    ultimoErrorDetalle = issues.join("\n");
+
+    // Repetir solo el mensaje abstracto de Zod no alcanza: en producción
+    // Claude repitió EXACTAMENTE el mismo error 3 veces seguidas en "ordenar"
+    // porque nunca vio su propio paso fallido, solo la regla en abstracto.
+    // Adjuntar el JSON crudo del/los paso(s) específicos que fallaron le da
+    // algo concreto contra qué autocorregirse.
+    const pasosFallidos = new Set(
+      resultado.error.issues
+        .map((i) => (typeof i.path[1] === "number" ? i.path[1] : undefined))
+        .filter((i): i is number => i !== undefined)
+    );
+    const pasosArray = Array.isArray(parsedJson) ? undefined : (parsedJson as { pasos?: unknown[] })?.pasos;
+    const pasosJSON = pasosArray
+      ? [...pasosFallidos].map((i) => `  paso índice ${i}: ${JSON.stringify(pasosArray[i])}`).join("\n")
+      : "";
+
+    ultimoErrorDetalle = `${issues.join("\n")}${
+      pasosJSON ? `\n\nEsto fue exactamente lo que generaste para el/los paso(s) que fallaron:\n${pasosJSON}\n\nCorregí ESE paso específico — no repitas el mismo error.` : ""
+    }`;
   }
 
   throw new Error("inalcanzable");
@@ -344,6 +362,22 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Sin Piper no hay audio: los pasos "escuchar" se guardarían con el
+  // placeholder (un .wav que no existe) y la lección quedaría rota en
+  // producción. Pasó de verdad — 40 lecciones se publicaron así porque el
+  // aviso era solo un console.warn. Abortar acá, antes de gastar la llamada
+  // a Claude, es más barato que descubrirlo después en la BD.
+  if (!dryRun && !isPiperConfigurado()) {
+    console.error(
+      "PIPER_VOICE_PATH no está configurado (o el archivo de voz no existe).\n" +
+        "Sin él los pasos 'escuchar' quedan con un audio placeholder inexistente.\n" +
+        "Descargá la voz y reintentá:\n" +
+        "  python3 -m piper.download_voices en_US-lessac-medium --data-dir voices\n" +
+        '  PIPER_VOICE_PATH=$PWD/voices/en_US-lessac-medium.onnx npm run generate:leccion -- <id> "<tema>"'
+    );
+    process.exit(1);
+  }
+
   console.log(`Generando contenido para Leccion #${leccionId} ("${leccion.titulo}") — tema: "${tema}"...`);
   const contenidoGenerado = await generarContenido(tema);
   console.log(`Contenido generado y validado: ${contenidoGenerado.pasos.length} pasos.`);
@@ -361,6 +395,20 @@ async function main(): Promise<void> {
     reusadas: imagenesReusadas,
     saltadas: imagenesSaltadas,
   } = await generarImagenes(conAudio);
+
+  // Red de seguridad: aunque Piper esté configurado, un paso suelto puede
+  // haber fallado (síntesis, subida a R2, cotejo de bytes) y quedarse con el
+  // placeholder. Nunca guardar una lección con audio inexistente.
+  const pasosSinAudioReal = contenido.pasos.filter(
+    (p) => p.tipo === "escuchar" && p.audioUrl === PLACEHOLDER_AUDIO_URL
+  );
+  if (pasosSinAudioReal.length > 0) {
+    console.error(
+      `${pasosSinAudioReal.length} paso(s) 'escuchar' quedaron con el audio placeholder ` +
+        `(${pasosSinAudioReal.map((p) => p.id).join(", ")}) — no se guarda nada. Revisá Piper/R2 y reintentá.`
+    );
+    process.exit(1);
+  }
 
   await prisma.leccion.update({
     where: { id: leccionId },

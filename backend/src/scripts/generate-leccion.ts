@@ -378,6 +378,20 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Mismo criterio que con Piper: sin Gemini (o sin crédito prepago) los pasos
+  // "vocabulario" quedan sin imagenUrl y la lección se publicaría incompleta.
+  // Pasó de verdad — Leccion #2 se guardó con audio real pero 0 imágenes
+  // porque el crédito prepago de Google AI Studio estaba agotado y el error
+  // era solo un console.warn. Abortar antes de gastar la llamada a Claude.
+  if (!dryRun && !isGeminiConfigurado()) {
+    console.error(
+      "GEMINI_API_KEY no está configurada.\n" +
+        "Sin ella los pasos 'vocabulario' quedan sin imagenUrl.\n" +
+        "Configurá GEMINI_API_KEY y reintentá."
+    );
+    process.exit(1);
+  }
+
   console.log(`Generando contenido para Leccion #${leccionId} ("${leccion.titulo}") — tema: "${tema}"...`);
   const contenidoGenerado = await generarContenido(tema);
   console.log(`Contenido generado y validado: ${contenidoGenerado.pasos.length} pasos.`);
@@ -406,6 +420,19 @@ async function main(): Promise<void> {
     console.error(
       `${pasosSinAudioReal.length} paso(s) 'escuchar' quedaron con el audio placeholder ` +
         `(${pasosSinAudioReal.map((p) => p.id).join(", ")}) — no se guarda nada. Revisá Piper/R2 y reintentá.`
+    );
+    process.exit(1);
+  }
+
+  // Misma red de seguridad que con el audio: un paso 'vocabulario' sin
+  // imagenUrl (falla de Gemini, sin crédito, R2 caído) no debe publicarse.
+  const pasosSinImagen = contenido.pasos.filter(
+    (p): p is PasoLeccion & { tipo: "vocabulario" } => p.tipo === "vocabulario" && !p.imagenUrl
+  );
+  if (pasosSinImagen.length > 0) {
+    console.error(
+      `${pasosSinImagen.length} paso(s) 'vocabulario' quedaron sin imagenUrl ` +
+        `(${pasosSinImagen.map((p) => p.id).join(", ")}) — no se guarda nada. Revisá Gemini/R2 y reintentá.`
     );
     process.exit(1);
   }

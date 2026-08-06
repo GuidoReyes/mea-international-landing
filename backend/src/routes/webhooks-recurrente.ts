@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import { log } from "../lib/logger";
 import { verificarFirmaWebhook, agregarMeses } from "../lib/recurrente";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { inscribirEnCursosPublicados } from "../lib/suscripciones";
 
 const router = Router();
 
@@ -112,6 +113,8 @@ router.post("/", async (req: Request, res: Response) => {
   ]);
 
   log("info", `[WebhookRecurrente] Suscripción ${suscripcion.id} activada hasta ${fechaFin.toISOString()}`);
+
+  await inscribirEnCursosPublicados(suscripcion.alumnoId);
 
   if (suscripcion.alumno.whatsapp) {
     const mensaje =

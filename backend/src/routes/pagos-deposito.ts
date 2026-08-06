@@ -4,6 +4,7 @@ import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { agregarMeses } from "../lib/recurrente";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { inscribirEnCursosPublicados } from "../lib/suscripciones";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -89,6 +90,8 @@ router.patch(
     ]);
 
     log("info", `[PagosDeposito] Pago ${pago.id} confirmado, suscripción ${pago.suscripcion.id} activa hasta ${fechaFin.toISOString()}`);
+
+    await inscribirEnCursosPublicados(pago.suscripcion.alumnoId);
 
     if (pago.suscripcion.alumno.whatsapp) {
       const mensaje =

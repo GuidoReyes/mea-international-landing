@@ -13,6 +13,7 @@
     "seed:clases-en-vivo": "ts-node src/scripts/seed-clases-en-vivo.ts",
     "seed:curriculum": "ts-node src/scripts/seed-curriculum.ts",
     "seed:lecciones-gratis": "ts-node src/scripts/marcar-lecciones-gratis.ts",
+    "backfill:inscripciones-online": "ts-node src/scripts/backfill-inscripciones-online.ts",
     "generate:leccion": "ts-node src/scripts/generate-leccion.ts",
     "generate:imagenes-faltantes": "ts-node src/scripts/generar-imagenes-faltantes.ts",
     "test:fase3": "ts-node src/scripts/test-fase3.ts",

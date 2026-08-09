@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import * as Tabs from "@radix-ui/react-tabs";
 import { api, type AlumnoDetalle, type Edicion, type Inscripcion, type Pago } from "@/lib/api";
 import { ArrowLeft, GraduationCap, Mail, Phone, X, Loader2, BookOpen, CreditCard, MessageSquare } from "lucide-react";
@@ -54,9 +55,15 @@ function NuevaInscripcionModal({
   const [edicionId, setEdicionId] = useState<number | "">("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [loadingEdiciones, setLoadingEdiciones] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    api.getEdiciones().then((r) => setEdiciones(r.data)).catch(console.error);
+    api
+      .getEdiciones()
+      .then((r) => setEdiciones(r.data))
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Error al cargar ediciones"))
+      .finally(() => setLoadingEdiciones(false));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,34 +91,55 @@ function NuevaInscripcionModal({
             <X className="w-4 h-4" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Edición del curso *</label>
-            <select
-              required
-              value={edicionId}
-              onChange={(e) => setEdicionId(e.target.value ? Number(e.target.value) : "")}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C4B4]/40 focus:border-[#00C4B4] bg-white"
+        {!loadingEdiciones && !loadError && ediciones.length === 0 ? (
+          <div className="px-6 py-8 text-center">
+            <p className="text-sm text-slate-400 mb-4">
+              Todavía no hay ninguna edición de curso creada. Creá una edición antes de poder inscribir alumnos.
+            </p>
+            <Link
+              href="/admin/ediciones"
+              onClick={onClose}
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-[#0A2540] text-white rounded-xl text-sm font-semibold hover:bg-[#0A2540]/90 transition-colors"
             >
-              <option value="">Seleccionar edición...</option>
-              {ediciones.map((ed) => (
-                <option key={ed.id} value={ed.id}>
-                  {ed.curso.nombre} — {ed.nombre} (Q{ed.precio})
-                </option>
-              ))}
-            </select>
+              Ir a Ediciones
+            </Link>
           </div>
-          {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 border border-slate-200 text-slate-500 rounded-xl py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors">
-              Cancelar
-            </button>
-            <button type="submit" disabled={saving || !edicionId} className="flex-1 bg-[#0A2540] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#0A2540]/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
-              {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              Inscribir
-            </button>
-          </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Edición del curso *</label>
+              <select
+                required
+                disabled={loadingEdiciones}
+                value={edicionId}
+                onChange={(e) => setEdicionId(e.target.value ? Number(e.target.value) : "")}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00C4B4]/40 focus:border-[#00C4B4] bg-white disabled:opacity-60"
+              >
+                <option value="">{loadingEdiciones ? "Cargando ediciones..." : "Seleccionar edición..."}</option>
+                {ediciones.map((ed) => (
+                  <option key={ed.id} value={ed.id}>
+                    {ed.curso.nombre} — {ed.nombre} (Q{ed.precio})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {loadError && (
+              <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2">
+                No se pudieron cargar las ediciones: {loadError}
+              </p>
+            )}
+            {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose} className="flex-1 border border-slate-200 text-slate-500 rounded-xl py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors">
+                Cancelar
+              </button>
+              <button type="submit" disabled={saving || !edicionId} className="flex-1 bg-[#0A2540] text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-[#0A2540]/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Inscribir
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -394,12 +422,14 @@ export default function AlumnoDetallePage() {
             </div>
             <p className="text-sm text-slate-400">Las conversaciones se vinculan vía WhatsApp</p>
             {alumno.whatsapp && (
-              <button
-                onClick={() => router.push(`/admin?search=${alumno.whatsapp}`)}
-                className="mt-3 text-xs text-[#00C4B4] hover:underline"
+              <a
+                href={`https://wa.me/${alumno.whatsapp.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-xs text-[#00C4B4] hover:underline"
               >
-                Ver leads con {alumno.whatsapp}
-              </button>
+                Abrir chat de WhatsApp con {alumno.whatsapp}
+              </a>
             )}
           </div>
         </Tabs.Content>

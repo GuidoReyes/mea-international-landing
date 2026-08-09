@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Lock, PlayCircle, Sparkles } from "lucide-react";
-import { RutaCurriculum, LeccionCurriculum, NIVELES, colorBadgeNivel, getRutaCurriculum } from "@/lib/rutas";
-import { getAlumnoToken } from "@/lib/alumno-api";
+import { RutaCurriculum, LeccionCurriculum, NIVELES, colorBadgeNivel } from "@/lib/rutas";
+import { alumnoApi, getAlumnoToken } from "@/lib/alumno-api";
 
 function LessonItem({ leccion, rutaSlug }: { leccion: LeccionCurriculum; rutaSlug: string }) {
   const completada = leccion.completada === true;
@@ -62,9 +62,13 @@ export default function RutaDetalleClient({ inicial }: { inicial: RutaCurriculum
 
   useEffect(() => {
     if (!getAlumnoToken()) return;
-    getRutaCurriculum(inicial.slug).then((actualizado) => {
-      if (actualizado) setRuta(actualizado);
-    });
+    alumnoApi
+      .getRuta(inicial.slug)
+      .then((actualizado) => setRuta(actualizado))
+      .catch(() => {
+        // Sesión expirada u otro error: se queda con la vista pública (bloqueada)
+        // ya renderizada por el servidor en vez de romper la página.
+      });
   }, [inicial.slug]);
 
   const capitulosVisibles = esGeneral

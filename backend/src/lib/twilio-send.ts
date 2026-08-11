@@ -19,7 +19,11 @@ function getClient() {
  * `to` must be a full E.164 number (e.g. +50256311728). The "whatsapp:" prefix
  * is added internally.
  */
-export async function sendTwilioWhatsApp(to: string, body: string): Promise<TwilioSendResult> {
+export async function sendTwilioWhatsApp(
+  to: string,
+  body: string,
+  mediaUrl?: string
+): Promise<TwilioSendResult> {
   const client = getClient();
   const from   = process.env.TWILIO_WHATSAPP_NUMBER; // e.g. whatsapp:+14155238886
 
@@ -31,7 +35,12 @@ export async function sendTwilioWhatsApp(to: string, body: string): Promise<Twil
   const toFormatted = to.startsWith("whatsapp:") ? to : `whatsapp:${to}`;
 
   try {
-    const msg = await client.messages.create({ from, to: toFormatted, body });
+    const msg = await client.messages.create({
+      from,
+      to: toFormatted,
+      body,
+      ...(mediaUrl ? { mediaUrl: [mediaUrl] } : {}),
+    });
     log("info", `[Twilio] Message sent to ${toFormatted} — SID: ${msg.sid}`);
     return { success: true, sid: msg.sid };
   } catch (err) {

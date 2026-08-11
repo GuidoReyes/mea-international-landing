@@ -14,8 +14,52 @@ interface GraphApiResponse {
   error?: { message: string; code: number };
 }
 
+interface MediaUrlResponse {
+  url?: string;
+  mime_type?: string;
+  error?: { message: string; code: number };
+}
+
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Descarga un adjunto (imagen, documento, etc.) recibido por webhook. Meta
+// entrega solo un `media_id` — hay que resolverlo a una URL temporal
+// (autenticada) y luego bajar el binario, ambos pasos con el mismo token.
+export async function descargarMediaWhatsApp(
+  mediaId: string
+): Promise<{ buffer: Buffer; mimeType: string } | undefined> {
+  const token = process.env.META_WHATSAPP_TOKEN;
+  if (!token) {
+    log("error", "[WhatsApp] META_WHATSAPP_TOKEN no configurado");
+    return undefined;
+  }
+
+  try {
+    const metaRes = await fetch(`https://graph.facebook.com/${GRAPH_API_VERSION}/${mediaId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const meta = (await metaRes.json()) as MediaUrlResponse;
+
+    if (!metaRes.ok || !meta.url) {
+      log("error", `[WhatsApp] Error resolviendo media ${mediaId}: ${meta.error?.message ?? `HTTP ${metaRes.status}`}`);
+      return undefined;
+    }
+
+    const fileRes = await fetch(meta.url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!fileRes.ok) {
+      log("error", `[WhatsApp] Error descargando media ${mediaId}: HTTP ${fileRes.status}`);
+      return undefined;
+    }
+
+    const buffer = Buffer.from(await fileRes.arrayBuffer());
+    const mimeType = meta.mime_type ?? fileRes.headers.get("content-type") ?? "application/octet-stream";
+    return { buffer, mimeType };
+  } catch (err) {
+    log("error", `[WhatsApp] Error de red descargando media ${mediaId}:`, err);
+    return undefined;
+  }
 }
 
 export async function sendWhatsAppMessage(to: string, message: string): Promise<SendResult> {

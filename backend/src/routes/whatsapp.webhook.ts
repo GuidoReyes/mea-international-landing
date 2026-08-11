@@ -9,7 +9,7 @@ import { notifyAdminNewLead } from "../services/notifications";
 import prisma from "../lib/prisma";
 import { desactivarModoHumano } from "../lib/human-handoff";
 import { isAdvisorPhone, handleAdvisorMessage } from "../lib/advisor-commands";
-import { sendTwilioWhatsApp } from "../lib/twilio-send";
+import { notifyAdvisorConversacion } from "../lib/advisor-notify";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -92,16 +92,13 @@ async function procesarMensajeMedia(msg: MetaMessage, telefono: string, mask: st
     log("error", `[WhatsApp] ${mask} | Error enviando confirmación de ${tipoLabel}: ${sent.error}`);
   }
 
-  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
-  if (adminTwilio) {
-    const aviso =
-      `💰 *[+${telefono}] envió un ${tipoLabel}*` +
-      (media.caption ? `\n📝 "${media.caption}"` : "") +
-      (mediaUrl ? "" : "\n⚠️ No se pudo guardar el archivo — revisar directamente en WhatsApp.");
-    sendTwilioWhatsApp(adminTwilio, aviso, mediaUrl).catch((err) =>
-      log("error", `[WhatsApp] ${mask} | Error notificando ${tipoLabel} a Twilio:`, err)
-    );
-  }
+  const aviso =
+    `💰 *[+${telefono}] envió un ${tipoLabel}*` +
+    (media.caption ? `\n📝 "${media.caption}"` : "") +
+    (mediaUrl ? `\n${mediaUrl}` : "\n⚠️ No se pudo guardar el archivo — revisar directamente en WhatsApp.");
+  notifyAdvisorConversacion(aviso, mediaUrl).catch((err) =>
+    log("error", `[WhatsApp] ${mask} | Error notificando ${tipoLabel} al asesor:`, err)
+  );
 }
 
 // Cualquier otro tipo no manejado explícitamente (audio, video, sticker,
@@ -126,13 +123,9 @@ async function procesarMensajeNoSoportado(msg: MetaMessage, telefono: string, ma
 
   await sendWhatsAppMessage(telefono, respuesta);
 
-  const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
-  if (adminTwilio) {
-    sendTwilioWhatsApp(
-      adminTwilio,
-      `📩 *[+${telefono}]* envió un mensaje tipo "${msg.type}" — revisar directamente en WhatsApp.`
-    ).catch((err) => log("error", `[WhatsApp] ${mask} | Error notificando tipo no soportado a Twilio:`, err));
-  }
+  notifyAdvisorConversacion(
+    `📩 *[+${telefono}]* envió un mensaje tipo "${msg.type}" — revisar directamente en WhatsApp.`
+  ).catch((err) => log("error", `[WhatsApp] ${mask} | Error notificando tipo no soportado:`, err));
 }
 
 // GET — verificación de webhook por Meta
@@ -239,13 +232,12 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
       }
     }
 
-    // Forwarding en tiempo real al admin vía Twilio (fire and forget)
-    const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
-    if (adminTwilio && respuesta) {
-      sendTwilioWhatsApp(
-        adminTwilio,
+    // Forwarding en tiempo real al asesor (Meta + Twilio) — así lleva
+    // control de la conversación completa, mensaje por mensaje.
+    if (respuesta) {
+      notifyAdvisorConversacion(
         `📩 *[+${telefono}]*\n👤 "${mensaje.slice(0, 120)}"\n🤖 "${respuesta.slice(0, 200)}"`
-      ).catch((err) => log("error", `[WhatsApp] ${mask} | Error forwarding a Twilio:`, err));
+      ).catch((err) => log("error", `[WhatsApp] ${mask} | Error forwarding al asesor:`, err));
     }
   }
 });

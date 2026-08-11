@@ -46,13 +46,10 @@ export function detectIntent(mensaje: string): AdvisorNotifIntent {
   return null;
 }
 
-export async function notifyAdvisorIfNeeded(
-  telefono: string,
-  mensaje: string,
-  intent: AdvisorNotifIntent
-): Promise<void> {
-  if (!intent) return;
-
+// Envía por los dos canales del asesor en paralelo — Meta (directo, no
+// depende de opt-in) y Twilio (soporta adjuntar imagen vía mediaUrl). Si uno
+// de los dos falla o no está configurado, el otro igual entrega el aviso.
+async function notificarAsesorAmbosCanales(body: string, mediaUrl?: string): Promise<void> {
   const asesorPhone = process.env.MIRCE_PERSONAL_PHONE;
   const adminTwilio = process.env.ADMIN_TWILIO_WHATSAPP;
 
@@ -61,21 +58,38 @@ export async function notifyAdvisorIfNeeded(
     return;
   }
 
+  if (asesorPhone) {
+    sendWhatsAppMessage(asesorPhone, body).catch((err) =>
+      log("error", `[AdvisorNotify] Error canal Meta: ${err}`)
+    );
+  }
+
+  if (adminTwilio) {
+    sendTwilioWhatsApp(adminTwilio, body, mediaUrl).catch((err) =>
+      log("error", `[AdvisorNotify] Error canal Twilio: ${err}`)
+    );
+  }
+}
+
+export async function notifyAdvisorIfNeeded(
+  telefono: string,
+  mensaje: string,
+  intent: AdvisorNotifIntent
+): Promise<void> {
+  if (!intent) return;
+
   const base = NOTIF_MESSAGES[intent];
   const preview = mensaje.length > 80 ? `${mensaje.slice(0, 80)}…` : mensaje;
   const body = `${base}\n📱 +${telefono}\n💬 "${preview}"`;
 
   log("info", `[AdvisorNotify] Intent=${intent} → notificando asesor (${telefono.slice(-4)})`);
 
-  if (asesorPhone) {
-    sendWhatsAppMessage(asesorPhone, body).catch((err) =>
-      log("error", `[AdvisorNotify] Error Meta canal: ${err}`)
-    );
-  }
+  await notificarAsesorAmbosCanales(body);
+}
 
-  if (adminTwilio) {
-    sendTwilioWhatsApp(adminTwilio, body).catch((err) =>
-      log("error", `[AdvisorNotify] Error Twilio canal: ${err}`)
-    );
-  }
+// Reenvía en tiempo real cada mensaje de un cliente (y lo que le respondió
+// el bot, si aplica) al asesor, para que pueda llevar control de la
+// conversación completa sin depender de un solo canal de notificación.
+export async function notifyAdvisorConversacion(body: string, mediaUrl?: string): Promise<void> {
+  await notificarAsesorAmbosCanales(body, mediaUrl);
 }

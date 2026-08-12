@@ -47,8 +47,31 @@ function parseArgs(argv: string[]): Args {
   return { leccionId, tema: tema.trim(), dryRun };
 }
 
-function construirPrompt(tema: string): string {
+interface ContextoCurso {
+  cursoTitulo: string;
+  track: string;
+  capituloTitulo: string;
+}
+
+function construirPrompt(tema: string, contexto: ContextoCurso): string {
+  const { cursoTitulo, track, capituloTitulo } = contexto;
+
+  // Curso "general" cubre situaciones cotidianas genéricas — para los demás
+  // tracks (restaurantes, oficina, mecánica, etc.) el contenido tiene que
+  // anclarse en el escenario laboral específico. Sin esto, un tema ambiguo
+  // (ej. "Preguntar si todo está bien") derivaba a algo genérico entre
+  // amigos en vez de un mesero atendiendo una mesa — bug real visto en
+  // producción (Leccion #408, curso Restaurantes).
+  const reglaVocacional =
+    track === "general"
+      ? ""
+      : `\n\nIMPORTANTE — este es un curso VOCACIONAL ("${cursoTitulo}"), no genérico: todo el vocabulario, ejemplos y preguntas deben anclarse específicamente en el escenario laboral de "${capituloTitulo}" (el ángulo del profesional/trabajador, ej. mesero atendiendo a un cliente, mecánico con un cliente, oficinista en su trabajo). NUNCA una situación genérica entre amigos/conocidos — eso ya lo cubre el curso "Inglés General".`;
+
   return `Generá el contenido interactivo de una lección de inglés estilo Duolingo sobre el tema: "${tema}".
+
+Contexto del curso:
+- Curso: "${cursoTitulo}"
+- Capítulo: "${capituloTitulo}"${reglaVocacional}
 
 Devolvé SOLO JSON válido (sin \`\`\`json ni texto adicional, sin comentarios) con esta forma exacta (LeccionContenido):
 
@@ -144,7 +167,7 @@ function extraerJSON(texto: string): string {
 
 const MAX_INTENTOS_GENERACION = 3;
 
-async function generarContenido(tema: string): Promise<LeccionContenido> {
+async function generarContenido(tema: string, contexto: ContextoCurso): Promise<LeccionContenido> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   let ultimoErrorDetalle = "";
@@ -152,8 +175,8 @@ async function generarContenido(tema: string): Promise<LeccionContenido> {
   for (let intento = 1; intento <= MAX_INTENTOS_GENERACION; intento++) {
     const prompt =
       intento === 1
-        ? construirPrompt(tema)
-        : `${construirPrompt(tema)}\n\nTu intento anterior falló esta validación — corregila:\n${ultimoErrorDetalle}`;
+        ? construirPrompt(tema, contexto)
+        : `${construirPrompt(tema, contexto)}\n\nTu intento anterior falló esta validación — corregila:\n${ultimoErrorDetalle}`;
 
     const response = await client.messages.create({
       model: MODEL,
@@ -356,11 +379,20 @@ async function generarAudios(leccionId: number, contenido: LeccionContenido): Pr
 async function main(): Promise<void> {
   const { leccionId, tema, dryRun } = parseArgs(process.argv.slice(2));
 
-  const leccion = await prisma.leccion.findUnique({ where: { id: leccionId } });
+  const leccion = await prisma.leccion.findUnique({
+    where: { id: leccionId },
+    include: { capitulo: { include: { cursoOnline: true } } },
+  });
   if (!leccion) {
     console.error(`No existe una Leccion con id=${leccionId}.`);
     process.exit(1);
   }
+
+  const contexto: ContextoCurso = {
+    cursoTitulo: leccion.capitulo.cursoOnline.titulo,
+    track: leccion.capitulo.cursoOnline.track,
+    capituloTitulo: leccion.capitulo.titulo,
+  };
 
   // Sin Piper no hay audio: los pasos "escuchar" se guardarían con el
   // placeholder (un .wav que no existe) y la lección quedaría rota en
@@ -392,8 +424,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`Generando contenido para Leccion #${leccionId} ("${leccion.titulo}") — tema: "${tema}"...`);
-  const contenidoGenerado = await generarContenido(tema);
+  console.log(
+    `Generando contenido para Leccion #${leccionId} ("${leccion.titulo}") — tema: "${tema}" ` +
+      `— curso: "${contexto.cursoTitulo}" / capítulo: "${contexto.capituloTitulo}"...`
+  );
+  const contenidoGenerado = await generarContenido(tema, contexto);
   console.log(`Contenido generado y validado: ${contenidoGenerado.pasos.length} pasos.`);
 
   if (dryRun) {

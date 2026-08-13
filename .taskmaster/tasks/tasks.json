@@ -4922,9 +4922,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.441Z"
+        "updatedAt": "2026-08-13T02:25:17.375Z"
       },
       {
         "id": "248",
@@ -4934,9 +4934,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.441Z"
+        "updatedAt": "2026-08-13T02:28:13.918Z"
       },
       {
         "id": "249",
@@ -4946,9 +4946,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.441Z"
+        "updatedAt": "2026-08-13T02:33:15.602Z"
       },
       {
         "id": "250",
@@ -4958,9 +4958,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.441Z"
+        "updatedAt": "2026-08-13T02:35:21.952Z"
       },
       {
         "id": "251",
@@ -4970,9 +4970,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.441Z"
+        "updatedAt": "2026-08-13T02:38:20.608Z"
       },
       {
         "id": "252",
@@ -7029,9 +7029,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-12T05:50:18.127Z",
+      "lastModified": "2026-08-13T02:38:20.609Z",
       "taskCount": 422,
-      "completedCount": 244,
+      "completedCount": 249,
       "tags": [
         "master"
       ]

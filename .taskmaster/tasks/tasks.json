@@ -7092,10 +7092,11 @@
         "description": "Generar el contenido interactivo de la Leccion #41 — \"Preposiciones de lugar\" (capítulo \"Check-in at the Hotel\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 41 \"Preposiciones de lugar\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: Check-in at the Hotel | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T14:30:28.796Z"
       },
       {
         "id": "429",
@@ -7103,10 +7104,11 @@
         "description": "Generar el contenido interactivo de la Leccion #42 — \"There is/are negativo e interrogativo\" (capítulo \"At the Hotel\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 42 \"There is/are negativo e interrogativo\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Hotel | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T14:32:41.469Z"
       },
       {
         "id": "430",
@@ -7114,10 +7116,11 @@
         "description": "Generar el contenido interactivo de la Leccion #43 — \"Tours\" (capítulo \"At the Hotel\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 43 \"Tours\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Hotel | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T14:59:17.477Z"
       },
       {
         "id": "431",
@@ -7125,10 +7128,11 @@
         "description": "Generar el contenido interactivo de la Leccion #44 — \"Buffet\" (capítulo \"At the Hotel\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 44 \"Buffet\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Hotel | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:01:16.264Z"
       },
       {
         "id": "432",
@@ -7136,10 +7140,11 @@
         "description": "Generar el contenido interactivo de la Leccion #45 — \"Presente simple (+/-/?)\" (capítulo \"At the Train Station 1\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 45 \"Presente simple (+/-/?)\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Train Station 1 | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:02:47.007Z"
       },
       {
         "id": "433",
@@ -7595,9 +7600,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-13T14:27:44.661Z",
+      "lastModified": "2026-08-13T15:02:47.008Z",
       "taskCount": 473,
-      "completedCount": 259,
+      "completedCount": 264,
       "tags": [
         "master"
       ]

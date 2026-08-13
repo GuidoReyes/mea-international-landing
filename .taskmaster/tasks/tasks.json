@@ -7152,10 +7152,11 @@
         "description": "Generar el contenido interactivo de la Leccion #46 — \"Verbos comunes\" (capítulo \"At the Train Station 1\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 46 \"Verbos comunes\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Train Station 1 | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:09:20.452Z"
       },
       {
         "id": "434",
@@ -7163,10 +7164,11 @@
         "description": "Generar el contenido interactivo de la Leccion #47 — \"Vocabulario de tren\" (capítulo \"At the Train Station 2\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 47 \"Vocabulario de tren\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Train Station 2 | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:17:34.753Z"
       },
       {
         "id": "435",
@@ -7174,10 +7176,11 @@
         "description": "Generar el contenido interactivo de la Leccion #48 — \"Números 1-60\" (capítulo \"What Time Is It?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 48 \"Números 1-60\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What Time Is It? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:19:34.190Z"
       },
       {
         "id": "436",
@@ -7185,10 +7188,11 @@
         "description": "Generar el contenido interactivo de la Leccion #49 — \"La hora (o'clock, half past, quarter to)\" (capítulo \"What Time Is It?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 49 \"La hora (o'clock, half past, quarter to)\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What Time Is It? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:21:14.073Z"
       },
       {
         "id": "437",
@@ -7196,10 +7200,11 @@
         "description": "Generar el contenido interactivo de la Leccion #50 — \"Estaciones del año\" (capítulo \"Seasons\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 50 \"Estaciones del año\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: Seasons | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-13T15:27:30.647Z"
       },
       {
         "id": "438",
@@ -7600,9 +7605,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-13T15:02:47.008Z",
+      "lastModified": "2026-08-13T15:27:30.648Z",
       "taskCount": 473,
-      "completedCount": 264,
+      "completedCount": 269,
       "tags": [
         "master"
       ]

@@ -242,6 +242,10 @@ function textoPronunciable(paso: PasoLeccion): string | undefined {
   // "ordenar": la frase correcta ensamblada — deja lista un audioUrl real
   // para el botón 🔊 que PasoOrdenarView muestra después de verificar.
   if (paso.tipo === "ordenar") return paso.fraseCorrecta;
+  // "speak-check": sin esto, PasoSpeakCheckView.sayWord() no recibe audioUrl
+  // y cae al fallback speechSynthesis del navegador — voz de sistema
+  // inconsistente (bug real: sonaba con voz masculina no deseada).
+  if (paso.tipo === "speak-check") return paso.target;
   return undefined;
 }
 

@@ -78,26 +78,45 @@ export default function PasoSpeakCheckView({ paso, onResultado }: PasoViewProps<
           <p className="inline-flex items-center gap-1.5 text-sm font-bold text-red-600">
             <XCircle className="w-5 h-5" /> Casi — escuchamos &quot;{transcript}&quot;
           </p>
-          <button
-            type="button"
-            onClick={reintentar}
-            className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#00C4B4] text-white font-semibold hover:bg-[#00a898] transition-all"
-          >
-            Intentar de nuevo
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={reintentar}
+              className="inline-flex items-center px-6 py-2.5 rounded-full bg-[#00C4B4] text-white font-semibold hover:bg-[#00a898] transition-all"
+            >
+              Intentar de nuevo
+            </button>
+            <button
+              type="button"
+              onClick={() => onResultado(false)}
+              className="inline-flex items-center px-4 py-2.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Continuar sin acertar
+            </button>
+          </div>
         </div>
       ) : estado === "error" ? (
         <div className="flex flex-col items-center gap-3">
           <p className="text-sm text-slate-500">
-            No pudimos acceder al micrófono. Revisá el permiso del navegador e intentá de nuevo.
+            No pudimos acceder al micrófono, o no se detectó voz. Revisá el permiso del navegador e
+            intentá de nuevo.
           </p>
-          <button
-            type="button"
-            onClick={reintentar}
-            className="inline-flex items-center px-6 py-2.5 rounded-full border-2 border-slate-200 text-slate-500 font-semibold hover:bg-slate-50 transition-all"
-          >
-            Reintentar
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={reintentar}
+              className="inline-flex items-center px-6 py-2.5 rounded-full border-2 border-slate-200 text-slate-500 font-semibold hover:bg-slate-50 transition-all"
+            >
+              Reintentar
+            </button>
+            <button
+              type="button"
+              onClick={() => onResultado(true)}
+              className="inline-flex items-center px-4 py-2.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Continuar sin verificar
+            </button>
+          </div>
         </div>
       ) : (
         <button

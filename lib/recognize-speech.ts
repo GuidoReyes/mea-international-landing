@@ -16,6 +16,7 @@ interface SpeechRecognitionLike extends EventTarget {
   start: () => void;
   onresult: ((event: { results: { [index: number]: { [index: number]: SpeechRecognitionResultLike } } }) => void) | null;
   onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
 }
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
@@ -45,8 +46,23 @@ export function recognizeOnce(lang = "en-US"): Promise<string> {
     recognizer.lang = lang;
     recognizer.interimResults = false;
     recognizer.maxAlternatives = 3;
-    recognizer.onresult = (event) => resolve(event.results[0]![0]!.transcript);
-    recognizer.onerror = (event) => reject(new Error(event.error));
+
+    // El navegador puede terminar el reconocimiento (onend) SIN disparar
+    // onresult ni onerror (ej. silencio, o "no-speech" que algunos navegadores
+    // no reportan como error) — sin esto la Promise queda colgada para
+    // siempre y el botón se queda en "escuchando" sin salida.
+    let resuelto = false;
+    recognizer.onresult = (event) => {
+      resuelto = true;
+      resolve(event.results[0]![0]!.transcript);
+    };
+    recognizer.onerror = (event) => {
+      resuelto = true;
+      reject(new Error(event.error));
+    };
+    recognizer.onend = () => {
+      if (!resuelto) reject(new Error("no-speech"));
+    };
     recognizer.start();
   });
 }

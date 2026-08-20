@@ -7380,10 +7380,11 @@
         "description": "Generar el contenido interactivo de la Leccion #65 — \"Preguntas con question words\" (capítulo \"How Do You Get to...?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 65 \"Preguntas con question words\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: How Do You Get to...? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:56:46.929Z"
       },
       {
         "id": "453",
@@ -7391,10 +7392,11 @@
         "description": "Generar el contenido interactivo de la Leccion #66 — \"Verbo To Get\" (capítulo \"How Do You Get to...?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 66 \"Verbo To Get\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: How Do You Get to...? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:59:04.871Z"
       },
       {
         "id": "454",
@@ -7619,9 +7621,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T01:52:25.637Z",
+      "lastModified": "2026-08-20T01:59:04.871Z",
       "taskCount": 473,
-      "completedCount": 283,
+      "completedCount": 285,
       "tags": [
         "master"
       ]

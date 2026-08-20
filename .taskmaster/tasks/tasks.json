@@ -7524,10 +7524,11 @@
         "description": "Generar el contenido interactivo de la Leccion #77 — \"Vocabulario de computación\" (capítulo \"I Want to Buy a New Computer\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 77 \"Vocabulario de computación\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: I Want to Buy a New Computer | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:34:36.685Z"
       },
       {
         "id": "465",
@@ -7535,10 +7536,11 @@
         "description": "Generar el contenido interactivo de la Leccion #78 — \"To like + gerundio/infinitivo\" (capítulo \"I Want to Buy a New Computer\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 78 \"To like + gerundio/infinitivo\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: I Want to Buy a New Computer | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:38:30.736Z"
       },
       {
         "id": "466",
@@ -7631,9 +7633,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:32:48.026Z",
+      "lastModified": "2026-08-20T02:38:30.736Z",
       "taskCount": 473,
-      "completedCount": 295,
+      "completedCount": 297,
       "tags": [
         "master"
       ]

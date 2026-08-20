@@ -7356,10 +7356,11 @@
         "description": "Generar el contenido interactivo de la Leccion #63 — \"Vocabulario de farmacia\" (capítulo \"At the Pharmacy\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 63 \"Vocabulario de farmacia\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Pharmacy | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:50:57.077Z"
       },
       {
         "id": "451",
@@ -7367,10 +7368,11 @@
         "description": "Generar el contenido interactivo de la Leccion #64 — \"To Have Got\" (capítulo \"At the Pharmacy\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 64 \"To Have Got\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Pharmacy | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:52:25.636Z"
       },
       {
         "id": "452",
@@ -7617,9 +7619,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T01:45:15.354Z",
+      "lastModified": "2026-08-20T01:52:25.637Z",
       "taskCount": 473,
-      "completedCount": 281,
+      "completedCount": 283,
       "tags": [
         "master"
       ]

@@ -7596,10 +7596,11 @@
         "description": "Generar el contenido interactivo de la Leccion #83 — \"Pasado: pregunta y negación\" (capítulo \"A Football Match\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 83 \"Pasado: pregunta y negación\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: A Football Match | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:47:44.669Z"
       },
       {
         "id": "471",
@@ -7607,10 +7608,11 @@
         "description": "Generar el contenido interactivo de la Leccion #84 — \"Vocabulario de fútbol\" (capítulo \"A Football Match\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 84 \"Vocabulario de fútbol\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: A Football Match | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:51:09.524Z"
       },
       {
         "id": "472",
@@ -7637,9 +7639,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:46:02.836Z",
+      "lastModified": "2026-08-20T02:51:09.525Z",
       "taskCount": 473,
-      "completedCount": 301,
+      "completedCount": 303,
       "tags": [
         "master"
       ]

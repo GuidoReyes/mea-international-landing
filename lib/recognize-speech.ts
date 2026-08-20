@@ -34,6 +34,24 @@ export function isSpeechRecognitionSupported(): boolean {
   return !!obtenerConstructor();
 }
 
+// Detección proactiva de micrófono ANTES de intentar grabar — sin esto, un
+// dispositivo sin micrófono (o con el permiso denegado a nivel SO, no solo
+// navegador) mostraba igual el botón de grabar, y recién fallaba después de
+// tocarlo, dejando al alumno sin poder terminar el ejercicio de pronunciación.
+// enumerateDevices() no requiere haber pedido permiso todavía — alcanza para
+// saber si existe al menos un dispositivo de tipo "audioinput".
+// Devuelve true si no se puede determinar (API no soportada) — no bloquea
+// el ejercicio por las dudas, solo cuando hay certeza de que no hay mic.
+export async function hayMicrofonoDisponible(): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) return true;
+  try {
+    const dispositivos = await navigator.mediaDevices.enumerateDevices();
+    return dispositivos.some((d) => d.kind === "audioinput");
+  } catch {
+    return true;
+  }
+}
+
 export function recognizeOnce(lang = "en-US"): Promise<string> {
   return new Promise((resolve, reject) => {
     const SpeechRecognitionCtor = obtenerConstructor();

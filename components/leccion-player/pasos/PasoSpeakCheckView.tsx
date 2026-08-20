@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Mic, CheckCircle2, XCircle, Volume2 } from "lucide-react";
 import { PasoSpeakCheck } from "@/lib/leccion-contenido";
 import { PasoViewProps } from "./types";
 import { sayWord } from "@/lib/say-word";
-import { recognizeOnce, esRespuestaAceptable, isSpeechRecognitionSupported } from "@/lib/recognize-speech";
+import {
+  recognizeOnce,
+  esRespuestaAceptable,
+  isSpeechRecognitionSupported,
+  hayMicrofonoDisponible,
+} from "@/lib/recognize-speech";
 
 type Estado = "idle" | "escuchando" | "correcto" | "incorrecto" | "error";
 
@@ -15,7 +20,22 @@ type Estado = "idle" | "escuchando" | "correcto" | "incorrecto" | "error";
 export default function PasoSpeakCheckView({ paso, onResultado }: PasoViewProps<PasoSpeakCheck>) {
   const [estado, setEstado] = useState<Estado>("idle");
   const [transcript, setTranscript] = useState("");
+  const [sinMicrofono, setSinMicrofono] = useState(false);
   const soportado = isSpeechRecognitionSupported();
+
+  // Chequeo proactivo: si el dispositivo no tiene micrófono, no tiene sentido
+  // mostrar el botón de grabar (fallaría igual al tocarlo) — mejor avisar de
+  // una y ofrecer seguir, como ya se hace con navegadores sin soporte.
+  useEffect(() => {
+    if (!soportado) return;
+    let cancelado = false;
+    hayMicrofonoDisponible().then((hay) => {
+      if (!cancelado && !hay) setSinMicrofono(true);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [soportado]);
 
   async function escuchar() {
     setEstado("escuchando");
@@ -60,6 +80,20 @@ export default function PasoSpeakCheckView({ paso, onResultado }: PasoViewProps<
           <p className="text-sm text-slate-500">
             Tu navegador no soporta reconocimiento de voz. Probá con Chrome o Edge para practicar la
             pronunciación.
+          </p>
+          <button
+            type="button"
+            onClick={() => onResultado(true)}
+            className="inline-flex items-center px-6 py-2.5 rounded-full border-2 border-slate-200 text-slate-500 font-semibold hover:bg-slate-50 transition-all"
+          >
+            Continuar sin verificar
+          </button>
+        </div>
+      ) : sinMicrofono ? (
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-sm text-slate-500">
+            No detectamos un micrófono en este dispositivo. Conectá uno o probá desde otro dispositivo
+            para practicar la pronunciación.
           </p>
           <button
             type="button"

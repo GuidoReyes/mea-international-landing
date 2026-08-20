@@ -7260,11 +7260,11 @@
         "description": "Generar el contenido interactivo de la Leccion #55 — \"Direcciones\" (capítulo \"What's Your Address?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 55 \"Direcciones\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What's Your Address? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2026-08-13T15:38:24.110Z"
+        "updatedAt": "2026-08-20T01:30:01.929Z"
       },
       {
         "id": "443",
@@ -7272,10 +7272,11 @@
         "description": "Generar el contenido interactivo de la Leccion #56 — \"Meses\" (capítulo \"What's the Date?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 56 \"Meses\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What's the Date? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:34:15.438Z"
       },
       {
         "id": "444",
@@ -7283,10 +7284,11 @@
         "description": "Generar el contenido interactivo de la Leccion #57 — \"Números ordinales\" (capítulo \"What's the Date?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 57 \"Números ordinales\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What's the Date? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:36:50.428Z"
       },
       {
         "id": "445",
@@ -7294,10 +7296,11 @@
         "description": "Generar el contenido interactivo de la Leccion #58 — \"Fechas\" (capítulo \"What's the Date?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 58 \"Fechas\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: What's the Date? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T01:39:19.503Z"
       },
       {
         "id": "446",
@@ -7610,9 +7613,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-13T15:38:24.111Z",
+      "lastModified": "2026-08-20T01:39:19.504Z",
       "taskCount": 473,
-      "completedCount": 273,
+      "completedCount": 277,
       "tags": [
         "master"
       ]

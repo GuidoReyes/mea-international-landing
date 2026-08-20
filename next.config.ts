@@ -42,7 +42,9 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // microphone=(self): el ejercicio "speak-check" del leccion-player
+            // usa la Web Speech API para reconocimiento de pronunciación.
+            value: "camera=(), microphone=(self), geolocation=()",
           },
         ],
       },

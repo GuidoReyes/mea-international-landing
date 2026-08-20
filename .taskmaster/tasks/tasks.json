@@ -7500,10 +7500,11 @@
         "description": "Generar el contenido interactivo de la Leccion #75 — \"Vocabulario de restaurante\" (capítulo \"At the Restaurant\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 75 \"Vocabulario de restaurante\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Restaurant | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:27:44.050Z"
       },
       {
         "id": "463",
@@ -7511,10 +7512,11 @@
         "description": "Generar el contenido interactivo de la Leccion #76 — \"Would like (+/-/?)\" (capítulo \"At the Restaurant\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 76 \"Would like (+/-/?)\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Restaurant | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:32:48.025Z"
       },
       {
         "id": "464",
@@ -7629,9 +7631,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:23:07.727Z",
+      "lastModified": "2026-08-20T02:32:48.026Z",
       "taskCount": 473,
-      "completedCount": 293,
+      "completedCount": 295,
       "tags": [
         "master"
       ]

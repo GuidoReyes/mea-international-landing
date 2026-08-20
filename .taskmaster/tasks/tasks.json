@@ -7572,10 +7572,11 @@
         "description": "Generar el contenido interactivo de la Leccion #81 — \"Pasado simple\" (capítulo \"Sightseeing\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 81 \"Pasado simple\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: Sightseeing | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:43:25.642Z"
       },
       {
         "id": "469",
@@ -7583,10 +7584,11 @@
         "description": "Generar el contenido interactivo de la Leccion #82 — \"Pronunciación -ed\" (capítulo \"Sightseeing\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 82 \"Pronunciación -ed\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: Sightseeing | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:46:02.835Z"
       },
       {
         "id": "470",
@@ -7635,9 +7637,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:41:20.702Z",
+      "lastModified": "2026-08-20T02:46:02.836Z",
       "taskCount": 473,
-      "completedCount": 299,
+      "completedCount": 301,
       "tags": [
         "master"
       ]

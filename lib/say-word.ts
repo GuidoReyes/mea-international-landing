@@ -20,6 +20,32 @@ export function isSpeechSynthesisSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
+// Nombres de voces femeninas de buena calidad conocidas por plataforma —
+// speechSynthesis.getVoices() no tiene género/calidad como campo, así que
+// esto es un match por nombre. Sin esto, .find(v => v.lang.startsWith("en"))
+// devolvía la primera voz en inglés que el navegador listara (a veces una
+// voz de sistema masculina de baja calidad) — bug real reportado: sonaba
+// distinto a la voz Piper "amy" usada en el resto de la lección.
+const VOCES_PREFERIDAS = [
+  "Samantha", // macOS/iOS Safari + Chrome, en-US femenina, buena calidad
+  "Google US English", // Chrome/Android, femenina por default
+  "Microsoft Zira", // Windows Edge/Chrome, en-US femenina
+  "Microsoft Aria", // Windows Edge, en-US femenina neural
+  "Google UK English Female",
+  "Karen", // macOS en-AU femenina (fallback si no hay en-US)
+  "Moira", // macOS en-IE femenina
+];
+
+function elegirVoz(voces: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | undefined {
+  for (const nombre of VOCES_PREFERIDAS) {
+    const match = voces.find((v) => v.name.includes(nombre) && v.lang.startsWith(lang.slice(0, 2)));
+    if (match) return match;
+  }
+  const femenina = voces.find((v) => v.lang.startsWith(lang.slice(0, 2)) && /female/i.test(v.name));
+  if (femenina) return femenina;
+  return voces.find((v) => v.lang.startsWith(lang.slice(0, 2)));
+}
+
 // Orden de resolución: si hay piperUrl (clip primario ya generado para ESE
 // texto exacto), reproducilo. Si no, cae a speechSynthesis en vivo.
 export function sayWord(texto: string, piperUrl?: string, lang = "en-US"): void {
@@ -34,8 +60,8 @@ export function sayWord(texto: string, piperUrl?: string, lang = "en-US"): void 
   utterance.lang = lang;
   utterance.rate = 0.95; // un poco más lento para aprendices
 
-  const vozIngles = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith("en"));
-  if (vozIngles) utterance.voice = vozIngles;
+  const voz = elegirVoz(window.speechSynthesis.getVoices(), lang);
+  if (voz) utterance.voice = voz;
 
   window.speechSynthesis.cancel(); // corta lo anterior antes de hablar
   window.speechSynthesis.speak(utterance);

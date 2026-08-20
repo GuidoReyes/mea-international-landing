@@ -7548,10 +7548,11 @@
         "description": "Generar el contenido interactivo de la Leccion #79 — \"Was/Were\" (capítulo \"My Travel Blog\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 79 \"Was/Were\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: My Travel Blog | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:40:08.463Z"
       },
       {
         "id": "467",
@@ -7559,10 +7560,11 @@
         "description": "Generar el contenido interactivo de la Leccion #80 — \"Can/Can't/Could\" (capítulo \"Could I Take a Tour?\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 80 \"Can/Can't/Could\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: Could I Take a Tour? | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:41:20.701Z"
       },
       {
         "id": "468",
@@ -7633,9 +7635,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:38:30.736Z",
+      "lastModified": "2026-08-20T02:41:20.702Z",
       "taskCount": 473,
-      "completedCount": 297,
+      "completedCount": 299,
       "tags": [
         "master"
       ]

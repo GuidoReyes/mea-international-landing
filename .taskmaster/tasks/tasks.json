@@ -7452,10 +7452,11 @@
         "description": "Generar el contenido interactivo de la Leccion #71 — \"Cantidades (how much/many)\" (capítulo \"At the Bank\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 71 \"Cantidades (how much/many)\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Bank | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:07:45.787Z"
       },
       {
         "id": "459",
@@ -7463,10 +7464,11 @@
         "description": "Generar el contenido interactivo de la Leccion #72 — \"Vocabulario de banco\" (capítulo \"At the Bank\", curso \"Inglés General\", nivel A1).",
         "details": "Comando: PIPER_VOICE_PATH=\"$PWD/voices/en_US-lessac-medium.onnx\" railway run npm run generate:leccion -- 72 \"Vocabulario de banco\"\nCurso: Inglés General (slug: ingles-general, track: general) | Capítulo: At the Bank | Nivel: A1\nUsar la Lección #1 de A1 (\"Saludos básicos y despedidas\") como molde de estructura y calidad: 7 tipos de paso disponibles, imágenes fotorrealistas de personas 100% ficticias (Gemini Interactions API), audio Piper verificado por bytes, sin señuelos en \"ordenar\" (el .refine() de Zod ya lo impide, no lo toques).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-08-20T02:09:36.891Z"
       },
       {
         "id": "460",
@@ -7625,9 +7627,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-20T02:06:09.930Z",
+      "lastModified": "2026-08-20T02:09:36.891Z",
       "taskCount": 473,
-      "completedCount": 289,
+      "completedCount": 291,
       "tags": [
         "master"
       ]

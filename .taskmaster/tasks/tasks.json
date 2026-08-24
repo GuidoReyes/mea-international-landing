@@ -5678,9 +5678,9 @@
         "testStrategy": "Verificar en el resumen del script: 8-12 pasos generados, audios subidos (no saltados) para vocabulario/escuchar/ordenar, imágenes generadas o reusadas de la librería para todos los pasos de vocabulario, 0 errores de validación Zod. Revisar visualmente en /cursos/{ruta}/leccion/{slug} si es una de las primeras lecciones de su curso.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
-        "updatedAt": "2026-07-18T06:09:29.442Z"
+        "updatedAt": "2026-08-24T20:09:19.847Z"
       },
       {
         "id": "311",
@@ -7641,9 +7641,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-08-24T20:04:25.485Z",
+      "lastModified": "2026-08-24T20:09:19.848Z",
       "taskCount": 473,
-      "completedCount": 358,
+      "completedCount": 359,
       "tags": [
         "master"
       ]

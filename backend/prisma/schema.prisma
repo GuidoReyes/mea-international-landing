@@ -117,6 +117,7 @@ model Alumno {
   progresoLecciones   ProgresoLeccion[]
   suscripciones       Suscripcion[]
   certificadosOnline  CertificadoOnline[]
+  reportesLeccion     ReporteLeccion[]
 }
 
 model Curso {
@@ -346,8 +347,26 @@ model Leccion {
   esGratis     Boolean           @default(false) // preview desbloqueada sin plan
   progreso     ProgresoLeccion[]
   rutas        RutaLeccion[]
+  reportes     ReporteLeccion[]
 
   @@index([capituloId])
+}
+
+// Botón "algo funciona mal" dentro de LessonPlayer — el alumno reporta un
+// problema puntual de la lección, queda como log para que el equipo lo revise
+// y corrija (dia/hora = creadoEn, usuario = alumno, contenido = mensaje).
+model ReporteLeccion {
+  id        Int      @id @default(autoincrement())
+  leccionId Int
+  leccion   Leccion  @relation(fields: [leccionId], references: [id])
+  alumnoId  Int
+  alumno    Alumno   @relation(fields: [alumnoId], references: [id])
+  mensaje   String
+  resuelto  Boolean  @default(false)
+  creadoEn  DateTime @default(now())
+
+  @@index([leccionId])
+  @@index([resuelto])
 }
 
 model InscripcionOnline {

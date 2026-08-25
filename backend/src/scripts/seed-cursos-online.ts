@@ -141,7 +141,7 @@ const PLANES: PlanSeed[] = [
     recomendado: false,
     incluyeClasesEnVivo: false,
     precios: [
-      { duracionMeses: 1, precioMesCentavos: 15000, precioRegularMesCentavos: 15000 },
+      { duracionMeses: 1, precioMesCentavos: 13000, precioRegularMesCentavos: 13000 },
       { duracionMeses: 3, precioMesCentavos: 13500, precioRegularMesCentavos: 15000 },
       { duracionMeses: 6, precioMesCentavos: 12000, precioRegularMesCentavos: 15000 },
       { duracionMeses: 12, precioMesCentavos: 10500, precioRegularMesCentavos: 15000 },

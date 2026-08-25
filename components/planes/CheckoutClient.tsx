@@ -57,9 +57,9 @@ export default function CheckoutClient({ plan, precio }: Props) {
     setProcesando(true);
     setAviso(null);
     try {
-      const resultado = await alumnoApi.checkoutManual(precio.id);
-      setCuenta(resultado.cuenta);
-      setPagoId(resultado.pagoId);
+      const resultado = await alumnoApi.checkoutManual(precio.id, "deposito");
+      if (resultado.cuenta) setCuenta(resultado.cuenta);
+      setPagoId(resultado.pagoId ?? null);
       setPaso("deposito");
     } catch (err) {
       setAviso(
@@ -67,6 +67,24 @@ export default function CheckoutClient({ plan, precio }: Props) {
       );
     } finally {
       setProcesando(false);
+    }
+  }
+
+  // Deja constancia en Suscripcion (proveedor "manual_whatsapp") ANTES de abrir el
+  // chat — antes este botón era solo un link sin ningún rastro en la base, así que
+  // un alumno "coordinando por WhatsApp" podía quedar sin seguimiento indefinidamente.
+  async function handleCoordinarWhatsapp() {
+    setProcesando(true);
+    setAviso(null);
+    try {
+      await alumnoApi.checkoutManual(precio.id, "whatsapp");
+    } catch (err) {
+      setAviso(
+        err instanceof Error ? err.message : "No pudimos registrar tu intención de pago, pero podés seguir coordinando por WhatsApp."
+      );
+    } finally {
+      setProcesando(false);
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     }
   }
 
@@ -137,15 +155,26 @@ export default function CheckoutClient({ plan, precio }: Props) {
             </Link>
           )}
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 border-2 border-[#00C4B4] text-[#00C4B4] rounded-full font-bold hover:bg-[#00C4B4]/5 transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-            Coordinar por WhatsApp
-          </a>
+          {tieneSesion ? (
+            <button
+              onClick={handleCoordinarWhatsapp}
+              disabled={procesando}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 border-2 border-[#00C4B4] text-[#00C4B4] rounded-full font-bold hover:bg-[#00C4B4]/5 transition-all disabled:opacity-50"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Coordinar por WhatsApp
+            </button>
+          ) : (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 border-2 border-[#00C4B4] text-[#00C4B4] rounded-full font-bold hover:bg-[#00C4B4]/5 transition-all"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Coordinar por WhatsApp
+            </a>
+          )}
         </div>
       )}
 

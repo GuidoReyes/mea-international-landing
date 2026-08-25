@@ -228,6 +228,7 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
           contenido={contenidoJugable}
           sesionActiva={getAlumnoToken() !== null}
           rutaHref={`/cursos/${rutaSlug}`}
+          leccionId={leccion.id}
           onTerminado={async (puntajeJugador) => {
             if (getAlumnoToken() === null) {
               setMostrarRegistro(true);

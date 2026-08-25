@@ -56,3 +56,10 @@ export function buildCheckoutWhatsAppUrl(
   } (${precioMesFormateado}/mes). ¿Me ayudan a activarlo?`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
 }
+
+// El plan VIP es 1 a 1 personalizado — sin precio fijo ni checkout automático,
+// coordina precio y horario directamente con un asesor por WhatsApp.
+export function buildVipWhatsAppUrl(): string {
+  const texto = "Hola! Quiero información del plan VIP personalizado. ¿Me ayudan a coordinar horario y precio?";
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
+}

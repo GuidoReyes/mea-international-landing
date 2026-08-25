@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { api, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library, Banknote } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library, Banknote, Flag } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -40,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
     { href: "/admin/finanzas", icon: Wallet, label: "Finanzas" },
     { href: "/admin/pagos-deposito", icon: Banknote, label: "Pagos con depósito" },
+    { href: "/admin/reportes-leccion", icon: Flag, label: "Reportes de lección" },
     { href: "/admin/marketing", icon: Send, label: "Marketing" },
     ...(rol === "SUPER_ADMIN" ? [{ href: "/admin/ceo", icon: LineChart, label: "CEO" }] : []),
   ];

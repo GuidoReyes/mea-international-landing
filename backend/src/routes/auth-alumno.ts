@@ -4,7 +4,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
-import { sendWhatsAppMessage } from "../lib/whatsapp-send";
+import { sendTemplateMessage } from "../lib/whatsapp-send";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -266,10 +266,14 @@ router.post("/otp/solicitar", rateLimitLogin, async (req: Request, res: Response
     },
   });
 
-  const envio = await sendWhatsAppMessage(
-    numero,
-    `Tu código de verificación de MEA International es: ${codigo}\n\nVence en ${OTP_EXPIRA_MINUTOS} minutos. Si no lo pediste, ignorá este mensaje.`
-  );
+  // Meta bloquea mensajes de texto libre a numeros que nunca escribieron
+  // primero al bot (ventana de 24h de servicio al cliente) — un OTP a un
+  // alumno nuevo siempre caia en ese caso y nunca llegaba. Las plantillas de
+  // categoria "Authentication" son la unica forma aprobada de iniciar
+  // contacto. Requiere crear y aprobar la plantilla en Meta Business Manager
+  // (mismo patron que WHATSAPP_TEMPLATE_ESCALACION en lib/claude.ts).
+  const template = process.env.WHATSAPP_TEMPLATE_OTP ?? "otp_verificacion";
+  const envio = await sendTemplateMessage(numero, template, [codigo]);
 
   if (!envio.success) {
     log("error", `[AuthAlumno] No se pudo enviar OTP a ${numero}: ${envio.error ?? "sin detalle"}`);

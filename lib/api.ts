@@ -110,6 +110,15 @@ export interface Alumno {
   _count?: { inscripciones: number };
 }
 
+export interface ReporteLeccion {
+  id: number;
+  mensaje: string;
+  resuelto: boolean;
+  creadoEn: string;
+  leccion: { id: number; titulo: string };
+  alumno: { nombre: string; apellido: string; email: string | null; whatsapp: string | null; carnet: string };
+}
+
 export interface AlumnosResponse {
   data: Alumno[];
   meta: { total: number; page: number; limit: number };
@@ -306,6 +315,22 @@ export const api = {
     }),
 
   getAlumno: (id: number) => apiFetch<AlumnoDetalle>(`/api/alumnos/${id}`),
+
+  getReportesLeccion: (resuelto?: boolean) => {
+    const params = resuelto !== undefined ? `?resuelto=${resuelto}` : "";
+    return apiFetch<ReporteLeccion[]>(`/api/reportes-leccion${params}`);
+  },
+
+  resolverReporteLeccion: (id: number) =>
+    apiFetch<{ ok: boolean; resuelto: boolean }>(`/api/reportes-leccion/${id}/resolver`, {
+      method: "PATCH",
+    }),
+
+  actualizarAlumno: (id: number, data: { activo?: boolean }) =>
+    apiFetch<Alumno>(`/api/alumnos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
   getPipeline: () => apiFetch<PipelineColumn[]>("/api/crm/pipeline"),
 

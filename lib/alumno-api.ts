@@ -92,8 +92,8 @@ export interface CuentaDeposito {
 
 export interface CheckoutManualResult {
   suscripcionId: number;
-  pagoId: number;
-  cuenta: CuentaDeposito;
+  pagoId?: number;
+  cuenta?: CuentaDeposito;
 }
 
 export const alumnoApi = {
@@ -138,6 +138,12 @@ export const alumnoApi = {
       `/api/lecciones/${leccionId}/jugar`
     ),
 
+  reportarErrorLeccion: (leccionId: number, mensaje: string) =>
+    alumnoFetch<{ id: number }>(`/api/lecciones/${leccionId}/reportar-error`, {
+      method: "POST",
+      body: JSON.stringify({ mensaje }),
+    }),
+
   completarLeccion: (leccionId: number, puntaje?: number) =>
     alumnoFetch<ResultadoCompletar>(`/api/lecciones/${leccionId}/completar`, {
       method: "POST",
@@ -157,10 +163,10 @@ export const alumnoApi = {
       body: JSON.stringify({ planPrecioId }),
     }),
 
-  checkoutManual: (planPrecioId: number) =>
+  checkoutManual: (planPrecioId: number, via?: "deposito" | "whatsapp") =>
     alumnoFetch<CheckoutManualResult>("/api/suscripciones/checkout-manual", {
       method: "POST",
-      body: JSON.stringify({ planPrecioId }),
+      body: JSON.stringify({ planPrecioId, via }),
     }),
 
   subirComprobante: async (pagoId: number, file: File, mesPagado: string) => {

@@ -274,6 +274,7 @@ export default function AlumnoDetallePage() {
   const [error, setError] = useState("");
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [reseteando, setReseteando] = useState(false);
+  const [cambiandoAcceso, setCambiandoAcceso] = useState(false);
 
   async function handleResetPassword() {
     if (!confirm("¿Generar una contraseña temporal nueva para este alumno? La actual dejará de funcionar.")) return;
@@ -285,6 +286,24 @@ export default function AlumnoDetallePage() {
       alert(e instanceof Error ? e.message : "Error al resetear la contraseña");
     } finally {
       setReseteando(false);
+    }
+  }
+
+  async function handleToggleActivo() {
+    if (!alumno) return;
+    const nuevoActivo = !alumno.activo;
+    const mensaje = nuevoActivo
+      ? "¿Activar el acceso de este alumno a la plataforma?"
+      : "¿Desactivar el acceso de este alumno a la plataforma? No podrá iniciar sesión ni entrar a sus lecciones.";
+    if (!confirm(mensaje)) return;
+    setCambiandoAcceso(true);
+    try {
+      const actualizado = await api.actualizarAlumno(id, { activo: nuevoActivo });
+      setAlumno({ ...alumno, activo: actualizado.activo });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Error al cambiar el acceso del alumno");
+    } finally {
+      setCambiandoAcceso(false);
     }
   }
 
@@ -375,13 +394,26 @@ export default function AlumnoDetallePage() {
             </span>
           </div>
         </div>
-        <button
-          onClick={handleResetPassword}
-          disabled={reseteando}
-          className="shrink-0 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-[#0A2540] hover:bg-slate-50 disabled:opacity-50 transition-colors"
-        >
-          {reseteando ? "Generando..." : "Resetear contraseña"}
-        </button>
+        <div className="shrink-0 flex flex-col gap-2">
+          <button
+            onClick={handleToggleActivo}
+            disabled={cambiandoAcceso}
+            className={`text-xs font-semibold px-3 py-2 rounded-xl border disabled:opacity-50 transition-colors ${
+              alumno.activo
+                ? "border-red-200 text-red-500 hover:bg-red-50"
+                : "border-[#00C4B4]/40 text-[#00C4B4] hover:bg-[#00C4B4]/5"
+            }`}
+          >
+            {cambiandoAcceso ? "Actualizando..." : alumno.activo ? "Desactivar acceso" : "Activar acceso"}
+          </button>
+          <button
+            onClick={handleResetPassword}
+            disabled={reseteando}
+            className="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-[#0A2540] hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            {reseteando ? "Generando..." : "Resetear contraseña"}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

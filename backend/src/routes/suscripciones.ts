@@ -124,9 +124,12 @@ router.post("/checkout", verifyAlumnoJWT, rateLimitCheckout, async (req: Request
   }
 });
 
-// POST /api/suscripciones/checkout-manual — crea suscripción PENDIENTE para pago por depósito
+// POST /api/suscripciones/checkout-manual — crea suscripción PENDIENTE para pago por
+// depósito, o solo deja constancia de intención cuando el alumno elige coordinar por
+// WhatsApp (via="whatsapp") — antes ese camino no dejaba ningún rastro en la base y un
+// alumno podía quedar "coordinando" indefinidamente sin que nadie le diera seguimiento.
 router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: Request, res: Response) => {
-  const { planPrecioId } = req.body as { planPrecioId?: number };
+  const { planPrecioId, via } = req.body as { planPrecioId?: number; via?: "deposito" | "whatsapp" };
   if (!planPrecioId || !Number.isInteger(planPrecioId)) {
     res.status(400).json({ error: "planPrecioId requerido" });
     return;
@@ -144,6 +147,19 @@ router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: 
   const alumno = await prisma.alumno.findUnique({ where: { id: req.alumno!.alumnoId } });
   if (!alumno || !alumno.activo) {
     res.status(401).json({ error: "Cuenta inactiva" });
+    return;
+  }
+
+  if (via === "whatsapp") {
+    const suscripcion = await prisma.suscripcion.create({
+      data: {
+        alumnoId: alumno.id,
+        planPrecioId: planPrecio.id,
+        estado: "PENDIENTE",
+        proveedor: "manual_whatsapp",
+      },
+    });
+    res.json({ suscripcionId: suscripcion.id });
     return;
   }
 

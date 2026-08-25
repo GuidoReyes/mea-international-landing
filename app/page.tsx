@@ -14,6 +14,7 @@ import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
 import { FaqsSection } from "@/components/ui/faqs-1";
 import { LegalModal } from "@/components/ui/legal-modal";
 import site from "@/content/site.json";
+import { buildVipWhatsAppUrl } from "@/lib/cursos-online";
 import {
   Users,
   Star,
@@ -119,6 +120,7 @@ const stats = [
 // Vercel redeploya solo. No hardcodear cursos/planes/oferta acá.
 // Los cursos ya NO muestran precio; los precios viven solo en "planes".
 interface LandingCardData {
+  id: string;
   text: string;
   title: string;
   price?: string;
@@ -764,13 +766,17 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
             {planes.map((plan, i) => (
               <FadeIn key={plan.text} delay={i * 0.15}>
                 <LandingPricingCard
                   card={plan}
                   ctaLabel="Inscríbete Ahora"
-                  ctaHref="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                  ctaHref={
+                    plan.id === "vip"
+                      ? buildVipWhatsAppUrl()
+                      : "https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                  }
                 />
               </FadeIn>
             ))}

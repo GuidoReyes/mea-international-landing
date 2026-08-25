@@ -11,6 +11,44 @@ const router = Router();
 
 const PUNTAJE_MIN = 0;
 const PUNTAJE_MAX = 100;
+const REPORTE_MENSAJE_MAX = 1000;
+
+// POST /api/lecciones/:id/reportar-error — el alumno reporta que algo funciona mal
+// en la lección. Requiere sesión (así queda quién lo reportó); queda como log para
+// que el equipo lo revise en /admin/reportes-leccion.
+router.post("/:id/reportar-error", verifyAlumnoJWT, async (req: Request, res: Response) => {
+  const leccionId = parseInt(req.params["id"] as string);
+  if (isNaN(leccionId)) {
+    res.status(400).json({ error: "ID de lección inválido" });
+    return;
+  }
+
+  const { mensaje } = req.body as { mensaje?: string };
+  if (!mensaje?.trim()) {
+    res.status(400).json({ error: "mensaje requerido" });
+    return;
+  }
+  if (mensaje.length > REPORTE_MENSAJE_MAX) {
+    res.status(400).json({ error: `mensaje no puede superar ${REPORTE_MENSAJE_MAX} caracteres` });
+    return;
+  }
+
+  const leccion = await prisma.leccion.findUnique({ where: { id: leccionId }, select: { id: true } });
+  if (!leccion) {
+    res.status(404).json({ error: "Lección no encontrada" });
+    return;
+  }
+
+  const reporte = await prisma.reporteLeccion.create({
+    data: {
+      leccionId,
+      alumnoId: req.alumno!.alumnoId,
+      mensaje: mensaje.trim(),
+    },
+  });
+
+  res.status(201).json({ id: reporte.id });
+});
 
 // PUT /api/lecciones/:id/content — admin: guarda el contenido interactivo (LessonPlayer)
 router.put(

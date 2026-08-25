@@ -56,7 +56,7 @@
       "id": "plataforma",
       "text": "Plataforma",
       "title": "Plan Plataforma",
-      "price": "Q150",
+      "price": "Q130",
       "features": [
         "Acceso completo a la plataforma educativa",
         "Material de estudio digital",
@@ -80,6 +80,20 @@
       ],
       "highlighted": true,
       "badge": "Más popular"
+    },
+    {
+      "id": "vip",
+      "text": "VIP",
+      "title": "Plan VIP Personalizado",
+      "features": [
+        "Todo lo de Plataforma + Grupos incluido",
+        "Clases 1 a 1 a tu medida",
+        "Elegí tu propio horario",
+        "Plan de estudio 100% personalizado",
+        "Acceso prioritario a maestros"
+      ],
+      "highlighted": false,
+      "badge": "A tu medida"
     }
   ],
   "niveles": [

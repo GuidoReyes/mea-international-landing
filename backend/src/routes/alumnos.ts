@@ -14,6 +14,7 @@ const alumnoSchema = z.object({
   whatsapp: z.string().optional(),
   pais: z.string().optional(),
   fechaNacimiento: z.string().datetime().optional(),
+  activo: z.boolean().optional(),
 });
 
 const alumnoPatchSchema = alumnoSchema.partial().omit({ email: true });
@@ -152,7 +153,7 @@ router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_ALUMNO", "alumnos"), async 
     return;
   }
 
-  const { nombre, apellido, whatsapp, pais, fechaNacimiento } = parsed.data;
+  const { nombre, apellido, whatsapp, pais, fechaNacimiento, activo } = parsed.data;
 
   const alumno = await prisma.alumno.update({
     where: { id },
@@ -162,6 +163,7 @@ router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_ALUMNO", "alumnos"), async 
       whatsapp,
       pais,
       fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
+      activo,
     },
   });
 

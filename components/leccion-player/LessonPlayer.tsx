@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, XCircle, Loader2, X } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, X, Flag } from "lucide-react";
+import { getAlumnoToken } from "@/lib/alumno-api";
+import ReportarErrorModal from "./ReportarErrorModal";
 import type { LeccionContenido, PasoLeccion } from "@/lib/leccion-contenido";
 import PasoVocabularioView from "./pasos/PasoVocabularioView";
 import PasoOpcionMultipleView from "./pasos/PasoOpcionMultipleView";
@@ -23,6 +25,8 @@ interface Props {
   // Ruta a la que vuelve la X de salir (ej. "/cursos/general"). Sin esto, el
   // botón de salir no se muestra.
   rutaHref?: string;
+  // Para el botón "reportar error" — requiere sesión (necesitamos saber quién reporta).
+  leccionId: number;
 }
 
 const UMBRAL_EXCELENTE = 80;
@@ -130,7 +134,8 @@ function renderPasoView(
 
 type EstadoGuardado = "pendiente" | "guardando" | "guardado" | "error";
 
-export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rutaHref }: Props) {
+export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rutaHref, leccionId }: Props) {
+  const [mostrarReporte, setMostrarReporte] = useState(false);
   // La rotación se calcula UNA vez por montaje (jugar de nuevo = nueva rotación).
   const pasos = useMemo(() => rotarPasos(contenido.pasos), [contenido]);
   const [indice, setIndice] = useState(0);
@@ -261,7 +266,21 @@ export default function LessonPlayer({ contenido, onTerminado, sesionActiva, rut
           <CheckCircle2 className="w-3.5 h-3.5 text-[#00C4B4]" />
           {correctos}/{evaluadas} · {evaluadas > 0 ? puntaje : 0} pts
         </span>
+        {getAlumnoToken() !== null && (
+          <button
+            onClick={() => setMostrarReporte(true)}
+            aria-label="Reportar un problema con esta lección"
+            title="¿Algo funciona mal en esta lección?"
+            className="shrink-0 p-1.5 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <Flag className="w-4 h-4" />
+          </button>
+        )}
       </div>
+
+      {mostrarReporte && (
+        <ReportarErrorModal leccionId={leccionId} onClose={() => setMostrarReporte(false)} />
+      )}
 
       {renderPasoView(pasoActual, handleResultado, setPuedeVerificar, pasoViewRef)}
 

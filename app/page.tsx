@@ -124,6 +124,7 @@ interface LandingCardData {
   text: string;
   title: string;
   price?: string;
+  periodo?: string;
   features: string[];
   highlighted: boolean;
   badge: string;
@@ -242,7 +243,9 @@ function LandingPricingCard({
             <div
               className={`rounded-2xl p-4 mb-5 text-center ${card.highlighted ? "bg-[#00C4B4]/15 border border-[#00C4B4]/30" : "bg-white/5 border border-white/10"}`}
             >
-              <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">Mensualidad</p>
+              <p className="text-slate-400 text-xs uppercase tracking-widest mb-1">
+                {card.periodo === "año" ? "Pago anual" : "Mensualidad"}
+              </p>
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-white/60 text-xl font-light">Q</span>
                 <span
@@ -250,7 +253,7 @@ function LandingPricingCard({
                 >
                   {card.price.replace("Q", "")}
                 </span>
-                <span className="text-slate-400 text-sm font-medium">/mes</span>
+                <span className="text-slate-400 text-sm font-medium">/{card.periodo ?? "mes"}</span>
               </div>
             </div>
           )}

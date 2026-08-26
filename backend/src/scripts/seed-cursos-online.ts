@@ -111,6 +111,11 @@ interface PrecioSeed {
   duracionMeses: number;
   precioMesCentavos: number;
   precioRegularMesCentavos: number;
+  // Override opcional cuando el total real no es exactamente mes*duracion (ej.
+  // un pago anual con precio total redondo — Q130/año no es un múltiplo entero
+  // limpio de un "precio por mes").
+  precioTotalCentavos?: number;
+  precioRegularTotalCentavos?: number;
 }
 
 interface PlanSeed {
@@ -140,11 +145,16 @@ const PLANES: PlanSeed[] = [
     ],
     recomendado: false,
     incluyeClasesEnVivo: false,
+    // Q130 es un pago único anual (no mensual) — un solo plazo, sin opciones
+    // de 1/3/6 meses para no generar confusión con Plataforma + Grupos.
     precios: [
-      { duracionMeses: 1, precioMesCentavos: 13000, precioRegularMesCentavos: 13000 },
-      { duracionMeses: 3, precioMesCentavos: 13500, precioRegularMesCentavos: 15000 },
-      { duracionMeses: 6, precioMesCentavos: 12000, precioRegularMesCentavos: 15000 },
-      { duracionMeses: 12, precioMesCentavos: 10500, precioRegularMesCentavos: 15000 },
+      {
+        duracionMeses: 12,
+        precioMesCentavos: 1083,
+        precioRegularMesCentavos: 1083,
+        precioTotalCentavos: 13000,
+        precioRegularTotalCentavos: 13000,
+      },
     ],
   },
   {
@@ -243,8 +253,8 @@ async function seedPlanes() {
       : await prisma.plan.create({ data: datos });
 
     for (const precio of plan.precios) {
-      const totalCentavos = precio.precioMesCentavos * precio.duracionMeses;
-      const regularCentavos = precio.precioRegularMesCentavos * precio.duracionMeses;
+      const totalCentavos = precio.precioTotalCentavos ?? precio.precioMesCentavos * precio.duracionMeses;
+      const regularCentavos = precio.precioRegularTotalCentavos ?? precio.precioRegularMesCentavos * precio.duracionMeses;
       await prisma.planPrecio.upsert({
         where: {
           planId_duracionMeses: { planId: guardado.id, duracionMeses: precio.duracionMeses },

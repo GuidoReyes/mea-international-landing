@@ -769,7 +769,7 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {planes.map((plan, i) => (
               <FadeIn key={plan.text} delay={i * 0.15}>
                 <LandingPricingCard

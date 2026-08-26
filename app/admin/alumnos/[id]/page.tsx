@@ -275,6 +275,7 @@ export default function AlumnoDetallePage() {
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [reseteando, setReseteando] = useState(false);
   const [cambiandoAcceso, setCambiandoAcceso] = useState(false);
+  const [otorgandoAcceso, setOtorgandoAcceso] = useState(false);
 
   async function handleResetPassword() {
     if (!confirm("¿Generar una contraseña temporal nueva para este alumno? La actual dejará de funcionar.")) return;
@@ -293,8 +294,8 @@ export default function AlumnoDetallePage() {
     if (!alumno) return;
     const nuevoActivo = !alumno.activo;
     const mensaje = nuevoActivo
-      ? "¿Activar el acceso de este alumno a la plataforma?"
-      : "¿Desactivar el acceso de este alumno a la plataforma? No podrá iniciar sesión ni entrar a sus lecciones.";
+      ? "¿Activar el inicio de sesión de este alumno?"
+      : "¿Desactivar el inicio de sesión de este alumno? No podrá iniciar sesión hasta que lo reactives.";
     if (!confirm(mensaje)) return;
     setCambiandoAcceso(true);
     try {
@@ -304,6 +305,28 @@ export default function AlumnoDetallePage() {
       alert(e instanceof Error ? e.message : "Error al cambiar el acceso del alumno");
     } finally {
       setCambiandoAcceso(false);
+    }
+  }
+
+  // Distinto de handleToggleActivo: esto controla si el alumno puede VER Y USAR
+  // todas las lecciones del portal (equivalente a una suscripción paga activa),
+  // no si puede iniciar sesión. Útil para alumnos que coordinaron pago por
+  // WhatsApp/depósito y el admin quiere darles acceso manualmente.
+  async function handleToggleAccesoLecciones() {
+    if (!alumno) return;
+    const tieneAcceso = alumno.suscripciones?.some((s) => s.estado === "ACTIVA") ?? false;
+    const mensaje = tieneAcceso
+      ? "¿Quitarle a este alumno el acceso a todas las lecciones? (si tiene una suscripción paga real, revisá antes en la pestaña Pagos)"
+      : "¿Darle a este alumno acceso a TODAS las lecciones del portal, sin necesidad de pago?";
+    if (!confirm(mensaje)) return;
+    setOtorgandoAcceso(true);
+    try {
+      await api.otorgarAccesoManual(id, !tieneAcceso);
+      load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Error al cambiar el acceso a las lecciones");
+    } finally {
+      setOtorgandoAcceso(false);
     }
   }
 
@@ -374,7 +397,16 @@ export default function AlumnoDetallePage() {
               {alumno.carnet}
             </span>
             {!alumno.activo && (
-              <span className="text-xs bg-red-50 text-red-400 border border-red-100 px-2 py-0.5 rounded-lg">Inactivo</span>
+              <span className="text-xs bg-red-50 text-red-400 border border-red-100 px-2 py-0.5 rounded-lg">Login desactivado</span>
+            )}
+            {alumno.suscripciones?.some((s) => s.estado === "ACTIVA") ? (
+              <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-lg">
+                Acceso a lecciones activo
+              </span>
+            ) : (
+              <span className="text-xs bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-lg">
+                Sin acceso a lecciones pagas
+              </span>
             )}
           </div>
           <div className="flex items-center gap-4 flex-wrap mt-2">
@@ -396,6 +428,21 @@ export default function AlumnoDetallePage() {
         </div>
         <div className="shrink-0 flex flex-col gap-2">
           <button
+            onClick={handleToggleAccesoLecciones}
+            disabled={otorgandoAcceso}
+            className={`text-xs font-semibold px-3 py-2 rounded-xl border disabled:opacity-50 transition-colors ${
+              alumno.suscripciones?.some((s) => s.estado === "ACTIVA")
+                ? "border-red-200 text-red-500 hover:bg-red-50"
+                : "border-[#00C4B4]/40 text-[#00C4B4] hover:bg-[#00C4B4]/5"
+            }`}
+          >
+            {otorgandoAcceso
+              ? "Actualizando..."
+              : alumno.suscripciones?.some((s) => s.estado === "ACTIVA")
+                ? "Quitar acceso a lecciones"
+                : "Dar acceso a todas las lecciones"}
+          </button>
+          <button
             onClick={handleToggleActivo}
             disabled={cambiandoAcceso}
             className={`text-xs font-semibold px-3 py-2 rounded-xl border disabled:opacity-50 transition-colors ${
@@ -404,7 +451,7 @@ export default function AlumnoDetallePage() {
                 : "border-[#00C4B4]/40 text-[#00C4B4] hover:bg-[#00C4B4]/5"
             }`}
           >
-            {cambiandoAcceso ? "Actualizando..." : alumno.activo ? "Desactivar acceso" : "Activar acceso"}
+            {cambiandoAcceso ? "Actualizando..." : alumno.activo ? "Desactivar login" : "Activar login"}
           </button>
           <button
             onClick={handleResetPassword}

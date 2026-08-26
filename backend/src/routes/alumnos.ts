@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { inscribirEnCursosPublicados } from "../lib/suscripciones";
 
 const router = Router();
 
@@ -73,6 +74,10 @@ router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
     include: {
       inscripciones: {
         include: { edicion: true, pagos: true },
+      },
+      suscripciones: {
+        include: { planPrecio: { include: { plan: true } } },
+        orderBy: { creadoEn: "desc" },
       },
     },
   });
@@ -169,6 +174,77 @@ router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_ALUMNO", "alumnos"), async 
 
   res.json(alumno);
 });
+
+// POST /api/alumnos/:id/acceso-manual — el admin otorga o revoca acceso a TODAS las
+// lecciones del portal sin pasar por pago. Reusa el mismo concepto de "Suscripcion
+// ACTIVA" que ya desbloquea contenido para un alumno que sí pagó (tieneSuscripcionActiva
+// en lib/suscripciones.ts) — así el acceso manual funciona en /cursos-online, /rutas y
+// /lecciones sin tener que replicar la lógica de gating en cada ruta.
+router.post(
+  "/:id/acceso-manual",
+  verifyJWT,
+  auditLog("ACCESO_MANUAL_ALUMNO", "alumnos"),
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params["id"] as string);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "ID inválido" });
+      return;
+    }
+
+    const { activar } = req.body as { activar?: boolean };
+    if (typeof activar !== "boolean") {
+      res.status(400).json({ error: "activar (boolean) es requerido" });
+      return;
+    }
+
+    const alumno = await prisma.alumno.findUnique({ where: { id } });
+    if (!alumno) {
+      res.status(404).json({ error: "Alumno no encontrado" });
+      return;
+    }
+
+    const existente = await prisma.suscripcion.findFirst({
+      where: { alumnoId: id, proveedor: "manual_admin" },
+      orderBy: { creadoEn: "desc" },
+    });
+
+    if (activar) {
+      if (existente) {
+        await prisma.suscripcion.update({
+          where: { id: existente.id },
+          data: { estado: "ACTIVA", fechaInicio: new Date(), fechaFin: null },
+        });
+      } else {
+        const planPrecio = await prisma.planPrecio.findFirst({
+          where: { plan: { recomendado: true } },
+          orderBy: { duracionMeses: "desc" },
+        });
+        if (!planPrecio) {
+          res.status(500).json({ error: "No hay un plan configurado para otorgar acceso manual" });
+          return;
+        }
+        await prisma.suscripcion.create({
+          data: {
+            alumnoId: id,
+            planPrecioId: planPrecio.id,
+            estado: "ACTIVA",
+            proveedor: "manual_admin",
+            fechaInicio: new Date(),
+            fechaFin: null,
+          },
+        });
+      }
+      await inscribirEnCursosPublicados(id);
+    } else if (existente) {
+      await prisma.suscripcion.update({
+        where: { id: existente.id },
+        data: { estado: "CANCELADA" },
+      });
+    }
+
+    res.json({ ok: true, activar });
+  }
+);
 
 // DELETE /api/alumnos/:id (soft delete)
 router.delete("/:id", verifyJWT, auditLog("ELIMINAR_ALUMNO", "alumnos"), async (req: Request, res: Response) => {

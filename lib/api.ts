@@ -148,8 +148,18 @@ export interface Pago {
   creadoEn: string;
 }
 
+export interface SuscripcionOnline {
+  id: number;
+  estado: "PENDIENTE" | "ACTIVA" | "CANCELADA" | "VENCIDA";
+  proveedor: string;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  planPrecio: { plan: { nombre: string } };
+}
+
 export interface AlumnoDetalle extends Alumno {
   inscripciones: Inscripcion[];
+  suscripciones: SuscripcionOnline[];
 }
 
 export interface Curso {
@@ -330,6 +340,12 @@ export const api = {
     apiFetch<Alumno>(`/api/alumnos/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
+    }),
+
+  otorgarAccesoManual: (id: number, activar: boolean) =>
+    apiFetch<{ ok: boolean; activar: boolean }>(`/api/alumnos/${id}/acceso-manual`, {
+      method: "POST",
+      body: JSON.stringify({ activar }),
     }),
 
   getPipeline: () => apiFetch<PipelineColumn[]>("/api/crm/pipeline"),

@@ -93,10 +93,4 @@ const defaultQuestions: FaqItem[] = [
     content:
       'Sí, al completar cada nivel recibirás tu certificado oficial de MEA International.',
   },
-  {
-    id: 'item-7',
-    title: '¿Cuánto cuestan las clases?',
-    content:
-      'Tenemos planes desde Q350/mes para clases grupales hasta Q1,200/mes para clases privadas intensivas. La primera clase siempre es GRATIS para que compruebes la calidad de nuestro método sin compromiso. Contáctanos para conocer todos nuestros planes.',
-  },
 ];

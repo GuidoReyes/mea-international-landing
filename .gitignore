@@ -49,6 +49,9 @@ next-env.d.ts
 # MCP config (contains API tokens)
 .mcp.json
 
+# codex cli (config local)
+.codex/
+
 # Logs
 logs
 *.log

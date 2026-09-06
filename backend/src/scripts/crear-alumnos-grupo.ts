@@ -50,7 +50,7 @@ function generarPassword(nombre: string, email: string): string {
   const primerNombre = nombre.trim().split(/\s+/)[0] ?? "";
   const base = normalizarNombre(primerNombre) || normalizarNombre(local) || "alumno";
   const digitos = String(Math.floor(100 + Math.random() * 900));
-  return `mea-${base}${digitos}`;
+  return `iam${base}${digitos}`;
 }
 
 function parseRoster(raw: string): EstudianteInput[] {

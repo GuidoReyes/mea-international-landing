@@ -101,7 +101,15 @@ export default function PricingPlanes({
 }) {
   const [duracion, setDuracion] = useState<number>(3);
 
-  if (planes.length === 0) {
+  // El selector de meses solo tiene sentido para planes con precio en TODAS
+  // las duraciones. Un plan de precio único (ej. "Plataforma", solo pago
+  // anual) aparecería como una tarjeta suelta únicamente en la pestaña de 12
+  // meses, rompiendo la consistencia con el resto.
+  const planesConDuraciones = planes.filter((plan) =>
+    DURACIONES.every((meses) => plan.precios.some((p) => p.duracionMeses === meses))
+  );
+
+  if (planesConDuraciones.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center text-slate-400">
         Los planes estarán disponibles muy pronto. Escribinos por WhatsApp para más información.
@@ -129,8 +137,12 @@ export default function PricingPlanes({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
-        {planes.map((plan) => (
+      <div
+        className={`grid grid-cols-1 gap-8 mx-auto items-stretch ${
+          planesConDuraciones.length > 1 ? "md:grid-cols-2 max-w-4xl" : "max-w-md"
+        }`}
+      >
+        {planesConDuraciones.map((plan) => (
           <PriceCard key={plan.id} plan={plan} duracionMeses={duracion} nivel={nivel} />
         ))}
       </div>

@@ -85,9 +85,9 @@ const Feature108 = ({
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center gap-4 text-center">
           <Badge variant="outline" className="border-[#00C4B4] text-[#00C4B4]">{badge}</Badge>
-          <h1 className="max-w-2xl text-3xl font-semibold md:text-4xl text-[#0A2540]">
+          <h2 className="max-w-2xl text-3xl font-semibold md:text-4xl text-[#0A2540]">
             {heading}
-          </h1>
+          </h2>
           <p className="text-muted-foreground max-w-xl">{description}</p>
         </div>
         <Tabs defaultValue={tabs[0].value} className="mt-8">
@@ -130,6 +130,10 @@ const Feature108 = ({
                 <img
                   src={tab.content.imageSrc}
                   alt={tab.content.imageAlt}
+                  width={800}
+                  height={480}
+                  loading="lazy"
+                  decoding="async"
                   className="rounded-xl w-full object-cover h-64 lg:h-80"
                 />
               </TabsContent>

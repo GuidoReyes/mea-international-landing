@@ -7648,5 +7648,341 @@
         "master"
       ]
     }
+  },
+  "seo-mea": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Audit current metadata and identify inconsistencies",
+        "description": "COMPLETED. Comprehensive audit of all existing metadata across pages documented in .taskmaster/docs/seo-mea-tarea1-auditoria-metadata.md. Identified student count discrepancy (2,000 vs 200), missing metadata for lesson pages, and verified all data sources from codebase.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "details": "## Audit Findings (Completed 2026-09-14)\n\n### Server-Side Metadata Inventory\n1. **app/layout.tsx:15-20** - Root metadata (only source for homepage since app/page.tsx is \"use client\")\n   - Has keywords (must remove per SEO best practices)\n   - Missing canonical, OpenGraph, Twitter metadata\n   - Missing metadataBase\n\n2. **app/cursos/page.tsx:8-12** - Has unique title/description, missing canonical/OG/Twitter\n\n3. **app/planes/page.tsx:7-11** - Has unique title/description, missing canonical/OG/Twitter\n   - Contains unverified claim (see TODO 2 below)\n\n4. **app/clases-en-vivo/page.tsx:8-11** - Has unique title/description, missing canonical/OG/Twitter\n\n5. **app/cursos/[slug]/page.tsx:13-20** - Has generateMetadata (dynamic from getRutaCurriculum), missing canonical/OG/Twitter/JSON-LD\n\n6. **app/cursos/[slug]/leccion/[leccionSlug]/page.tsx** - NO generateMetadata exists\n   - Inherits generic title/description from root layout\n   - LeccionClient.tsx is \"use client\" and loads content via useEffect\n   - No H1 or content in initial HTML\n   - **KEY FINDING**: getRutaCurriculum() (already used in /cursos/[slug]) is accessible without auth and includes esGratis:true field, enabling server-side metadata/content generation for free lessons without new logic\n\n### Critical Evidence from Codebase\n**app/sitemap.ts:6-7** - Explicit team comment:\n> \"Sitemap dinámico: home + secciones + rutas + lecciones GRATIS (las públicas, indexables sin login — ventaja SEO frente a competidores que exigen cuenta).\"\n\nThis is documented evidence (not assumption) that **free lessons are intentionally indexable** - strong signal for Task 5 to choose Option A (index free lessons).\n\n### robots.txt / sitemap.xml Status\n- **app/robots.ts**: Correctly blocks /admin, /mis-cursos, /checkout, /verify, /verify-online\n- **app/sitemap.ts**: Includes 4 static URLs + course routes + free lessons (~108 URLs total, ~97 lessons)\n- No lastmod dates (no real update dates available in getRutas/getRutaCurriculum data)\n\n### BLOCKING TODOs - Require Owner Confirmation Before Proceeding\n\n**TODO 1 - Student Count Discrepancy (CRITICAL - BLOCKS TASK 2)**\n- app/layout.tsx:18 says \"Más de 2,000 estudiantes\"\n- app/page.tsx has 5 occurrences of \"200\":\n  - Line 112: AnimatedCounter value={200}\n  - Line 423: \"Más de 200 profesionales\"\n  - Line 471: \"+200 estudiantes satisfechos\"\n  - Line 581: \"Más de 200 profesionales y estudiantes\"\n  - Line 844: \"más de 200 profesionales latinoamericanos\"\n\n**Action**: DO NOT change either number without explicit owner confirmation. Strong signal suggests \"2,000\" is typo, but brief rules forbid assuming which is correct. Leave explicit TODO in code or ask owner before writing final meta description in Task 2.\n\n**TODO 2 - Unverified Pricing Claim (BLOCKS TASK 3)**\n- app/planes/page.tsx:11 claims \"Ahorrá hasta 30% con planes de 3, 6 o 12 meses\"\n- content/site.json shows only 3 plans:\n  - \"Plataforma\" Q130/año\n  - \"Plataforma + Grupos\" Q300 (no period specified)\n  - \"VIP\" (no price)\n- NO DATA exists for 3/6/12 month plans or 30% discount anywhere in codebase\n\n**Action**: Do NOT reuse this phrase in new /planes meta description until owner confirms if these plans exist outside site.json or if claim is obsolete.\n\n**TODO 3 - OpenGraph Image**\n- No 1200×630 OG image identified in public/ directory\n- Pending owner to provide asset or confirm which existing image to use\n\n**TODO 4 - metadataBase Missing**\n- Must add `metadataBase: new URL(\"https://www.mea.edu.gt\")` to app/layout.tsx\n- Required for canonical/OG URLs to generate correctly (Task 6)\n\n**TODO 5 - Domain Redirect (non-www to www)**\n- No vercel.json or redirect config in repo for mea.edu.edu.gt → www.mea.edu.gt\n- Typically handled in Vercel dashboard (outside code)\n- Verify in Vercel project settings, not in this repo\n\n### Verified Real Data (DO NOT INVENT - Already in Footer app/page.tsx)\n- Address: \"2da calle 7-00 zona 11 de Mixco, alta villa el Naranjo D42\" (line 938)\n- Phone/WhatsApp: +502 5631-1728 (line 940)\n- Email: mea.learnandplay@gmail.com (line 945)\n- Social: Instagram, Facebook, YouTube (lines 897-899) with real URLs\n- Hours: \"Lunes a Sábado · 8am – 5pm\" (line 949)\n\n**Use this data as-is for Organization JSON-LD (Task 8) and sameAs - no invention needed.**\n\n### Second H1 Confirmed (FOR TASK 10)\n- app/page.tsx:561-565 passes `heading=\"El método que sí funciona\"` to Feature108 component\n- components/ui/shadcnblocks-com-feature108.tsx:88 renders this prop inside `<h1>` tag\n- This is the second H1 on homepage mentioned in brief\n- **Action**: Change to `<h2>` in Feature108 component (check for other uses of this component before modifying)\n\n### Architecture Notes\n- app/page.tsx is \"use client\" - all homepage server-side metadata lives in app/layout.tsx\n- All 7 course routes (/cursos/[slug]) already generate dynamic metadata structurally\n- Free lessons can generate server-side metadata using existing getRutaCurriculum() without new auth logic\n- LeccionCurriculum interface (lib/rutas.ts:19-27) includes esGratis:boolean field\n\n## No Code Changed in This Task\nThis was audit-only. All findings documented. Ready to proceed with implementation tasks 2-10.",
+        "testStrategy": "Audit completed successfully. Comprehensive checklist document created at .taskmaster/docs/seo-mea-tarea1-auditoria-metadata.md with:\n- Complete metadata inventory across all pages\n- All discrepancies documented with specific file:line references\n- Blocking TODOs explicitly marked for owner verification\n- Evidence from codebase (sitemap comment) for Task 5 decision\n- Verified real data sources for later tasks\n- No assumptions made about correct values\n- All claims requiring verification flagged",
+        "subtasks": [],
+        "updatedAt": "2026-09-14T21:12:03.907Z"
+      },
+      {
+        "id": "2",
+        "title": "Implement unique metadata for homepage with verified data",
+        "description": "Update app/layout.tsx to use Next.js 16.2.4 App Router metadata API with accurate, verified title and description for homepage",
+        "details": "1. Keep existing metadata in app/layout.tsx as the base template\n2. Verify student count from task 1 findings\n3. Remove meta keywords (line 19 in current layout.tsx)\n4. Add canonical URL using Next.js metadata.metadataBase\n5. Update title to: 'Clases de Inglés Online en Guatemala | MEA International'\n6. Update description to match verified data only\n7. Add OpenGraph metadata using Next.js metadata.openGraph\n8. Add Twitter Card metadata using metadata.twitter\n9. Ensure og:locale is 'es_GT'\n10. Do NOT invent any claims - use only verified data from task 1",
+        "testStrategy": "1. Run next build and verify no errors\n2. Check generated HTML for unique title and description\n3. Validate that meta keywords are removed\n4. Verify canonical URL is present and correct\n5. Test with view-source in browser",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-14T21:16:26.670Z"
+      },
+      {
+        "id": "3",
+        "title": "Create unique metadata for /cursos, /planes, and /clases-en-vivo pages",
+        "description": "Implement generateMetadata or export metadata objects for each main section page with unique titles and descriptions",
+        "details": "1. Update app/cursos/page.tsx:\n   - Title: 'Cursos de Inglés Online por Niveles y Especialidades | MEA'\n   - Description: 'Cursos de inglés online por niveles y especialidades: inglés general, oficina, viajes, restaurantes, computación y call center. Primeras lecciones gratis.'\n   - Add canonical: 'https://www.mea.edu.gt/cursos'\n2. Update app/planes/page.tsx:\n   - Title: 'Precios de Cursos de Inglés Online | MEA International'\n   - Description based on actual pricing from content/site.json\n   - Add canonical: 'https://www.mea.edu.gt/planes'\n3. Update app/clases-en-vivo/page.tsx:\n   - Title: 'Clases de Inglés en Vivo por Zoom | MEA International'\n   - Description based on actual offering\n   - Add canonical: 'https://www.mea.edu.gt/clases-en-vivo'\n4. Include OpenGraph and Twitter Cards for all pages\n5. Use Next.js 16 metadata API patterns",
+        "testStrategy": "1. Build and verify each page has unique metadata in HTML\n2. Check canonical URLs are present\n3. Validate OpenGraph tags using Facebook Debugger\n4. Validate Twitter Cards using Twitter Card Validator",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-14T21:18:50.501Z"
+      },
+      {
+        "id": "4",
+        "title": "Implement dynamic metadata for course route pages",
+        "description": "Update generateMetadata in app/cursos/[slug]/page.tsx to create unique, SEO-optimized metadata for each course route",
+        "details": "1. Review existing generateMetadata in app/cursos/[slug]/page.tsx (lines 13-21)\n2. Enhance metadata to include:\n   - Unique title combining course name + 'MEA International'\n   - Description explaining course objective, audience, and level\n   - Canonical URL: https://www.mea.edu.gt/cursos/{slug}\n   - OpenGraph metadata with og:type='website', og:locale='es_GT'\n   - Twitter Card metadata\n3. For the 7 specific course routes mentioned in PRD:\n   - /cursos/general, /cursos/viajar, /cursos/restaurantes\n   - /cursos/talleres, /cursos/oficina, /cursos/tecnicos-pc\n   - /cursos/call-center\n4. Ensure descriptions are based on actual course data from API\n5. Add breadcrumb structured data (BreadcrumbList JSON-LD)",
+        "testStrategy": "1. Test metadata generation for each of the 7 course routes\n2. Verify unique titles and descriptions in view-source\n3. Validate canonical URLs\n4. Check OpenGraph and Twitter metadata\n5. Validate JSON-LD breadcrumbs with Google Rich Results Test",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-14T21:20:44.908Z"
+      },
+      {
+        "id": "5",
+        "title": "Decide lesson indexing strategy and implement metadata accordingly",
+        "description": "Determine if lesson pages should be indexable or private, then implement appropriate metadata, noindex tags, and sitemap exclusions",
+        "details": "1. Review lesson page structure in app/cursos/[slug]/leccion/[leccionSlug]/page.tsx\n2. Check if lessons have server-side rendered content or are client-only\n3. Verify from sitemap.ts that free lessons (esGratis=true) are intended to be public\n4. DECISION POINT - Choose one approach:\n\n   OPTION A: Make free lessons indexable (esGratis=true)\n   - Add generateMetadata to lesson page\n   - Generate unique title from lesson name\n   - Generate unique description from lesson content\n   - Add canonical URL\n   - Render H1 with lesson title server-side\n   - Render lesson summary/content server-side for indexing\n   - Keep in sitemap.ts (already filtering by esGratis)\n   - Add breadcrumb JSON-LD\n\n   OPTION B: Make all lessons private (noindex)\n   - Add metadata with robots: { index: false, follow: true }\n   - Remove lessons from sitemap.ts\n   - Keep navigation functional for logged-in users\n   - Document reasoning in implementation notes\n\n5. Document chosen strategy and rationale",
+        "testStrategy": "1. If indexable: verify server-rendered content in view-source for free lessons\n2. If indexable: validate unique metadata for sample lessons\n3. If noindex: verify robots meta tag in HTML\n4. If noindex: verify lessons removed from sitemap\n5. Test both logged-in and logged-out access\n6. Document decision in completion notes",
+        "priority": "high",
+        "dependencies": [
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T16:50:51.200Z"
+      },
+      {
+        "id": "6",
+        "title": "Implement canonical URLs across all pages",
+        "description": "Add canonical link tags to all indexable pages using Next.js metadata.alternates.canonical",
+        "details": "1. Set metadataBase in root layout.tsx:\n   - metadataBase: new URL('https://www.mea.edu.gt')\n2. Add canonical to all static pages via metadata.alternates.canonical\n3. For dynamic pages, use generateMetadata to set canonical\n4. Canonical URL requirements:\n   - Always use https://www.mea.edu.gt (no www variant)\n   - Use absolute URLs\n   - No trailing slash (establish convention)\n   - No query parameters unless semantically unique content\n5. Handle /planes with filters:\n   - If ?nivel=A1 is just a filter, canonical should point to /planes\n   - Document approach\n6. Verify no non-www domain redirect chains exist",
+        "testStrategy": "1. Check 10 random pages for canonical link tags in view-source\n2. Verify all canonicals use https://www.mea.edu.gt\n3. Test that filtered URLs (/planes?nivel=A1) have proper canonical\n4. Validate no trailing slash inconsistencies\n5. Test domain redirect from non-www to www",
+        "priority": "high",
+        "dependencies": [
+          "5"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T16:51:47.744Z"
+      },
+      {
+        "id": "7",
+        "title": "Update and validate sitemap.xml generation",
+        "description": "Review and update app/sitemap.ts to include only public, canonical, indexable URLs with proper lastmod dates",
+        "details": "1. Review existing sitemap.ts (already includes home, cursos, planes, clases-en-vivo, routes, and free lessons)\n2. Verify all URLs return 200 OK\n3. Ensure all URLs are canonical (no duplicates, no query params)\n4. Add lastmod dates if available from API data\n   - Only use real update dates, don't fabricate\n5. Remove changeFrequency and priority if not needed (Google ignores them)\n6. Ensure lesson URLs are included only if indexable (based on task 5 decision)\n7. Verify no private routes are included:\n   - No /admin, /checkout, /verify, /verify-online, /mis-cursos\n8. Count final URL total and verify it matches expectations",
+        "testStrategy": "1. Run build and access /sitemap.xml\n2. Validate XML syntax with validator\n3. Count URLs in sitemap (should match documented count)\n4. Sample 20 random URLs and verify 200 OK responses\n5. Verify no private routes are included\n6. Test sitemap submission to Google Search Console",
+        "priority": "high",
+        "dependencies": [
+          "5",
+          "6"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T16:51:47.758Z"
+      },
+      {
+        "id": "8",
+        "title": "Add JSON-LD structured data for Organization, WebSite, and Breadcrumbs",
+        "description": "Implement schema.org structured data using JSON-LD for improved search visibility and rich results",
+        "details": "1. Create lib/structured-data.ts utility for JSON-LD generation\n2. Add Organization schema in root layout:\n   - name: 'MEA International'\n   - url: 'https://www.mea.edu.gt'\n   - logo: absolute URL to official logo\n   - Only include verified contact info (phone, email, address from footer)\n   - DO NOT invent social media URLs, addresses, or certifications\n3. Add WebSite schema in root layout:\n   - name, url, potentialAction for search\n4. Add BreadcrumbList schema to:\n   - Course pages (/cursos/[slug])\n   - Lesson pages (if indexable)\n5. Properly escape all JSON-LD content to prevent XSS\n6. Use <script type='application/ld+json'> tags\n7. Validate all schemas against schema.org spec",
+        "testStrategy": "1. Validate JSON-LD with Google Rich Results Test\n2. Check for JavaScript errors in console\n3. Verify proper escaping (no XSS vulnerabilities)\n4. Test breadcrumbs appear in search results preview\n5. Validate Organization and WebSite schemas\n6. Test with Schema.org validator",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T20:42:10.103Z"
+      },
+      {
+        "id": "9",
+        "title": "Implement OpenGraph and Twitter Card metadata globally",
+        "description": "Add comprehensive social sharing metadata to all pages using Next.js metadata API",
+        "details": "1. Create or identify official OG image (1200x630px)\n   - Save to public/og-image.jpg or similar\n   - Do NOT use base64 or external URLs\n   - If no official image exists, document as TODO\n2. Add to all pages via metadata.openGraph:\n   - og:title (unique per page)\n   - og:description (unique per page)\n   - og:url (canonical URL)\n   - og:type (website for most, article for lessons if applicable)\n   - og:locale (es_GT)\n   - og:site_name ('MEA International')\n   - og:image (absolute URL to OG image)\n3. Add metadata.twitter:\n   - twitter:card (summary_large_image)\n   - twitter:title\n   - twitter:description\n   - twitter:image\n4. Implement dynamic OG for courses and lessons\n5. Ensure all URLs are absolute",
+        "testStrategy": "1. Test with Facebook Sharing Debugger\n2. Test with Twitter Card Validator\n3. Test with LinkedIn Post Inspector\n4. Verify images load correctly (not 404)\n5. Check OG tags in view-source for 5 different pages\n6. Validate all URLs are absolute",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "3",
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-16T03:43:42.918Z"
+      },
+      {
+        "id": "10",
+        "title": "Fix homepage heading hierarchy and semantic structure",
+        "description": "Ensure homepage has exactly one H1 and proper heading hierarchy, convert duplicate H1 to H2",
+        "details": "1. Review app/page.tsx heading structure\n2. Identify the duplicate H1 mentioned in PRD (likely line 407 and line 563 'El método que sí funciona')\n3. Keep main hero H1: 'Domina el inglés real con clases personalizadas y resultados rápidos'\n4. Convert Feature108 section heading to H2\n5. Verify heading hierarchy doesn't skip levels (H1 → H2 → H3, never H1 → H3)\n6. Ensure course and level headings use proper semantic tags\n7. Check that headings have proper spacing and are readable\n8. Verify headings are actual text, not just styled divs",
+        "testStrategy": "1. Use browser dev tools to check heading structure\n2. Run accessibility audit (Lighthouse)\n3. Verify only one H1 exists on homepage\n4. Check heading hierarchy doesn't skip levels\n5. Test with screen reader to ensure logical reading order",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T16:51:47.770Z"
+      },
+      {
+        "id": "11",
+        "title": "Optimize images for performance and SEO",
+        "description": "Add width/height to all images, optimize external images, implement proper lazy loading, and ensure descriptive alt text",
+        "details": "1. Audit all images in app/page.tsx:\n   - Testimonial images from randomuser.me (lines 52-103)\n   - Hero social proof images (line 459)\n   - Logo in footer (line 886)\n2. For Next.js Image components:\n   - Add explicit width and height props\n   - Use priority for above-fold images only (hero image)\n   - Use loading='lazy' for below-fold images\n   - Verify sizes prop for responsive images\n3. For external images (randomuser.me):\n   - Consider replacing with real testimonial photos if available\n   - If keeping, ensure proper attribution\n   - Document that these are placeholders if not real\n4. Optimize image formats:\n   - Convert to WebP/AVIF where possible\n   - Compress images\n5. Review next.config.ts image configuration (line 8-14)\n6. Add descriptive alt text to all images\n7. Reduce preloading (only critical images)",
+        "testStrategy": "1. Run Lighthouse performance audit\n2. Check for Cumulative Layout Shift (CLS) issues\n3. Verify lazy loading works (check Network tab)\n4. Test page load with slow 3G throttling\n5. Validate alt text is present and descriptive\n6. Check that only hero image uses priority prop",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T20:44:17.106Z"
+      },
+      {
+        "id": "12",
+        "title": "Enhance internal linking and implement breadcrumbs",
+        "description": "Improve site architecture with descriptive internal links and visible breadcrumbs on deep pages",
+        "details": "1. Review current internal linking structure\n2. Add breadcrumbs to:\n   - Course detail pages (already has 'Todas las rutas' link at line 38-42 in cursos/[slug]/page.tsx)\n   - Lesson pages (add: Home → Cursos → Course → Lesson)\n3. Implement breadcrumb UI component if not exists\n4. Ensure breadcrumbs match JSON-LD BreadcrumbList from task 8\n5. Add contextual links:\n   - Course pages → related plans\n   - Course pages → clases-en-vivo when relevant\n   - Lesson pages → previous/next lessons\n   - Lesson pages → course parent\n6. Use descriptive anchor text (not 'click here')\n7. Ensure all links point to valid routes\n8. Add links to /cursos from planes page\n9. Create reusable Breadcrumb component",
+        "testStrategy": "1. Navigate through site and verify breadcrumbs appear correctly\n2. Click all breadcrumb links to ensure they work\n3. Verify breadcrumb styling is consistent\n4. Check that anchor text is descriptive\n5. Validate no broken links (404s)\n6. Test breadcrumb navigation flow",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T20:45:39.335Z"
+      },
+      {
+        "id": "13",
+        "title": "Verify and enhance trust signals and legal compliance",
+        "description": "Ensure all trust elements are visible, functional, and compliant with Guatemalan privacy laws",
+        "details": "1. Verify footer links are functional (lines 880-971 in page.tsx):\n   - WhatsApp link (line 940: +502 5631-1728)\n   - Email link (line 945: mea.learnandplay@gmail.com)\n   - Phone link (line 940)\n   - Physical address (line 938)\n   - Portal alumno link (line 921)\n2. Verify privacy policy modal works (LegalModal component)\n3. Check terms and conditions modal\n4. Verify cookies policy modal\n5. Ensure social media links work:\n   - Instagram (line 897)\n   - Facebook (line 898)\n   - YouTube (line 899)\n6. DO NOT invent physical address if MEA is online-only\n7. Verify compliance with Guatemalan data protection laws\n8. Add analytics measurement only if infrastructure exists\n9. Verify WhatsApp floating button works (lines 974-990)",
+        "testStrategy": "1. Click all footer links and verify they work\n2. Test privacy policy modal opens and displays content\n3. Test terms and conditions modal\n4. Click social media links and verify they open correct pages\n5. Test WhatsApp button and phone link on mobile\n6. Verify email link opens mail client\n7. Check that legal content is up to date (abril 2026 mentioned)",
+        "priority": "low",
+        "dependencies": [],
+        "status": "review",
+        "subtasks": [],
+        "updatedAt": "2026-09-15T20:48:20.955Z"
+      },
+      {
+        "id": "14",
+        "title": "Run comprehensive validation and create implementation report",
+        "description": "Execute all quality checks, validate SEO implementation, and document all changes and pending items",
+        "details": "1. Run TypeScript type check: npm run build or tsc --noEmit\n2. Run ESLint: npm run lint\n3. Run production build: npm run build\n4. Test critical pages in preview:\n   - Check HTML source for metadata (view-source)\n   - Verify robots.txt: curl https://www.mea.edu.gt/robots.txt\n   - Verify sitemap.xml: curl https://www.mea.edu.gt/sitemap.xml\n5. Run Lighthouse audits (mobile and desktop) for:\n   - Homepage\n   - /cursos\n   - /planes\n   - Sample course page\n   - Sample lesson page (if indexable)\n6. Validate with external tools:\n   - Google Rich Results Test\n   - Schema.org validator\n   - Facebook Sharing Debugger\n   - W3C Markup Validator\n7. Create comprehensive report including:\n   - Summary of all changes\n   - List of modified files\n   - Decision on lesson indexability (task 5) with rationale\n   - Claims/data that need client confirmation (student count, etc.)\n   - TypeScript, lint, build results\n   - HTML validation results\n   - Lighthouse scores before/after\n   - Recommendations not implemented (with reasons)\n   - Next steps for client",
+        "testStrategy": "1. Verify all checks pass without errors\n2. Document all warnings and their resolution\n3. Create acceptance criteria checklist from PRD\n4. Verify all acceptance criteria are met\n5. Test on staging environment if available\n6. Test critical user flows:\n   - Homepage → Cursos → Course → Lesson\n   - Homepage → Planes → WhatsApp\n   - Navigation and footer links\n7. Ensure no regressions in functionality",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-09-16T03:43:42.918Z",
+      "taskCount": 14,
+      "completedCount": 12,
+      "tags": [
+        "seo-mea"
+      ]
+    }
+  },
+  "seo-mea-fase2": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Verificar/configurar redirección de mea.edu.gt (sin www) a www.mea.edu.gt",
+        "description": "Confirmar en el dashboard de dominios de Vercel si mea.edu.gt redirige de forma permanente y directa a https://www.mea.edu.gt; configurarlo si falta.",
+        "details": "Esto vive en la configuración de dominios del proyecto en Vercel, no en el código del repositorio. Pasos: 1) Revisar Project Settings > Domains en Vercel para el proyecto mea-international-landing. 2) Verificar que mea.edu.gt (sin www) esté agregado y configurado como redirect 308/301 permanente hacia www.mea.edu.gt, sin cadenas de redirección adicionales. 3) Si no existe, agregarlo. 4) Documentar el resultado (capturas o config final) en el reporte de esta tarea.",
+        "testStrategy": "curl -I https://mea.edu.gt debe responder con un único redirect permanente (301/308) directo a https://www.mea.edu.gt, sin saltos intermedios.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T07:04:31.320Z"
+      },
+      {
+        "id": "2",
+        "title": "Ampliar contenido de las 7 páginas de curso con introducción real de 300-600 palabras",
+        "description": "Agregar a cada página de /cursos/[slug] una introducción visible que explique para quién es, qué aprenderá, nivel, modalidad, duración, certificación y siguiente paso — solo con datos reales o confirmados.",
+        "details": "Rutas objetivo: /cursos/general, /viajar, /restaurantes, /talleres, /oficina, /tecnicos-pc, /call-center. Antes de escribir, revisar qué datos ya existen en getRutaCurriculum()/getRutas() (lib/rutas.ts) y en las lecciones reales de cada ruta. No inventar duración total del curso ni certificación si no están confirmadas en el repo — dejar un TODO(SEO) explícito y preguntar al propietario antes de publicar esa afirmación. No duplicar contenido casi idéntico entre las 7 páginas cambiando solo el nombre del curso; cada intro debe reflejar el contenido real de esa ruta (capítulos/niveles/lecciones).",
+        "testStrategy": "Para cada una de las 7 rutas: verificar que la introducción visible tenga 300-600 palabras, que no repita frases genéricas idénticas entre rutas, y que ninguna afirmación (duración, certificación) carezca de respaldo en el repo o confirmación del propietario.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-16T21:39:15.001Z"
+      },
+      {
+        "id": "3",
+        "title": "Agregar JSON-LD LearningResource/Course en lecciones públicas",
+        "description": "Las lecciones gratuitas (esGratis=true) solo tienen BreadcrumbList JSON-LD. Agregar LearningResource o Course usando los datos reales ya disponibles server-side.",
+        "details": "Archivo: app/cursos/[slug]/leccion/[leccionSlug]/page.tsx (rama esGratis). Evaluar si LearningResource o Course representa mejor el contenido real de una lección individual (LearningResource suele ser más preciso para una lección puntual vs. un curso completo). Usar el mismo patrón de lib/structured-data.ts (courseJsonLd, breadcrumbListJsonLd) para mantener consistencia: agregar una función nueva (ej. learningResourceJsonLd) con name=leccion.titulo, isPartOf referenciando el curso padre (ruta.titulo + URL), educationalLevel=capitulo.nivel. No inventar campos (autor, fecha de publicación, rating) que no existan en los datos reales.",
+        "testStrategy": "Verificar en el HTML renderizado de una lección gratuita real (ej. /cursos/general/leccion/saludos-basicos) que aparece el nuevo bloque JSON-LD junto al BreadcrumbList existente, sin duplicarlo, y que valida en el Google Rich Results Test / Schema.org validator.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T01:11:19.240Z"
+      },
+      {
+        "id": "4",
+        "title": "Documentar la decisión de NO implementar Event JSON-LD en /clases-en-vivo",
+        "description": "Confirmar y dejar documentada la razón técnica por la que Event JSON-LD no aplica al horario actual de clases en vivo.",
+        "details": "Verificado: HorarioSlot (lib/clases-en-vivo.ts) solo expone diaSemana + horaInicio (horario semanal recurrente), sin fechas concretas (startDate). El schema Event de schema.org espera instancias con fecha específica; forzarlo sobre un horario recurrente sin fecha no es correcto y puede generar advertencias en Google Search Console. Acción: agregar un comentario en app/clases-en-vivo/page.tsx (o en la documentación SEO) explicando esta decisión, para que no se reintente sin que el backend exponga fechas concretas por sesión.",
+        "testStrategy": "No hay cambio funcional que probar; verificar que la decisión y su justificación queden documentadas en el código o en .taskmaster/docs.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T01:34:20.152Z"
+      },
+      {
+        "id": "5",
+        "title": "Evaluar páginas de aterrizaje para búsquedas comerciales prioritarias",
+        "description": "Determinar, junto con el propietario, si existe información real y sustancialmente distinta para crear nuevas landing pages orientadas a keywords comerciales.",
+        "details": "Candidatas: /clases-de-ingles-online-guatemala, /ingles-para-call-center-guatemala, /ingles-para-trabajo, /clases-de-ingles-personalizadas, /ingles-para-adultos. Antes de crear cualquiera: revisar si ya existe una ruta equivalente (ej. /cursos/call-center ya cubre parte de 'inglés para call center'). No crear páginas casi idénticas a /cursos/* cambiando solo la palabra clave. Si no hay contenido suficiente y verificado, no crear la página todavía — documentar explícitamente qué información falta (ej. testimonios reales de esa audiencia, casos de uso concretos) para desbloquear la tarea más adelante.",
+        "testStrategy": "Entregable: documento de decisión por cada página candidata (crear / no crear todavía + motivo). Si se crea alguna, verificar que su contenido no sea un duplicado casi idéntico de una página existente (comparación manual de texto).",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T01:51:58.710Z"
+      },
+      {
+        "id": "6",
+        "title": "Reforzar señales de autoridad y confianza",
+        "description": "Agregar perfiles de docentes reales y revisar vigencia de políticas legales, sin inventar biografías, certificaciones ni cifras.",
+        "details": "1) Sección o página de perfiles de docentes: requiere que el propietario provea nombres, certificaciones reales y experiencia — no inventar. 2) Revisar contenido de LegalModal (referenciado en app/page.tsx) para política de privacidad, términos y condiciones, y política de cancelación/reembolso: confirmar que estén vigentes y completas (revisión de contenido, no reconstrucción del componente). 3) Cualquier contenido nuevo debe usar la cifra de estudiantes ya unificada en 200 (ver app/layout.tsx y app/page.tsx) — no reintroducir '2,000' ni otra cifra no confirmada.",
+        "testStrategy": "Checklist manual: perfiles de docentes publicados usan solo datos provistos por el propietario; las 3 políticas legales tienen fecha de vigencia reciente y contenido completo; grep del repo confirma que no aparece '2,000' ni '2000 estudiantes' en ningún archivo nuevo.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T01:55:05.241Z"
+      },
+      {
+        "id": "7",
+        "title": "Evaluar refuerzo de SEO local (Guatemala / Google Business Profile)",
+        "description": "Evaluar una sección o página específica para Guatemala/Ciudad de Guatemala y el registro de un perfil de Google Business Profile, usando solo la dirección física real ya confirmada.",
+        "details": "MEA tiene dirección física real en Mixco, Guatemala (ver footer de app/page.tsx, ya usada en el Organization JSON-LD de lib/structured-data.ts). No inventar sedes, ciudades de cobertura o presencia física adicional no confirmada. El registro/optimización de Google Business Profile es una acción fuera del repositorio (cuenta del propietario) — documentar como pendiente si no se puede ejecutar desde aquí.",
+        "testStrategy": "Si se agrega contenido/sección local: verificar que toda afirmación de cobertura geográfica esté respaldada por datos reales del repo o confirmación explícita del propietario.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T01:56:06.334Z"
+      },
+      {
+        "id": "8",
+        "title": "Habilitar lastmod real en el sitemap (requiere cambio de backend)",
+        "description": "Agregar un campo updatedAt real en los modelos Ruta/Leccion del backend, exponerlo en la API, y usarlo en app/sitemap.ts para lastmod.",
+        "details": "Verificado: ni RutaCurriculum ni LeccionCurriculum (lib/rutas.ts) exponen una fecha real de actualización, y backend/src/routes/rutas.ts tampoco la devuelve actualmente. Pasos: 1) Backend: confirmar o agregar un campo updatedAt en los modelos Prisma Ruta/Leccion. 2) Exponerlo en la respuesta de GET /api/rutas y GET /api/rutas/:slug/curriculum. 3) Frontend: actualizar RutaResumen/RutaCurriculum (lib/rutas.ts) con el nuevo campo, y usarlo en app/sitemap.ts para lastmod. No agregar lastmod con una fecha inventada o la fecha de build como sustituto — si el backend no puede exponer la fecha real, dejar el sitemap como está.",
+        "testStrategy": "Tras el cambio, verificar en /sitemap.xml que cada <url> con lastmod refleje una fecha real coincidente con la última edición de esa ruta/lección en el backend (comparar contra la base de datos), no la fecha del build.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Definir e instrumentar medición (GA4 / Search Console / eventos de conversión)",
+        "description": "Confirmar qué analítica ya existe, decidir con el propietario qué instalar si falta, y trackear eventos de conversión reales sin romper la CSP.",
+        "details": "1) Antes de asumir que falta analítica, confirmar si ya existe alguna integración de Vercel Analytics, GA4 o Search Console conectada al proyecto (revisar variables de entorno e integraciones del proyecto en Vercel). 2) Si no existe, evaluar con el propietario qué instalar (Vercel Analytics vía Marketplace, o GA4) antes de agregar cualquier script de terceros. 3) Cualquier script nuevo requiere actualizar la Content-Security-Policy en next.config.ts (script-src/connect-src) de forma consistente con el patrón ya usado ahí — no introducir tracking sin consentimiento explícito del propietario ni exponer claves privadas en el código. 4) Una vez decidida la plataforma, instrumentar eventos reales: clic en WhatsApp, clic en llamada, registro de alumno, inicio de checkout.",
+        "testStrategy": "Verificar que los eventos de conversión definidos (WhatsApp, llamada, registro, checkout) se disparan correctamente en la plataforma de analítica elegida, y que next.config.ts sigue pasando build/typecheck con la CSP actualizada.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-17T02:21:06.478Z"
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-09-17T07:04:31.321Z",
+      "taskCount": 9,
+      "completedCount": 7,
+      "tags": [
+        "seo-mea-fase2"
+      ]
+    }
   }
 }

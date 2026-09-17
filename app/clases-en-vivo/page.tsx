@@ -4,13 +4,42 @@ import { ArrowLeft } from "lucide-react";
 import ClasesEnVivoClient from "@/components/clases-en-vivo/ClasesEnVivoClient";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getHorarioClases } from "@/lib/clases-en-vivo";
+import { OG_IMAGE } from "@/lib/structured-data";
+
+const TITLE = "Clases de Inglés en Vivo por Zoom | MEA International";
+const DESCRIPTION =
+  "Horario semanal de clases en vivo grupales de MEA International por Zoom, para niños, adolescentes y adultos de todos los niveles.";
 
 export const metadata: Metadata = {
-  title: "Clases en Vivo | MEA International",
-  description:
-    "Horario semanal de clases en vivo grupales de MEA International por Zoom, para niños, adolescentes y adultos de todos los niveles.",
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: {
+    canonical: "/clases-en-vivo",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://www.mea.edu.gt/clases-en-vivo",
+    siteName: "MEA International",
+    locale: "es_GT",
+    type: "website",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
+// Decisión SEO (seo-mea-fase2, tarea 4): NO se agrega Event JSON-LD aquí.
+// HorarioSlot (lib/clases-en-vivo.ts) solo expone diaSemana + horaInicio —
+// un horario semanal recurrente sin fecha concreta (startDate). El schema
+// Event de schema.org espera instancias con fecha específica; forzarlo sobre
+// un horario recurrente sin fecha puede generar advertencias en Google
+// Search Console. Reevaluar solo si el backend llega a exponer fechas
+// concretas por sesión.
 export default async function ClasesEnVivoPage() {
   const data = await getHorarioClases();
 

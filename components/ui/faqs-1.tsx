@@ -56,7 +56,7 @@ export function FaqsSection({ questions = defaultQuestions }: FaqsSectionProps) 
   );
 }
 
-const defaultQuestions: FaqItem[] = [
+export const defaultQuestions: FaqItem[] = [
   {
     id: 'item-1',
     title: '¿Cómo funcionan las clases en línea?',

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, MessageCircle, Mail, Loader2 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import { alumnoApi, setAlumnoToken } from "@/lib/alumno-api";
 
 type Tab = "whatsapp" | "correo";
@@ -56,6 +57,7 @@ export default function RegisterModal({
     try {
       const res = await alumnoApi.otpVerificar(whatsapp, codigo, nombreWa || undefined);
       setAlumnoToken(res.token);
+      track("registro_completado", { via: "whatsapp" });
       onRegistrado();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Código incorrecto");
@@ -71,6 +73,7 @@ export default function RegisterModal({
     try {
       const res = await alumnoApi.registro({ nombre, email, password });
       setAlumnoToken(res.token);
+      track("registro_completado", { via: "correo" });
       onRegistrado();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear la cuenta");

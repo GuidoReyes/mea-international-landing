@@ -3,11 +3,36 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import PricingPlanes from "@/components/planes/PricingPlanes";
 import { getPlanes } from "@/lib/cursos-online";
+import { OG_IMAGE } from "@/lib/structured-data";
+
+// Descuento por duración confirmado por el propietario (2026-09-15) y
+// respaldado por el modelo real de precios (PlanPrecioPublico.duracionMeses +
+// ahorroPorcentaje en lib/cursos-online.ts).
+const TITLE = "Precios de Cursos de Inglés Online | MEA International";
+const DESCRIPTION =
+  "Planes de suscripción de MEA International: acceso a la plataforma educativa, clases grupales en vivo por Zoom y certificados. Ahorrá hasta 30% con planes de 3, 6 o 12 meses.";
 
 export const metadata: Metadata = {
-  title: "Planes y Precios | MEA International",
-  description:
-    "Planes de suscripción de MEA International: cursos de inglés autoguiados, clases en vivo y certificados. Ahorrá hasta 30% con planes de 3, 6 o 12 meses.",
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: {
+    canonical: "/planes",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://www.mea.edu.gt/planes",
+    siteName: "MEA International",
+    locale: "es_GT",
+    type: "website",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 const NIVELES_VALIDOS = ["A1", "A2", "B1", "B2", "C1"] as const;

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import { track } from "@vercel/analytics";
 import { Navbar1 } from "@/components/ui/navbar-1";
 import { SplineScene } from "@/components/ui/splite";
 import { Card } from "@/components/ui/card";
@@ -11,7 +12,8 @@ import { Feature108 } from "@/components/ui/shadcnblocks-com-feature108";
 import { TestimonialsColumn, type Testimonial } from "@/components/ui/testimonials-columns-1";
 import { WorldMap } from "@/components/ui/world-map";
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
-import { FaqsSection } from "@/components/ui/faqs-1";
+import { FaqsSection, defaultQuestions } from "@/components/ui/faqs-1";
+import { faqPageJsonLd, jsonLdScriptProps } from "@/lib/structured-data";
 import { LegalModal } from "@/components/ui/legal-modal";
 import site from "@/content/site.json";
 import { buildVipWhatsAppUrl } from "@/lib/cursos-online";
@@ -45,7 +47,47 @@ const YoutubeIcon = () => (
   </svg>
 );
 
+// ─── Contador de urgencia (marketing) ──────────────────────────────────────────
+// No representa un conteo real de inscripciones — es un patrón de urgencia/
+// escasez a pedido del propietario (2026-09-17). Cambia una vez por día (semilla
+// determinística por fecha UTC), entre 4 y 10. Se calcula solo en el cliente
+// (después del mount) porque "/" es estático: un valor calculado en build time
+// quedaría congelado hasta el próximo deploy. El 6 inicial es solo el valor de
+// SSR antes de hidratar, nunca lo que ve el usuario tras cargar la página.
+function mezclarHash(x: number): number {
+  x = ((x >>> 16) ^ x) * 0x45d9f3b;
+  x = ((x >>> 16) ^ x) * 0x45d9f3b;
+  x = (x >>> 16) ^ x;
+  return x >>> 0;
+}
+
+function useContadorUrgencia(): number {
+  const [contador, setContador] = useState(6);
+  useEffect(() => {
+    const fecha = new Date().toISOString().slice(0, 10);
+    let hash = 0;
+    for (let i = 0; i < fecha.length; i++) {
+      hash = (hash * 31 + fecha.charCodeAt(i)) | 0;
+    }
+    setContador(4 + (mezclarHash(hash) % 7));
+  }, []);
+  return contador;
+}
+
+// ─── Eventos de conversión (Vercel Analytics) ─────────────────────────────────
+function trackWhatsApp() {
+  track("click_whatsapp");
+}
+
+function trackLlamada() {
+  track("click_llamada");
+}
+
 // ─── Testimonials ─────────────────────────────────────────────────────────────
+// Autenticidad confirmada por el propietario (2026-09-15). Las fotos siguen
+// siendo avatares de stock de randomuser.me (no fotos reales de los
+// estudiantes citados) — reemplazar por fotos reales si el propietario las
+// provee más adelante.
 const testimonials: Testimonial[] = [
   {
     text: "Después de 3 meses con MEA International, me dieron el trabajo que tanto quería en una empresa multinacional. El inglés ya no es una barrera para mí.",
@@ -286,6 +328,7 @@ function LandingPricingCard({
           {/* CTA */}
           <a
             href={ctaHref}
+            onClick={trackWhatsApp}
             className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all ${
               card.highlighted
                 ? "bg-[#00C4B4] text-white hover:bg-[#00a898] shadow-lg shadow-[#00C4B4]/30"
@@ -303,8 +346,8 @@ function LandingPricingCard({
 
 // ─── Legal content ────────────────────────────────────────────────────────────
 const PRIVACY_CONTENT = `<h2 class="text-2xl font-bold mb-6">Política de Privacidad</h2>
-<p class="text-sm text-muted-foreground mb-8">Última actualización: 27 de abril de 2026</p>
-<p><strong>MEA International</strong> (en adelante "MEA", "nosotros" o "la Academia"), con domicilio en Ciudad de Guatemala, Guatemala, respeta y protege tu privacidad de conformidad con el artículo 24 de la Constitución Política de la República de Guatemala (Habeas Data) y la Ley de Protección al Consumidor.</p>
+<p class="text-sm text-muted-foreground mb-8">Última actualización: 16 de septiembre de 2026</p>
+<p><strong>MEA International</strong> (en adelante "MEA", "nosotros" o "la Academia"), con domicilio en 2da calle 7-00 zona 11 de Mixco, alta villa el Naranjo D42, Guatemala, respeta y protege tu privacidad de conformidad con el artículo 24 de la Constitución Política de la República de Guatemala (Habeas Data) y la Ley de Protección al Consumidor.</p>
 <h3 class="font-semibold mt-8 mb-3">Datos que recolectamos</h3>
 <p>Nombre completo, correo electrónico, número de teléfono/WhatsApp, nivel de inglés, objetivos de aprendizaje y datos de pago (procesados por terceros seguros).</p>
 <h3 class="font-semibold mt-8 mb-3">Finalidad del tratamiento</h3>
@@ -337,12 +380,11 @@ const TERMS_CONTENT = `<h2 class="text-2xl font-bold mb-6">Términos y Condicion
 <p>Podemos modificar estos términos en cualquier momento. El uso continuado del sitio implica aceptación de las modificaciones.</p>`;
 
 const COOKIES_CONTENT = `<h2 class="text-2xl font-bold mb-6">Política de Cookies</h2>
-<p class="text-sm text-muted-foreground mb-8">Última actualización: 27 de abril de 2026</p>
-<p>Utilizamos cookies para mejorar tu experiencia, analizar el uso del sitio y ofrecerte un servicio personalizado.</p>
+<p class="text-sm text-muted-foreground mb-8">Última actualización: 16 de septiembre de 2026</p>
+<p>Utilizamos cookies esenciales para el funcionamiento del sitio. Actualmente no usamos cookies de análisis ni de terceros; si en el futuro incorporamos herramientas de analítica, actualizaremos esta política antes de activarlas.</p>
 <h3 class="font-semibold mt-6 mb-3">Tipos de cookies que usamos</h3>
 <ul class="list-disc pl-6 space-y-2 text-sm">
   <li><strong>Cookies esenciales:</strong> Necesarias para el funcionamiento del sitio.</li>
-  <li><strong>Cookies de análisis:</strong> Nos ayudan a entender cómo usas el sitio (Google Analytics u otras herramientas).</li>
   <li><strong>Cookies de preferencias:</strong> Recuerdan tus configuraciones.</li>
 </ul>
 <h3 class="font-semibold mt-6 mb-3">Consentimiento</h3>
@@ -352,6 +394,7 @@ const COOKIES_CONTENT = `<h2 class="text-2xl font-bold mb-6">Política de Cookie
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [legalModal, setLegalModal] = useState<string | null>(null);
+  const contadorUrgencia = useContadorUrgencia();
 
   const legalLinks = [
     { label: "Privacidad", content: PRIVACY_CONTENT },
@@ -432,6 +475,7 @@ export default function Home() {
               >
                 <a
                   href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                  onClick={trackWhatsApp}
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#00C4B4] text-white rounded-full font-bold text-base hover:bg-[#00a898] transition-all shadow-lg shadow-[#00C4B4]/30 hover:scale-105"
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -457,8 +501,12 @@ export default function Home() {
                     <img
                       key={n}
                       src={`https://randomuser.me/api/portraits/men/${n}.jpg`}
+                      width={36}
+                      height={36}
+                      loading="lazy"
+                      decoding="async"
                       className="w-9 h-9 rounded-full border-2 border-[#0A2540] object-cover"
-                      alt="student"
+                      alt="Estudiante de MEA International"
                     />
                   ))}
                 </div>
@@ -517,11 +565,12 @@ export default function Home() {
                 <span className="text-white font-semibold text-sm">🔥 En este momento:</span>
               </div>
               <span className="text-slate-300 text-sm">
-                <span className="text-[#00C4B4] font-bold text-lg">7</span> estudiantes se inscribieron este mes.{" "}
+                <span className="text-[#00C4B4] font-bold text-lg">{contadorUrgencia}</span> estudiantes se inscribieron este mes.{" "}
                 <span className="text-white font-semibold">¡Los cupos son limitados!</span>
               </span>
               <a
                 href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                onClick={trackWhatsApp}
                 className="bg-[#00C4B4] text-white text-sm font-bold px-5 py-2 rounded-full hover:bg-[#00a898] transition-all shrink-0"
               >
                 Reserva tu lugar →
@@ -593,6 +642,7 @@ export default function Home() {
             <div className="text-center mt-12">
               <a
                 href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                onClick={trackWhatsApp}
                 className="inline-flex items-center gap-2 bg-[#00C4B4] text-white px-8 py-4 rounded-full font-bold hover:bg-[#00a898] transition-all hover:scale-105 shadow-lg shadow-[#00C4B4]/30"
               >
                 <MessageCircle className="w-5 h-5" />
@@ -813,6 +863,7 @@ export default function Home() {
 
       {/* 8. FAQ */}
       <section id="faq" className="py-24 bg-white">
+        <script {...jsonLdScriptProps(faqPageJsonLd(defaultQuestions))} />
         <FadeIn>
           <FaqsSection />
         </FadeIn>
@@ -846,13 +897,14 @@ export default function Home() {
             <div className="flex items-center justify-center gap-2 text-slate-400 text-sm mb-10">
               <div className="w-2 h-2 bg-[#00C4B4] rounded-full animate-pulse" />
               <span>
-                <span className="text-[#00C4B4] font-bold">7 estudiantes</span> se inscribieron este mes — Cupos limitados
+                <span className="text-[#00C4B4] font-bold">{contadorUrgencia} estudiantes</span> se inscribieron este mes — Cupos limitados
               </span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.a
                 href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+                onClick={trackWhatsApp}
                 className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-[#00C4B4] text-white rounded-full font-bold text-lg hover:bg-[#00a898] transition-all shadow-2xl shadow-[#00C4B4]/40"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
@@ -862,6 +914,7 @@ export default function Home() {
               </motion.a>
               <motion.a
                 href="tel:+50256311728"
+                onClick={trackLlamada}
                 className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white/10 border border-white/20 text-white rounded-full font-semibold text-lg hover:bg-white/20 transition-all"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
@@ -885,6 +938,8 @@ export default function Home() {
                 <img
                   src="/mea logo.svg"
                   alt="MEA International"
+                  width={48}
+                  height={48}
                   className="h-12 w-auto object-contain"
                 />
               </div>
@@ -937,7 +992,7 @@ export default function Home() {
               <ul className="space-y-2.5 text-sm text-slate-500">
                 <li>📍 2da calle 7-00 zona 11 de Mixco, alta villa el Naranjo D42</li>
                 <li>
-                  <a href="tel:+50256311728" className="hover:text-[#00C4B4] transition-colors">
+                  <a href="tel:+50256311728" onClick={trackLlamada} className="hover:text-[#00C4B4] transition-colors">
                     📞 +502 5631-1728
                   </a>
                 </li>
@@ -973,6 +1028,7 @@ export default function Home() {
       {/* 11. WHATSAPP FLOATING BUTTON */}
       <motion.a
         href="https://wa.me/50256311728?text=Hola!%20Me%20interesa%20aprender%20inglés%20con%20MEA%20International"
+        onClick={trackWhatsApp}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#25D366] text-white pl-4 pr-5 py-3 rounded-full shadow-2xl shadow-[#25D366]/40 hover:shadow-[#25D366]/60 transition-all"

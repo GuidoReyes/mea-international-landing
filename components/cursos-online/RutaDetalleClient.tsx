@@ -163,6 +163,12 @@ export default function RutaDetalleClient({ inicial }: { inicial: RutaCurriculum
           >
             Ver planes y precios
           </Link>
+          <p className="text-slate-400 text-xs mt-4">
+            ¿Preferís clases grupales con maestro en vivo?{" "}
+            <Link href="/clases-en-vivo" className="text-[#00C4B4] hover:underline">
+              Conocé los horarios por Zoom
+            </Link>
+          </p>
         </div>
       )}
     </div>

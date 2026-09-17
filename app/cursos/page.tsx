@@ -4,11 +4,33 @@ import { ArrowLeft } from "lucide-react";
 import CatalogoRutas from "@/components/cursos-online/CatalogoRutas";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getRutas } from "@/lib/rutas";
+import { OG_IMAGE } from "@/lib/structured-data";
+
+const TITLE = "Cursos de Inglés Online por Niveles y Especialidades | MEA";
+const DESCRIPTION =
+  "Elegí tu ruta de aprendizaje: inglés general por niveles (A1-C1) o rutas especializadas para talleres, oficina, viajes, restaurantes, técnicos en computación y call center. Primeras lecciones gratis.";
 
 export const metadata: Metadata = {
-  title: "Cursos de Inglés Online | MEA International",
-  description:
-    "Elegí tu ruta de aprendizaje: inglés general por niveles (A1-C1) o rutas especializadas para talleres, oficina, viajes, restaurantes, técnicos en computación y call center. Primeras lecciones gratis.",
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: {
+    canonical: "/cursos",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://www.mea.edu.gt/cursos",
+    siteName: "MEA International",
+    locale: "es_GT",
+    type: "website",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 export default async function CursosPage() {

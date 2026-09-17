@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Copy, Check, Upload, MessageCircle } from "lucide-react";
+import { track } from "@vercel/analytics";
 import {
   PlanPublico,
   PlanPrecioPublico,
@@ -60,6 +61,7 @@ export default function CheckoutClient({ plan, precio }: Props) {
       const resultado = await alumnoApi.checkoutManual(precio.id, "deposito");
       if (resultado.cuenta) setCuenta(resultado.cuenta);
       setPagoId(resultado.pagoId ?? null);
+      track("checkout_iniciado", { via: "deposito", plan: plan.slug });
       setPaso("deposito");
     } catch (err) {
       setAviso(
@@ -78,6 +80,7 @@ export default function CheckoutClient({ plan, precio }: Props) {
     setAviso(null);
     try {
       await alumnoApi.checkoutManual(precio.id, "whatsapp");
+      track("checkout_iniciado", { via: "whatsapp", plan: plan.slug });
     } catch (err) {
       setAviso(
         err instanceof Error ? err.message : "No pudimos registrar tu intención de pago, pero podés seguir coordinando por WhatsApp."

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Award, CheckCircle2, ChevronLeft, Lock } from "lucide-react";
+import { Award, CheckCircle2, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { RutaCurriculum, LeccionCurriculum, getRutaCurriculum } from "@/lib/rutas";
 import { alumnoApi, getAlumnoToken } from "@/lib/alumno-api";
 import type { LeccionContenido } from "@/lib/leccion-contenido";
@@ -12,6 +12,7 @@ import RegisterModal from "@/components/alumno/RegisterModal";
 interface Props {
   rutaSlug: string;
   leccionSlug: string;
+  rutaInicial?: RutaCurriculum;
 }
 
 function esVideo(url: string): boolean {
@@ -64,15 +65,17 @@ function ContenidoLeccion({ url }: { url: string | null }) {
   );
 }
 
-export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
-  const [ruta, setRuta] = useState<RutaCurriculum | null>(null);
-  const [leccion, setLeccion] = useState<LeccionCurriculum | null>(null);
+export default function LeccionClient({ rutaSlug, leccionSlug, rutaInicial }: Props) {
+  const leccionInicial =
+    rutaInicial?.capitulos.flatMap((cap) => cap.lecciones).find((l) => l.slug === leccionSlug) ?? null;
+  const [ruta, setRuta] = useState<RutaCurriculum | null>(rutaInicial ?? null);
+  const [leccion, setLeccion] = useState<LeccionCurriculum | null>(leccionInicial);
   const [puntaje, setPuntaje] = useState<string>("");
   const [guardando, setGuardando] = useState(false);
   const [certificado, setCertificado] = useState<{ codigo: string; urlPdf: string | null } | null>(null);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(rutaInicial && !leccionInicial ? "Lección no encontrada" : null);
+  const [cargando, setCargando] = useState(!rutaInicial);
   const [contenidoJugable, setContenidoJugable] = useState<LeccionContenido | null>(null);
 
   const cargar = useCallback(async () => {
@@ -94,8 +97,11 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
   }, [rutaSlug, leccionSlug]);
 
   useEffect(() => {
+    // Si ya tenemos datos públicos renderizados por el servidor y el visitante
+    // es anónimo, no hace falta repetir el fetch (evita mismatch de hidratación).
+    if (rutaInicial && !getAlumnoToken()) return;
     cargar();
-  }, [cargar]);
+  }, [cargar, rutaInicial]);
 
   useEffect(() => {
     if (!leccion || leccion.bloqueada) {
@@ -203,6 +209,14 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
     );
   }
 
+  const todasLecciones = ruta.capitulos.flatMap((cap) => cap.lecciones);
+  const indiceActual = todasLecciones.findIndex((l) => l.id === leccion.id);
+  const leccionAnterior = indiceActual > 0 ? todasLecciones[indiceActual - 1] : null;
+  const leccionSiguiente =
+    indiceActual >= 0 && indiceActual < todasLecciones.length - 1
+      ? todasLecciones[indiceActual + 1]
+      : null;
+
   return (
     <div>
       <Link
@@ -211,8 +225,6 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
       >
         <ChevronLeft className="w-4 h-4" /> {ruta.titulo}
       </Link>
-
-      <h1 className="text-2xl md:text-3xl font-bold text-[#0A2540] mb-6">{leccion.titulo}</h1>
 
       {mostrarRegistro && (
         <RegisterModal
@@ -299,6 +311,29 @@ export default function LeccionClient({ rutaSlug, leccionSlug }: Props) {
           </p>
         )}
       </div>
+
+      {(leccionAnterior || (leccionSiguiente && !leccionSiguiente.bloqueada)) && (
+        <nav aria-label="Navegación de lecciones" className="mt-6 flex items-center justify-between gap-4 text-sm">
+          {leccionAnterior ? (
+            <Link
+              href={`/cursos/${rutaSlug}/leccion/${leccionAnterior.slug}`}
+              className="inline-flex items-center gap-1 text-slate-500 hover:text-[#0A2540] transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" /> {leccionAnterior.titulo}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {leccionSiguiente && !leccionSiguiente.bloqueada && (
+            <Link
+              href={`/cursos/${rutaSlug}/leccion/${leccionSiguiente.slug}`}
+              className="inline-flex items-center gap-1 text-slate-500 hover:text-[#0A2540] transition-colors ml-auto"
+            >
+              {leccionSiguiente.titulo} <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
+        </nav>
+      )}
     </div>
   );
 }

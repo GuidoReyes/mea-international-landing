@@ -2,6 +2,7 @@ import cron from "node-cron";
 import prisma from "./lib/prisma";
 import { sendWhatsAppMessage } from "./lib/whatsapp-send";
 import { log } from "./lib/logger";
+import { maskPhone } from "./lib/log-sanitize";
 
 const TZ = "America/Guatemala";
 
@@ -48,7 +49,7 @@ cron.schedule("0 8 * * *", async () => {
       await sendWhatsAppMessage(
         phone,
         `⏰ Hola ${alumno.nombre}, tu cuota del curso *${curso}* vence el *${fmtFecha(cuota.fechaVence)}*.\n\n💰 Monto: *Q${Number(cuota.monto).toFixed(2)}*\n\nRecuerda realizar tu pago a tiempo. 🙏`
-      ).catch((err) => log("error", `[Scheduler] Error enviando a ${phone}:`, err));
+      ).catch((err) => log("error", `[Scheduler] Error enviando a ${maskPhone(phone)}:`, err));
     }
   } catch (err) {
     log("error", "[Scheduler] Error en recordatorio 5 días:", err);
@@ -90,7 +91,7 @@ cron.schedule("0 8 * * *", async () => {
       await sendWhatsAppMessage(
         phone,
         `🚨 *URGENTE* — Hola ${alumno.nombre}, tu cuota del curso *${curso}* vence *HOY*.\n\n💰 Monto: *Q${Number(cuota.monto).toFixed(2)}*\n\nPor favor realiza tu pago hoy para evitar recargos. Cualquier consulta escríbenos aquí.`
-      ).catch((err) => log("error", `[Scheduler] Error enviando urgente a ${phone}:`, err));
+      ).catch((err) => log("error", `[Scheduler] Error enviando urgente a ${maskPhone(phone)}:`, err));
     }
   } catch (err) {
     log("error", "[Scheduler] Error en recordatorio urgente:", err);
@@ -136,7 +137,7 @@ cron.schedule("0 9 * * *", async () => {
       await sendWhatsAppMessage(
         phone,
         `❌ Hola ${alumno.nombre}, tu cuota del curso *${curso}* está *VENCIDA* desde el ${fmtFecha(cuota.fechaVence)}.\n\n💰 Monto pendiente: *Q${Number(cuota.monto).toFixed(2)}*\n\nPor favor contáctanos para regularizar tu situación.`
-      ).catch((err) => log("error", `[Scheduler] Error enviando vencida a ${phone}:`, err));
+      ).catch((err) => log("error", `[Scheduler] Error enviando vencida a ${maskPhone(phone)}:`, err));
     }
 
     log("info", `[Scheduler] Procesador vencidas — ${vencidas.length} cuota(s) actualizadas`);

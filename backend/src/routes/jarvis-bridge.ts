@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { timingSafeEqual } from "crypto";
+import { safeEqual } from "../lib/safe-equal";
 import prisma from "../lib/prisma";
 import { estaModoHumano, tiempoRestanteHandoff } from "../lib/human-handoff";
 
@@ -21,15 +21,9 @@ function jarvisAuth(req: Request, res: Response, next: NextFunction): void {
     res.status(403).json({ error: "Falta token" });
     return;
   }
-  try {
-    const a = Buffer.from(provided.padEnd(expected.length));
-    const b = Buffer.from(expected.padEnd(provided.length));
-    if (a.length === b.length && timingSafeEqual(a, b)) {
-      next();
-      return;
-    }
-  } catch {
-    // cae al 403
+  if (safeEqual(provided, expected)) {
+    next();
+    return;
   }
   res.status(403).json({ error: "Token inválido" });
 }

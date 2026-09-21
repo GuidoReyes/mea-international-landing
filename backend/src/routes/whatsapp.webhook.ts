@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { verifyMetaHmac } from "../middleware/hmac.middleware";
+import { safeEqual } from "../lib/safe-equal";
 import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
 import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
@@ -134,7 +135,12 @@ router.get("/", (req: Request, res: Response) => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode === "subscribe" && token === process.env.META_WEBHOOK_VERIFY_TOKEN) {
+  // Both checks matter: without them an unset env var and a missing token are
+  // undefined === undefined, which would verify the webhook for anyone.
+  const expectedToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
+  const isValidToken = typeof token === "string" && !!expectedToken && safeEqual(token, expectedToken);
+
+  if (mode === "subscribe" && isValidToken) {
     log("info", "[WhatsApp] Webhook verificado por Meta");
     res.status(200).send(challenge);
     return;

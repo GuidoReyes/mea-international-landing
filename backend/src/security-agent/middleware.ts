@@ -1,12 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { createHash, timingSafeEqual } from "crypto";
-
-// Hashing gives both sides a fixed length, so the comparison is exact and constant-time
-// regardless of how long the provided key is (no padding tricks).
-function isValidKey(provided: string, expected: string): boolean {
-  const digest = (value: string): Buffer => createHash("sha256").update(value).digest();
-  return timingSafeEqual(digest(provided), digest(expected));
-}
+import { safeEqual } from "../lib/safe-equal";
 
 export function securityKeyMiddleware(req: Request, res: Response, next: NextFunction): void {
   const expectedKey = process.env.SECURITY_DASHBOARD_SECRET;
@@ -24,7 +17,7 @@ export function securityKeyMiddleware(req: Request, res: Response, next: NextFun
   }
 
   // ?key=a&key=b arrives as an array; only a plain string can be a valid key
-  if (typeof provided === "string" && isValidKey(provided, expectedKey)) {
+  if (typeof provided === "string" && safeEqual(provided, expectedKey)) {
     next();
     return;
   }

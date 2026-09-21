@@ -7637,16 +7637,195 @@
         "priority": "medium",
         "subtasks": [],
         "updatedAt": "2026-08-20T02:55:54.908Z"
+      },
+      {
+        "id": 474,
+        "title": "Create safeEqual helper for constant-time string comparison",
+        "description": "Implement a shared safe comparison utility using SHA-256 hashing and timingSafeEqual to prevent timing attacks across authentication and webhook verification endpoints",
+        "details": "Create `backend/src/lib/safe-equal.ts` exporting a `safeEqual(a: string, b: string): boolean` function that hashes both values with SHA-256 and compares the digests using crypto.timingSafeEqual. Never use padding or string length normalization. Apply this helper in: 1) `routes/jarvis-bridge.ts:26` (vuln_020), 2) `middleware/hmac.middleware.ts:25` (vuln_014), 3) `routes/whatsapp.webhook.ts:175` (vuln_038). Refactor the existing `isValidKey` function in `security-agent/middleware.ts` to use this shared helper, eliminating code duplication. Write comprehensive tests in `backend/src/scripts/test-safe-equal.ts` covering: equal strings, different strings, prefix attacks, trailing spaces, different lengths, unicode characters, and empty strings. Execute with `node -r ts-node/register/transpile-only src/scripts/test-safe-equal.ts`. Ensure `test-security-middleware.ts` continues to pass after refactoring.",
+        "testStrategy": "RED: Write test-safe-equal.ts with 10+ test cases expecting failures. GREEN: Implement safeEqual and apply to all 4 locations. Verify all tests pass and test-security-middleware.ts remains green. Run `cd backend && npx tsc --noEmit` with 0 errors.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 475,
+        "title": "Implement Redis-backed rate limiting with graceful fallback",
+        "description": "Extend existing rate-limit.middleware.ts with express-rate-limit using Redis store, configure limits for all vulnerable endpoints, and implement memory fallback when Redis is unavailable",
+        "details": "Extend `backend/src/middleware/rate-limit.middleware.ts` using `express-rate-limit` with Redis store from `lib/redis.ts`. Implement configurable limits via environment variables with these defaults: global 300 req/15min per IP, login 10/15min (already exists in auth.ts), security scan 2/hour, security auth failures 10/15min, file upload 3/hour per pagoId, webhooks 100/min per phone (generous for Meta/Twilio). Address vulnerabilities: vuln_021 (marketing.ts:53 - no limits), vuln_005 (index.ts:89 - WhatsApp webhook), vuln_056 (security middleware auth failures), vuln_039 (suscripciones.ts:155 - file upload), vuln_012 & vuln_030 (migrate in-memory limiters in auth-alumno.ts:44 and suscripciones.ts:32 to Redis). When Redis is unavailable (!client.isReady), fall back to MemoryStore with console.warn logging. Export named limiters: `globalLimiter`, `loginLimiter`, `scanLimiter`, `securityAuthLimiter`, `uploadLimiter`, `webhookLimiter`. Apply to routes: POST /api/security/scan (scanLimiter), security middleware failed auth (securityAuthLimiter), POST /api/suscripciones/:id/comprobante (uploadLimiter), WhatsApp/Twilio webhooks (webhookLimiter), all /api/marketing/* (globalLimiter). Write test script `backend/src/scripts/test-rate-limiting.ts` simulating concurrent requests to verify Redis sharing and 429 responses.",
+        "testStrategy": "RED: Write tests expecting 200 for under-limit and 429 for over-limit. GREEN: Implement limiters and apply to routes. Verify Redis sharing across simulated instances, fallback to memory when Redis down, and webhooks not blocked by legitimate traffic. Run tsc --noEmit.",
+        "priority": "high",
+        "dependencies": [
+          474
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 476,
+        "title": "Implement secure logging with field redaction and phone masking",
+        "description": "Create sanitization utilities to redact sensitive fields and mask phone numbers in all logging calls, preventing credential and PII exposure in logs and audit trails",
+        "details": "Create `backend/src/lib/log-sanitize.ts` with: 1) `sanitizeForLog(value: unknown): unknown` - recursively redact sensitive fields (password, token, secret, codigo, codigoHash, authorization, cookie, refresh_token, api_key, apiKey, accessToken) by replacing with '[REDACTED]' without mutating the original object, 2) `maskPhone(phone: string): string` - return only last 4 digits prefixed with 'XXX-'. Apply sanitization to: vuln_009 (middleware/audit.middleware.ts:11 - sanitize req.body before logging), vuln_004 (lib/logger.ts:9 - only log error.message and error.code, include stack only if NODE_ENV !== 'production'), vuln_007 (lib/advisor-notify.ts:75 - use maskPhone for all phone logging), vuln_049 (scripts/seed-curriculum.ts:417 - replace console.error(err) with log('error', err.message)). Update `lib/logger.ts` to accept sanitized metadata. Search all files with `grep -r \"log(\" backend/src` and audit phone number logging. Write test script `backend/src/scripts/test-log-sanitize.ts` verifying: nested object redaction, immutability of original objects, phone masking formats, and array handling.",
+        "testStrategy": "RED: Write tests for redaction of nested {user: {password: 'x'}}, phone masking, and immutability. GREEN: Implement sanitization and apply to all 4+ locations. Verify grep finds no unmasked phones in log calls. Run tsc --noEmit.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 477,
+        "title": "Implement session-based authentication for security dashboard",
+        "description": "Replace query parameter and sessionStorage authentication with httpOnly cookie session for the security dashboard, supporting both cookie and header authentication in middleware",
+        "details": "Implement Design Decision D1: 1) Create POST /api/security/login endpoint in `routes/security.routes.ts` accepting X-Security-Key header (never query param or body), validating with safeEqual (from T474), responding with httpOnly cookie 'security_session' (SameSite=Strict, Secure in production, 30min TTL), 2) Update `security-agent/middleware.ts` to accept EITHER X-Security-Key header (for CLI/CI) OR security_session cookie, rejecting ?key= completely with 403, 3) Protect `/security/assets/*` routes (styles.css, app.js) with securityKeyMiddleware - currently vuln_028 allows unauthenticated access, 4) Create minimal login page `security-agent/dashboard/login.html` (no external resources, no sensitive data) prompting for key, POSTing to /api/security/login with X-Security-Key header, storing cookie, redirecting to /security on success, 5) Modify `/security` route to redirect to /security/login if no valid session. Update `.taskmaster/docs/security-backup-prd.md` lines 119 and 267, and task #83 items 34-36 to reflect cookie-based auth replacing ?key=. Remove all sessionStorage.setItem('sk') code from dashboard/app.js. Configure helmet CSP for /security routes to restrict script-src and style-src to 'self'.",
+        "testStrategy": "RED: Write test expecting 403 for ?key=, assets without cookie, and sessionStorage usage. GREEN: Implement login endpoint, dual middleware, protected assets, login page. Verify: no cookie/header → 403, ?key= → 403, valid login → cookie → 200, dashboard loads with cookie. Run tsc --noEmit.",
+        "priority": "high",
+        "dependencies": [
+          474
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 478,
+        "title": "Sanitize security dashboard frontend against XSS",
+        "description": "Apply HTML escaping to all dynamic content rendered in the security dashboard, validate external URLs, and configure Content Security Policy headers",
+        "details": "Address vuln_054, vuln_055, vuln_060 in `security-agent/dashboard/app.js`: 1) Create `esc(str)` helper function using `document.createTextNode().textContent` or manual escaping of <>&\"' characters, 2) Apply esc() to all fields inserted via innerHTML: file names, vulnerability titles, descriptions, code snippets, timestamps (lines around 237, 296), 3) Replace innerHTML with textContent wherever possible for plain text content, 4) Validate `webViewLink` URLs start with 'https://drive.google.com/' before rendering, reject others, 5) Validate `security_score` is numeric (0-100) before updateGauge(), default to 0 if invalid, 6) Add `rel=\"noopener noreferrer\"` to all `target=\"_blank\"` anchor tags (vuln_060), 7) In `routes/security.routes.ts`, configure helmet with restrictive CSP for /security routes: `script-src 'self'`, `style-src 'self'`, `default-src 'none'`, `img-src 'self' data:`, `connect-src 'self'`. Write test script `backend/src/scripts/test-dashboard-xss.ts` that creates mock scan results with XSS payloads (<img src=x onerror=alert(1)>, <script>alert(2)</script>) and verifies they appear as text in rendered HTML.",
+        "testStrategy": "RED: Create scan result with XSS payload in file name/title, expect code execution. GREEN: Implement esc(), validation, CSP. Verify payloads render as text, external URLs rejected, CSP headers present. Manual test: inject <img src=x onerror=console.log('XSS')> in scan, confirm it displays as text.",
+        "priority": "high",
+        "dependencies": [
+          477
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 479,
+        "title": "Harden security agent backend and storage",
+        "description": "Validate input parameters, encrypt scan history, restrict file paths, sanitize code sent to AI models, and secure test scripts in the security agent subsystem",
+        "details": "Address 6 vulnerabilities in security-agent: 1) vuln_058 (`storage.ts:55`) - validate vulnId with regex `/^vuln_\\d{3}$/` before using in file operations, 2) vuln_059 (`storage.ts:27`) - encrypt `history.json` with AES-256-GCM using key derived from SECURITY_DASHBOARD_SECRET via crypto.scrypt, store IV with ciphertext, migrate existing plaintext file on first write, set file permissions to 0600 using fs.chmod, document that rotating secret invalidates history, 3) vuln_057 (`scanner.ts:101`) - validate SECURITY_SCAN_PATHS entries are within project using path.resolve() and reject traversal attempts, 4) vuln_052 (`analyzer.ts:51`) - wrap code chunks in delimiters like ```CODE_START``` and ```CODE_END```, instruct model this is untrusted data, 5) vuln_051 (`analyzer.ts:88`) - validate ANTHROPIC_API_KEY format (sk-ant-...) without logging the key value, fail fast on startup, 6) vuln_050 (`test-security-middleware.ts:45`) - replace hardcoded 'test-secret-123' with crypto.randomBytes(16).toString('hex'). Create `backend/src/lib/crypto-utils.ts` with `encrypt(data: string, secret: string)` and `decrypt(ciphertext: string, secret: string)` helpers. Write test `backend/src/scripts/test-security-storage.ts` verifying encryption/decryption, path traversal rejection, and vulnId validation.",
+        "testStrategy": "RED: Write tests for invalid vulnId, path traversal ../../etc/passwd, unencrypted history read. GREEN: Implement validations, encryption, migration. Verify history encrypted on disk, traversal blocked, invalid API key rejected at startup. Run tsc --noEmit.",
+        "priority": "medium",
+        "dependencies": [
+          476
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 480,
+        "title": "Secure database backup and Google Drive operations",
+        "description": "Prevent password exposure in mysqldump, sanitize Drive queries, validate folder IDs and cron expressions, and handle JSON parsing errors in backup subsystem",
+        "details": "Address 5 backup vulnerabilities (must complete BEFORE task #83 backup tests, items 17-27): 1) vuln_001 (`backup/dumper.ts:32`) - remove password from mysqldump args, instead use MYSQL_PWD environment variable OR create temporary defaults file with [client] section, chmod 0600, pass via --defaults-extra-file, delete in finally block, verify `ps aux` doesn't show password during dump, 2) vuln_003 (`backup/cleaner.ts:42`) - create shared `escapeDriveQueryValue(value: string)` helper in `lib/drive-utils.ts` escaping single quotes and backslashes, apply to folder ID in query, 3) vuln_002 (`lib/drive-comprobantes.ts:22`) - use same escapeDriveQueryValue for name parameter in Drive queries, 4) vuln_008 (`backup/drive-auth.ts:45`) - wrap JSON.parse in try/catch, validate required fields (access_token, refresh_token, expiry_date) exist and are correct types, 5) vuln_006 (`backup/scheduler.ts:56`) - validate BACKUP_CRON_SCHEDULE using node-cron's validate() function, validate folder ID format `/^[a-zA-Z0-9_-]{10,50}$/` on startup, sanitize cron string (remove control characters) before logging. Write test `backend/src/scripts/test-backup-security.ts` verifying password not in process args, Drive query escaping, cron validation.",
+        "testStrategy": "RED: Write tests expecting password in ps output, Drive injection with name=\"' OR '1'='1\", invalid cron accepted. GREEN: Implement MYSQL_PWD or defaults file, escaping, validations. Verify ps shows no password, injection escaped, invalid cron rejected. Run tsc --noEmit. Coordinate with task #83.",
+        "priority": "high",
+        "dependencies": [
+          476
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 481,
+        "title": "Secure webhook verification and normalize phone numbers",
+        "description": "Enforce strict webhook signature verification, validate sender identity, handle missing rawBody, and normalize phone number formats consistently across WhatsApp and Twilio webhooks",
+        "details": "Address 4 webhook vulnerabilities: 1) vuln_034 (`routes/webhooks-recurrente.ts:54`) - check if req.rawBody is undefined or empty string, return 400 immediately, verify rawBody middleware order in index.ts comes before this route, 2) vuln_016 (`middleware/twilio-webhook.middleware.ts:22`) - in production (NODE_ENV==='production'), fail hard with 500 if TWILIO_AUTH_TOKEN is missing, only skip verification in 'development' or 'test' with console.warn, 3) vuln_033 (`routes/twilio.webhook.ts:59`) - after signature validation, check req.body.From === process.env.ADMIN_TWILIO_WHATSAPP, if not, respond 200 (to avoid retry storms) but log warning and return early without processing, 4) vuln_035 (`routes/whatsapp.webhook.ts:144`) - create `normalizePhone(phone: string): string` helper in `lib/phone-utils.ts` that ensures E.164 format (+country + number), apply when receiving phone and when querying database, check existing data format before changing storage format (run SELECT DISTINCT phone_field to check for inconsistencies). Write test `backend/src/scripts/test-webhook-security.ts` verifying invalid signature → 403, missing rawBody → 400, non-admin sender ignored, phones normalized.",
+        "testStrategy": "RED: Write tests for missing rawBody (expect 400), invalid Twilio signature (expect 403), non-admin sender (expect 200 but no processing), phone +50512345678 equals 50512345678. GREEN: Implement validations, normalization. Verify tests pass. Run tsc --noEmit.",
+        "priority": "high",
+        "dependencies": [
+          474
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 482,
+        "title": "Implement access control and prevent IDOR vulnerabilities",
+        "description": "Enforce authorization checks on inscription and edition endpoints, filter public plans, validate payment state transitions, and preserve public catalog access",
+        "details": "Address 4 IDOR and access control issues: 1) vuln_019 (`routes/inscripciones.ts:55`) - on GET /api/inscripciones/:id and related endpoints, verify either req.admin.rol === 'ADMIN' OR the inscripcion's alumnoId matches req.alumno.id from JWT, return 403/404 if unauthorized, 2) vuln_018 (`routes/ediciones.ts:33`) - BEFORE protecting GET endpoints, search frontend codebase (`app/`, `components/`, `lib/`) for consumption of ediciones API, if public catalog uses it, create separate GET /api/ediciones/public endpoint returning only {id, nombre, fechaInicio, fechaFin, curso{nombre}} without personal data, protect original GET /api/ediciones/* with admin auth, 3) vuln_031 (`routes/suscripciones.ts:68`) - when querying PlanPrecio, add filter `activo: true` AND `plan.publico: true` (or verify plan.publico in controller), 4) vuln_037 (`routes/suscripciones.ts:196`) - in POST /api/suscripciones/:id/comprobante, query pago first, verify pago.estado === 'PENDIENTE', return 409 if already 'APROBADO' or 'RECHAZADO'. Write test `backend/src/scripts/test-access-control.ts` simulating alumno accessing other alumno's inscripcion (expect 403), inactive plan selection (expect 400), duplicate comprobante upload (expect 409).",
+        "testStrategy": "RED: Write tests expecting alumno to read other's data (expect 403), select inactive plan (expect validation error), upload to approved pago (expect 409). GREEN: Implement authorization checks, filters, state validation. Verify public catalog still works, IDOR blocked. Run tsc --noEmit.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 483,
+        "title": "Migrate JWT to httpOnly cookie and strengthen password generation",
+        "description": "Move admin authentication token from response body to httpOnly cookie behind feature flag, replace Math.random() with crypto for temporary passwords, and fix OTP timing attack",
+        "details": "Address 3 authentication vulnerabilities: 1) vuln_010 (`routes/auth.ts:75`) - the token is already sent in httpOnly cookie (line 75), but also in response body (line 81) for legacy frontend compatibility, add environment variable LEGACY_TOKEN_IN_BODY (default 'true'), only include token in response body if this is 'true', search frontend admin code for token usage and migrate to cookie, then set to 'false', eventually remove flag and body token entirely, 2) vuln_011 (`routes/alumnos.ts:107`) - replace Math.random() based password generation with crypto.randomInt(0, 36) or crypto.randomBytes(9).toString('base64url') ensuring minimum 12 characters with mix of letters/numbers/symbols, create helper `generateSecurePassword(length: number = 12): string` in `lib/crypto-utils.ts`, 3) vuln_013 (`routes/auth-alumno.ts:295`) - in OTP verification, ALWAYS call bcrypt.compare even if OTP record doesn't exist, use a dummy hash `$2b$10$...` (pre-generated constant) when record is null, measure response times to verify they're comparable. Write test `backend/src/scripts/test-auth-security.ts` verifying password entropy >= 60 bits, OTP timing constant.",
+        "testStrategy": "RED: Write tests measuring OTP response time variance (existing vs non-existing), password randomness distribution. GREEN: Implement crypto-based generation, constant-time OTP, feature flag. Verify timing variance <10ms, entropy sufficient. Coordinate frontend migration before removing flag. Run tsc --noEmit.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 484,
+        "title": "Implement comprehensive input validation and sanitization",
+        "description": "Add Zod schemas for URL validation, enum validation, file upload MIME checking, date parsing, CSV injection prevention, and centralized error handling",
+        "details": "Address 7 validation vulnerabilities: 1) vuln_015 (`routes/clases-en-vivo.ts:154`) - create Zod schema for urlZoom: z.string().url().refine(url => url.startsWith('https://') && url.includes('zoom.us'), 'Must be HTTPS Zoom URL'), apply to POST and PATCH, 2) vuln_023 (`routes/inscripciones.ts:38`) - define `const ESTADOS_INSCRIPCION = ['PENDIENTE', 'ACTIVA', 'SUSPENDIDA', 'FINALIZADA'] as const`, validate estado with Zod enum or includes check, 3) vuln_026 + vuln_032 (inscripciones.ts:10, suscripciones.ts:214) - create shared `validateUpload(file: Express.Multer.File, allowedMimes: string[]): {valid: boolean, extension: string}` in `lib/upload-utils.ts`, use file.mimetype (not filename) to determine extension via MIME_TO_EXT map {\"image/jpeg\": \"jpg\", \"image/png\": \"png\", \"application/pdf\": \"pdf\"}, apply to both routes, 4) vuln_029 (`routes/pagos.ts:37`) - validate dates with `z.string().datetime()` or manual check `!isNaN(new Date(fecha).getTime())`, return 400 for invalid, 5) vuln_022 (`routes/leads.ts:55`) - in CSV generation, prefix cells starting with =+-@\\t\\r with single quote \"'\", 6) vuln_024 (`routes/ediciones.ts:45`) - wrap async route handlers in try/catch, create centralized error middleware in `middleware/error.middleware.ts` that only includes stack if NODE_ENV !== 'production', app.use() as last middleware. Write comprehensive validation tests in `backend/src/scripts/test-input-validation.ts`.",
+        "testStrategy": "RED: Write tests for non-Zoom URL, invalid estado, .exe file with image/jpeg MIME, date 'abc', CSV cell '=cmd|...'. GREEN: Implement Zod schemas, MIME validation, CSV sanitization, error middleware. Verify all invalid inputs → 400 with clear messages. Run tsc --noEmit.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 485,
+        "title": "Add database constraints and handle race conditions",
+        "description": "Implement unique constraints on carnet and (alumnoId, edicionId), handle Prisma duplicate errors with retry logic, and prevent duplicate CSV imports",
+        "details": "Address 3 data integrity vulnerabilities: 1) vuln_017 + vuln_027 (`routes/alumnos.ts:56`, `inscripciones.ts:258`) - add unique constraint on Alumno.carnet in Prisma schema, run `npx prisma migrate dev` (ONLY additive migration, NEVER reset), before migration, query existing duplicates with `SELECT carnet, COUNT(*) FROM Alumno GROUP BY carnet HAVING COUNT(*) > 1`, document cleanup plan if found, in create handlers catch Prisma error code 'P2002' and retry with regenerated carnet (max 3 attempts), or use suffix-based generator similar to generarCarnetWeb() that includes random component, 2) vuln_025 (`routes/inscripciones.ts:135`) - in CSV import, add unique constraint on (alumnoId, edicionId) in Inscripcion table, within the import transaction, check for existing inscripciones before bulk create using `findMany` with same (alumnoId, edicionId) pairs, skip duplicates or return 409, handle P2002 error gracefully. CRITICAL: query database for existing duplicates BEFORE creating migration. Create migration plan document if duplicates exist. Write test `backend/src/scripts/test-data-integrity.ts` simulating concurrent carnet generation (10 parallel creates expecting all unique) and duplicate CSV import (second import should not create duplicates).",
+        "testStrategy": "RED: Create tests simulating race condition (10 parallel alumno creates), duplicate CSV import. GREEN: Add constraints, implement retry logic, duplicate checking. Verify no duplicate carnets created, CSV import idempotent, P2002 handled gracefully. Run prisma migrate dev (after duplicate check). Run tsc --noEmit.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 486,
+        "title": "Secure operational scripts and remove obsolete code",
+        "description": "Protect credential files, replace shell execution with execFile, validate API inputs, prevent SSRF, sanitize AI content, secure OAuth flow, and evaluate script deprecation",
+        "details": "Address 10 script vulnerabilities: 1) vuln_036 (`scripts/crear-alumnos-grupo.ts:228`) - verify `*.credenciales.csv` is in .gitignore (already done per PRD), set file permissions to 0600 using fs.chmod after write, optionally output to stdout instead of file, 2) vuln_041 + vuln_040 (`scripts/generar-tasks-500.ts:131, 116`) - FIRST evaluate if this script is obsolete and can be deleted (check last modified date, usage references), if kept: replace execSync with execFile from child_process, validate file path is within project using path.resolve, 3) vuln_047 (generar-tasks-500.ts:117) - validate parsed JSON structure with Zod schema before usage, 4) vuln_043 + vuln_042 (`scripts/generate-leccion.ts:238, 149`) - validate R2 bucket URLs must start with configured R2_BUCKET_PREFIX from env, reject other URLs to prevent SSRF, validate OPENAI_API_KEY format without logging full key, 5) vuln_048 (generate-leccion.ts:293) - verify frontend renders lesson content without innerHTML by checking `lib/leccion-contenido.schema.ts` usage and React components, sanitize text fields from AI using esc() function before storage if innerHTML is used anywhere, 6) vuln_045 + vuln_046 (`scripts/get-drive-token.ts:49, 30`) - never console.log refresh_token, write to file with 0600 permissions OR mask last 20 chars, generate random state with crypto.randomBytes(16).toString('hex'), validate state in OAuth callback, 7) vuln_044 (`scripts/seed-admin.ts:8`) - require ADMIN_EMAIL env variable, throw error if not set, no default value. Write test `backend/src/scripts/test-script-security.ts` verifying no secrets in console output, SSRF blocked, invalid inputs rejected.",
+        "testStrategy": "RED: Write tests expecting SSRF to evil.com, missing ADMIN_EMAIL accepted, secrets in stdout. GREEN: Implement validations, sanitization, OAuth state, file permissions. Verify SSRF blocked, required env enforced, no secrets logged. Document generar-tasks-500.ts decision. Run tsc --noEmit.",
+        "priority": "medium",
+        "dependencies": [
+          476,
+          483
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 487,
+        "title": "Final verification, re-scan, and vulnerability tracking",
+        "description": "Compile entire backend and root, run all test scripts, execute real security re-scan with authorization, document all 60 vulnerabilities' final status, update related PRDs and tasks",
+        "details": "Execute final verification workflow: 1) Run `cd backend && npx tsc --noEmit` expecting 0 errors, 2) Run `cd /Users/guidoreyes/Desktop/proyecto && npx tsc --noEmit` expecting 0 errors, 3) Execute ALL test scripts created in T474-T486: test-safe-equal.ts, test-rate-limiting.ts, test-log-sanitize.ts, test-dashboard-xss.ts, test-security-storage.ts, test-backup-security.ts, test-webhook-security.ts, test-access-control.ts, test-auth-security.ts, test-input-validation.ts, test-data-integrity.ts, test-script-security.ts - all must pass, 4) Verify public site routes still function (GET /api/ediciones/public, /api/planes, /health), 5) OBTAIN EXPLICIT AUTHORIZATION from project owner before re-scan (costs ~USD 2, takes 10 min), 6) Execute real security scan: POST /api/security/scan with X-Security-Key header, poll /api/security/status/:scan_id until COMPLETED, 7) GET /api/security/results and compare with baseline (scan b0da64e6, 60 findings, 13 HIGH, score 60), 8) Create vulnerability tracking table in `backend/.security-scans/remediation-report.md` with columns: vuln_id, severity, file:line, status (Fixed/False Positive/Accepted Risk), evidence/justification, 9) Document all 60 vulnerabilities from original scan with final disposition, 10) Update `.taskmaster/docs/security-backup-prd.md` lines 119 and 267 with D1 cookie auth, 11) Update task #83 items 34-36 to reflect new auth model. SUCCESS CRITERIA: 0 CRITICAL, 0 HIGH open, score >= 80 (allowing for +-10 noise), all 60 original vulns documented.",
+        "testStrategy": "Compile backend and root with 0 errors. Run all 12+ test scripts - all pass. Manual smoke test of public routes. Obtain re-scan authorization. Execute re-scan and compare results. Create complete 60-item tracking table. Verify 0 HIGH/CRITICAL open, score >= 80. Update PRDs and task #83.",
+        "priority": "high",
+        "dependencies": [
+          474,
+          475,
+          476,
+          477,
+          478,
+          479,
+          480,
+          481,
+          482,
+          483,
+          484,
+          485,
+          486
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
-      "version": "1.0.0",
-      "lastModified": "2026-08-24T21:38:00.172Z",
-      "taskCount": 473,
-      "completedCount": 384,
-      "tags": [
-        "master"
-      ]
+      "created": "2026-09-21T04:42:54.840Z",
+      "updated": "2026-09-21T04:42:54.840Z",
+      "description": "Tasks for master context"
     }
   },
   "seo-mea": {
@@ -7982,6 +8161,390 @@
       "completedCount": 7,
       "tags": [
         "seo-mea-fase2"
+      ]
+    }
+  },
+  "seo-mea-fase3": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Mapear arquitectura SEO existente",
+        "description": "Identificar framework, routing, layout, metadata, generadores de sitemap/robots, fuente de datos de cursos y renderizado de lecciones.",
+        "details": "COMPLETADO en fases anteriores. Ya documentado en .taskmaster/docs/seo-mea-tarea1-auditoria-metadata.md (tarea 1 de seo-mea) y verificado extensamente durante seo-mea/seo-mea-fase2: Next.js 16.2.4 App Router; metadata en app/layout.tsx + generateMetadata por ruta; sitemap en app/sitemap.ts; robots en app/robots.ts; fuente de verdad de cursos/lecciones vía lib/rutas.ts (getRutas/getRutaCurriculum contra la API del backend). No reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "2",
+        "title": "Crear baseline automatizado de SEO",
+        "description": "Crear una validación repetible para inspeccionar HTML, titles, descriptions, H1, canonical, JSON-LD, sitemap, robots y status codes de las páginas públicas.",
+        "details": "NO existe todavía como script reutilizable — en fases anteriores la validación se hizo ad-hoc (fetch + grep/regex manual cada vez). Crear un script Node (ej. scripts/seo-check.mjs) que, dado un array de rutas públicas, haga fetch a www.mea.edu.gt, y reporte por página: status code, title, meta description, presencia de canonical, cantidad de H1, tipos de JSON-LD encontrados, y si el contenido principal depende de JS (comparando HTML crudo vs contenido esperado). Debe poder correr localmente con `node scripts/seo-check.mjs`.",
+        "testStrategy": "Correr el script contra las 11+ rutas principales y las páginas de lección de muestra; debe imprimir un resumen legible por página y no debe fallar si una página tiene errores (debe listarlos, no crashear).",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "3",
+        "title": "Metadata base del sitio",
+        "description": "Metadata global segura con lang, nombre de sitio, URL canónica base y valores por defecto solo como fallback.",
+        "details": "COMPLETADO. app/layout.tsx ya define metadataBase (https://www.mea.edu.gt), title/description base, y lang=\"es\" en el elemento <html>. Verificado en vivo. No reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "4",
+        "title": "Metadata única en páginas principales",
+        "description": "title y description únicos para /, /cursos, /planes, /clases-en-vivo.",
+        "details": "COMPLETADO en seo-mea (tareas 2-3) y confirmado en vivo el 2026-09-17: las 4 rutas tienen title/description propios, sin meta keywords. No reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "5",
+        "title": "Metadata para cursos especializados",
+        "description": "Metadata dinámica única para todas las rutas indexables bajo /cursos/*, generada desde la fuente de datos del curso.",
+        "details": "COMPLETADO en seo-mea (tarea 4): app/cursos/[slug]/page.tsx usa generateMetadata con datos reales de getRutaCurriculum(). Verificado en las 7 rutas en producción. No reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Canonical por página",
+        "description": "Canonical absoluto en toda página indexable, sin parámetros de tracking, con decisión explícita para variantes con filtros.",
+        "details": "COMPLETADO en seo-mea (tareas 3, 6): todas las páginas indexables usan metadata.alternates.canonical. /planes?nivel=A1 ya canonicaliza a /planes (metadata estática, no depende de searchParams). Verificado en vivo. No reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Resolver redirección de host canónico",
+        "description": "Consolidar mea.edu.gt (sin www) hacia www.mea.edu.gt con redirect permanente sin cadenas.",
+        "details": "COMPLETADO 2026-09-17 (seo-mea-fase2, tarea 1): cambiado en Vercel Dashboard > Domains de 307 a 308. Verificado en vivo: curl -I https://mea.edu.gt responde 308 directo a www.mea.edu.gt.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Decidir política de indexación de lecciones",
+        "description": "Determinar si las lecciones son contenido público indexable o privado de plataforma.",
+        "details": "COMPLETADO (seo-mea, tarea 5): decisión Opción A — lecciones esGratis=true son indexables (evidencia: comentario explícito en app/sitemap.ts sobre ventaja SEO de lecciones gratis sin login); lecciones bloqueadas no lo son. Documentado y no reabrir.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Renderizar lecciones públicas para SEO",
+        "description": "Server-render título, resumen y contenido educativo de lecciones indexables.",
+        "details": "COMPLETADO (seo-mea, tarea 5 + seo-mea-fase2, tarea 3): app/cursos/[slug]/leccion/[leccionSlug]/page.tsx renderiza H1, breadcrumb y un resumen indexable (sr-only) con contenido real extraído de getLeccionContenidoPublico(). Verificado en vivo: /cursos/general/leccion/saludos-basicos entrega title único, H1, y vocabulario real en el HTML inicial.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "8"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Marcar lecciones privadas como noindex",
+        "description": "noindex,follow para lecciones no indexables y exclusión del sitemap.",
+        "details": "COMPLETADO: generateMetadata en la página de lección retorna robots:{index:false,follow:true} para leccion.esGratis=false; app/sitemap.ts solo incluye lecciones esGratis=true. Acceso de alumnos no afectado (LeccionClient sigue funcionando igual).",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "8"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "Navegación profunda y breadcrumbs",
+        "description": "Breadcrumbs visibles + JSON-LD en lecciones públicas, enlace a curso padre, y anterior/siguiente cuando el orden sea real.",
+        "details": "COMPLETADO (seo-mea, tareas 8 y 12): breadcrumb visible + BreadcrumbList JSON-LD en /cursos/[slug] y en lecciones; LeccionClient.tsx tiene navegación anterior/siguiente real basada en el orden de ruta.capitulos (solo enlaza a la siguiente si no está bloqueada).",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "9"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Limpiar generador de sitemap",
+        "description": "Sitemap solo con URLs públicas, indexables, canónicas, con 200 OK, sin duplicados.",
+        "details": "COMPLETADO — verificado que app/sitemap.ts ya cumplía esto desde antes de la Fase 1 (sin cambios de código necesarios), y re-confirmado en vivo el 2026-09-17/18: /sitemap.xml solo incluye home, secciones, las 7 rutas de curso y lecciones esGratis=true. lastmod no se agrega porque no existe una fecha real disponible (ver tarea 'lastmod' pendiente en seo-mea-fase2, tarea 8 — requiere migración de backend, explícitamente diferida).",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "8",
+          "6"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "Validar y ajustar robots.txt",
+        "description": "robots.txt en texto plano, rutas públicas no bloqueadas, rutas privadas bloqueadas, sitemap con URL absoluta.",
+        "details": "COMPLETADO — verificado en vivo el 2026-09-17/18: /robots.txt responde 200 texto plano, bloquea /admin /mis-cursos /checkout /verify /verify-online, referencia https://www.mea.edu.gt/sitemap.xml en absoluto. Ya era correcto, sin cambios de código necesarios.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "12"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Organization y WebSite JSON-LD",
+        "description": "JSON-LD válido de Organization y WebSite en todo el sitio, con datos oficiales reales.",
+        "details": "COMPLETADO (seo-mea tarea 8, mejorado en seo-mea-fase2 tarea 7): lib/structured-data.ts exporta organizationJsonLd() (tipo EducationalOrganization, más específico que Organization genérico, con dirección/teléfono/email/redes reales) y websiteJsonLd(), renderizados en app/layout.tsx. Sin potentialAction porque no existe ruta de búsqueda real.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Course, ItemList y LearningResource JSON-LD",
+        "description": "Schema correspondiente al contenido real: Course para páginas de curso, LearningResource para lecciones, ItemList donde aplique (ej. listado de cursos/rutas).",
+        "details": "PARCIALMENTE completado. Course JSON-LD: hecho en app/cursos/[slug]/page.tsx (seo-mea-fase2, ya en lib/structured-data.ts courseJsonLd). LearningResource: hecho en la página de lección (seo-mea-fase2, tarea 3, learningResourceJsonLd). FALTA: ItemList en /cursos (el catálogo de las 7 rutas) — agregar itemListJsonLd a lib/structured-data.ts y usarlo en app/cursos/page.tsx con los datos reales de getRutas().",
+        "testStrategy": "Verificar en el HTML de /cursos que aparece un bloque ItemList con las 7 rutas reales (nombre + URL), sin inventar posiciones ni datos.",
+        "priority": "medium",
+        "dependencies": [
+          "9",
+          "14"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "16",
+        "title": "Open Graph y Twitter Cards",
+        "description": "Metadata social completa en páginas públicas, og:url coincide con canonical, og:image apunta a asset real 1200x630.",
+        "details": "COMPLETADO (seo-mea-fase2, tarea 9... realmente completado en la sesión del 2026-09-16): public/og-image.png generado del logo real + colores de marca, OG_IMAGE en lib/structured-data.ts, usado en todas las páginas (home, cursos, planes, clases-en-vivo, curso/[slug], lección). twitter:card = summary_large_image en todas. Verificado en vivo.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "4",
+          "5"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "17",
+        "title": "Corregir jerarquía H1-H3 en todo el sitio",
+        "description": "Un solo H1 por página indexable, headings semánticos, sin saltos de nivel ni headings usados solo por estilo.",
+        "details": "PARCIALMENTE completado. Home: confirmado 1 solo H1 en vivo (el segundo H1 de Feature108 se cambió a H2). Cursos/lecciones: confirmado 1 H1 en las páginas verificadas puntualmente. FALTA: una pasada exhaustiva verificando conteo de H1 en TODAS las páginas indexables (/planes, /clases-en-vivo, /cursos, las 7 de curso, muestra amplia de lecciones) en una sola corrida, no solo las verificadas ad-hoc.",
+        "testStrategy": "Usar el script de TASK-002 (o un fetch+regex puntual) contra todas las rutas indexables y confirmar recuento de <h1> == 1 en cada una.",
+        "priority": "high",
+        "dependencies": [
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "18",
+        "title": "Mejorar contenido de páginas de cursos",
+        "description": "Cada curso explica público objetivo, nivel, objetivos, temario, modalidad, duración, certificación y CTA, con información real.",
+        "details": "COMPLETADO (seo-mea-fase2, tarea 2): introducción real de 300-600 palabras en las 7 páginas de curso (lib/curso-intro.ts + app/cursos/[slug]/page.tsx), usando datos reales del currículum (temas, niveles, cantidad de lecciones), sin inventar duración fija ni certificación no confirmada. Verificado: 325-340 palabras en cada una, en vivo.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "5"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "19",
+        "title": "Corregir inconsistencias de claims",
+        "description": "Localizar y resolver contradicciones en cifras de estudiantes, satisfacción, países, certificaciones y resultados.",
+        "details": "COMPLETADO: cifra de estudiantes unificada en 200 (confirmada por el propietario 2026-09-15); claim de descuento en /planes confirmado real (30% a 12 meses, verificado contra la API real de precios); testimonios confirmados auténticos por el propietario (fotos siguen siendo stock, documentado); dirección física corregida en la Política de Privacidad (Mixco, coincide con footer/JSON-LD); contador '7 estudiantes se inscribieron' reemplazado por un contador dinámico 4-10 (decisión explícita del propietario, documentado como patrón de marketing no como dato real).",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "20",
+        "title": "Optimizar imágenes de la home",
+        "description": "Dimensiones en imágenes críticas, lazy loading bajo el viewport, solo precarga del recurso crítico, alt descriptivo.",
+        "details": "COMPLETADO (seo-mea, tarea 11 + fix adicional post-deploy): width/height + loading=\"lazy\" en avatares de testimonios, avatares de hero, logo de footer, e imágenes de Feature108. Precarga verificada en vivo: solo se precarga /mea logo.svg (el next/image con priority del navbar), ya no los 5 avatares randomuser.me ni la foto de Unsplash.",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "21",
+        "title": "Reducir HTML y datos repetidos de la home",
+        "description": "Reducir el tamaño del HTML de la home y la repetición de testimonios/assets, documentando tamaño antes/después.",
+        "details": "PARCIALMENTE completado. Se redujo la precarga innecesaria (TASK-020), pero no se midió ni redujo explícitamente el tamaño total del HTML (~1.1 MB reportado en la auditoría) ni se evaluó reducir la cantidad de testimonios repetidos en el carrusel (9 testimonios x 2 repeticiones = 18 renders). Falta: medir el tamaño real actual del HTML de home, decidir si reducir repeticiones del carrusel de testimonios sin degradar el efecto visual, y documentar antes/después.",
+        "testStrategy": "curl -s https://www.mea.edu.gt/ | wc -c antes y después del cambio; confirmar que el carrusel de testimonios sigue funcionando visualmente.",
+        "priority": "medium",
+        "dependencies": [
+          "20"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "22",
+        "title": "Revisar Core Web Vitals (Lighthouse)",
+        "description": "Ejecutar Lighthouse móvil y escritorio sobre el sitio en producción, documentar LCP/INP/CLS, corregir regresiones evidentes.",
+        "details": "NO REALIZADO todavía — nunca se corrió Lighthouse durante las fases anteriores, solo se validó estructura HTML/metadata. Ejecutar auditoría Lighthouse (disponible vía herramienta MCP mcp__plugin_ecc_chrome-devtools__lighthouse_audit, o `npx lighthouse` si se prueba localmente) contra www.mea.edu.gt en modo móvil y escritorio para home, /cursos, /planes y una página de curso/lección de muestra.",
+        "testStrategy": "Documentar puntajes de Performance/Accessibility/Best Practices/SEO y las métricas LCP/INP/CLS reales; si hay regresiones claras (ej. CLS por imagen sin dimensiones), corregirlas.",
+        "priority": "medium",
+        "dependencies": [
+          "20",
+          "21"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "23",
+        "title": "Mapa de keywords y URLs",
+        "description": "Documento formal que asigna cada keyword objetivo principal a una URL, evitando canibalización entre páginas.",
+        "details": "NO REALIZADO como entregable formal. Existe targeting implícito en los title/description de cada página (ya alineados con varias de estas keywords), pero no un documento explícito de mapeo keyword→URL. Crear .taskmaster/docs/seo-mapa-keywords.md con: 'clases de inglés online Guatemala'→/, 'academia de inglés online Guatemala'→/, 'clases de inglés personalizadas'→/planes o pendiente de landing (TASK-024), 'inglés para call center Guatemala'→/cursos/call-center, 'inglés para trabajo'→/cursos/oficina o pendiente de landing, 'inglés para adultos'→pendiente de landing, 'inglés de oficina'→/cursos/oficina. Documentar también keywords secundarias por las 7 páginas de curso ya cubiertas.",
+        "testStrategy": "Revisión manual: cada keyword principal listada tiene una URL objetivo asignada y no hay dos URLs indexables compitiendo por la misma keyword principal sin justificación.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "24",
+        "title": "Crear landings comerciales faltantes",
+        "description": "Crear /clases-de-ingles-online-guatemala, /clases-de-ingles-personalizadas, /ingles-para-call-center-guatemala, /ingles-para-trabajo, /ingles-para-adultos solo con contenido oficial suficiente y único.",
+        "details": "DIFERIDO — misma decisión que seo-mea-fase2 tarea 5, reconfirmada por el propietario el 2026-09-17: no hay contenido real distinto al ya existente en /cursos/*. No crear páginas duplicadas cambiando solo la keyword. Retomar cuando el propietario provea contenido/casos de uso específicos por audiencia.",
+        "testStrategy": "N/A — diferido.",
+        "priority": "medium",
+        "dependencies": [
+          "23"
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": "25",
+        "title": "Revisar señales de SEO local",
+        "description": "Determinar si MEA tiene sede física o solo servicio online, unificar teléfono/email/nombre, evaluar Google Business Profile, sin inventar dirección.",
+        "details": "COMPLETADO (seo-mea-fase2, tarea 7): MEA sí tiene dirección física real y verificada (Mixco, ya usada consistentemente en footer, Política de Privacidad y JSON-LD tras la corrección de TASK-019). organizationJsonLd() usa EducationalOrganization + areaServed:GT. Google Business Profile queda como acción del propietario fuera del repositorio (no ejecutable desde el código).",
+        "testStrategy": "N/A — ya verificado.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "26",
+        "title": "Revisar medición de conversiones orgánicas",
+        "description": "Confirmar o instalar analítica y trackear WhatsApp, teléfono, vista de curso/planes, checkout y registro.",
+        "details": "COMPLETADO (seo-mea-fase2, tarea 9): confirmado que no había analítica instalada; se eligió e instaló Vercel Web Analytics (vía CLI 'vercel project web-analytics', sin necesidad de nueva cuenta ni tocar CSP más de lo necesario). Eventos instrumentados con track(): click_whatsapp (8 instancias reales), click_llamada (2 instancias), registro_completado (OTP WhatsApp y correo), checkout_iniciado (depósito y coordinación WhatsApp). No se agregaron secretos al código.",
+        "testStrategy": "N/A — ya verificado (0 visitas al momento por tráfico bajo, pero el pipeline está confirmado funcional vía el endpoint de Vercel Web Analytics).",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Validación técnica completa",
+        "description": "Typecheck, lint, build, tests, HTML server-side, titles, descriptions, H1, canonicals, JSON-LD, OG/Twitter, robots, sitemap, status codes, redirecciones, links internos, responsive móvil.",
+        "details": "Ejecutar una pasada final consolidada una vez resueltas TASK-002, TASK-015, TASK-017, TASK-021, TASK-022, TASK-023: tsc --noEmit, npm run build, npm run lint (documentar que ~3070 errores de lint son deuda técnica preexistente no introducida por este trabajo — no bloquean), y correr el script de TASK-002 contra todas las rutas públicas.",
+        "testStrategy": "Build y typecheck en 0 errores; script de TASK-002 sin hallazgos críticos (title/description duplicados, canonical faltante, H1 != 1, JSON-LD roto); sitemap y robots correctos.",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "7",
+          "12",
+          "17",
+          "19",
+          "22"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "28",
+        "title": "Reporte SEO post-implementación",
+        "description": "Reporte con métricas antes/después, páginas cambiadas, decisiones de indexación, resultados de Lighthouse, errores pendientes, e instrucciones de monitoreo en Search Console.",
+        "details": "Crear .taskmaster/docs/seo-reporte-final.md una vez cerrada TASK-027, consolidando: resumen de cambios de seo-mea + seo-mea-fase2 + seo-mea-fase3, lista de archivos modificados, decisión de indexación de lecciones y su justificación, resultados de Lighthouse (TASK-022), claims que quedaron pendientes de confirmación, y pasos sugeridos para configurar/monitorear Google Search Console (fuera del repo, acción del propietario).",
+        "testStrategy": "El documento existe y cubre todos los puntos listados en 'details'.",
+        "priority": "medium",
+        "dependencies": [
+          "27"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-09-18T06:13:43.000Z",
+      "taskCount": 28,
+      "completedCount": 18,
+      "tags": [
+        "seo-mea-fase3"
       ]
     }
   }

@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
@@ -12,38 +12,9 @@ import {
   puedeEntrarAhora,
   GrupoConHorarios,
 } from "../lib/horario-clases";
+import { joinLimiter as rateLimitJoin } from "../middleware/rate-limit.middleware";
 
 const router = Router();
-
-const JOIN_MAX_POR_MINUTO = 10;
-const JOIN_WINDOW_MS = 60_000;
-const joinAttempts = new Map<number, { count: number; resetAt: number }>();
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of joinAttempts.entries()) {
-    if (entry.resetAt < now) joinAttempts.delete(key);
-  }
-}, 300_000);
-
-function rateLimitJoin(req: Request, res: Response, next: NextFunction): void {
-  const alumnoId = req.alumno!.alumnoId;
-  const now = Date.now();
-  const entry = joinAttempts.get(alumnoId);
-
-  if (!entry || entry.resetAt < now) {
-    joinAttempts.set(alumnoId, { count: 1, resetAt: now + JOIN_WINDOW_MS });
-    next();
-    return;
-  }
-
-  entry.count++;
-  if (entry.count > JOIN_MAX_POR_MINUTO) {
-    res.status(429).json({ error: "Demasiados intentos. Esperá un minuto." });
-    return;
-  }
-  next();
-}
 
 // GET /api/clases-en-vivo/horario — público. NUNCA incluye urlZoom.
 router.get("/horario", async (_req: Request, res: Response) => {

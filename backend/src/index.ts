@@ -29,6 +29,7 @@ import certificadosRouter from "./routes/certificados";
 import finanzasRouter from "./routes/finanzas";
 import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
+import { globalLimiter, securityAuthLimiter, webhookLimiter } from "./middleware/rate-limit.middleware";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
 import jarvisBridgeRouter from "./routes/jarvis-bridge";
@@ -61,7 +62,7 @@ app.use(
 app.use(cookieParser());
 
 // Twilio envía form-urlencoded — montar ANTES del json parser y del router Twilio
-app.use("/api/twilio/webhook", express.urlencoded({ extended: false }), twilioWebhookRouter);
+app.use("/api/twilio/webhook", webhookLimiter, express.urlencoded({ extended: false }), twilioWebhookRouter);
 
 // Capturar raw body para HMAC antes de parsear JSON
 app.use(
@@ -100,11 +101,13 @@ app.use("/api/inscripciones", inscripcionesRouter);
 app.use("/api/reportes", reportesRouter);
 app.use("/api/certificados", certificadosRouter);
 app.use("/api/finanzas", finanzasRouter);
-app.use("/api/marketing", marketingRouter);
+app.use("/api/marketing", globalLimiter, marketingRouter);
 // Bridge de solo lectura para JARVIS (token interno X-Jarvis-Token)
 app.use("/api/jarvis", jarvisBridgeRouter);
 
-// Security dashboard + backup (protected by X-Security-Key middleware)
+// Security dashboard + backup (protected by X-Security-Key middleware).
+// Solo cuentan los intentos fallidos con la clave, por IP (fuerza bruta).
+app.use(["/security", "/api/security", "/api/backup"], securityAuthLimiter);
 app.use(securityRouter);
 app.use(backupRouter);
 

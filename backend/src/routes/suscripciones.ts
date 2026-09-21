@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
 import multer from "multer";
 import prisma from "../lib/prisma";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
@@ -6,6 +6,7 @@ import { isRecurrenteConfigurado, crearCheckoutRecurrente } from "../lib/recurre
 import { subirComprobanteDeposito, isDriveConfigured } from "../lib/drive-comprobantes";
 import { log } from "../lib/logger";
 import { puedeSubirComprobante } from "../lib/pago-estado";
+import { checkoutLimiter as rateLimitCheckout, uploadLimiter } from "../middleware/rate-limit.middleware";
 
 const router = Router();
 
@@ -21,36 +22,6 @@ const CUENTA_DEPOSITO = {
 function mesActual(): string {
   const ahora = new Date();
   return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
-}
-
-const CHECKOUT_MAX_POR_MINUTO = 5;
-const CHECKOUT_WINDOW_MS = 60_000;
-const checkoutAttempts = new Map<number, { count: number; resetAt: number }>();
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of checkoutAttempts.entries()) {
-    if (entry.resetAt < now) checkoutAttempts.delete(key);
-  }
-}, 300_000);
-
-function rateLimitCheckout(req: Request, res: Response, next: NextFunction): void {
-  const alumnoId = req.alumno!.alumnoId;
-  const now = Date.now();
-  const entry = checkoutAttempts.get(alumnoId);
-
-  if (!entry || entry.resetAt < now) {
-    checkoutAttempts.set(alumnoId, { count: 1, resetAt: now + CHECKOUT_WINDOW_MS });
-    next();
-    return;
-  }
-
-  entry.count++;
-  if (entry.count > CHECKOUT_MAX_POR_MINUTO) {
-    res.status(429).json({ error: "Demasiados intentos de checkout. Esperá un minuto." });
-    return;
-  }
-  next();
 }
 
 // POST /api/suscripciones/checkout — crea suscripción PENDIENTE y devuelve link de pago
@@ -200,6 +171,7 @@ router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: 
 router.post(
   "/pagos/:pagoId/comprobante",
   verifyAlumnoJWT,
+  uploadLimiter,
   upload.single("file"),
   async (req: Request, res: Response) => {
     if (!isDriveConfigured()) {

@@ -7,6 +7,7 @@ import { buildScanResult } from "../security-agent/reporter";
 import { saveResult, getLatest, getHistory, markResolved } from "../security-agent/storage";
 import { sendSecurityEmail } from "../security-agent/emailer";
 import { securityKeyMiddleware } from "../security-agent/middleware";
+import { scanLimiter } from "../middleware/rate-limit.middleware";
 import { log } from "../lib/logger";
 
 const router = Router();
@@ -37,7 +38,7 @@ router.get("/security/assets/app.js", (_req, res) => {
 
 // ── Scan endpoints ─────────────────────────────────────────────────────────────
 
-router.post("/api/security/scan", securityKeyMiddleware, async (_req, res) => {
+router.post("/api/security/scan", securityKeyMiddleware, scanLimiter, async (_req, res) => {
   const scanId = randomUUID();
   scanStates.set(scanId, { status: "PENDING" });
   res.json({ scan_id: scanId, status: "PENDING" });

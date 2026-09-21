@@ -3,6 +3,8 @@ import { dumpDatabase } from "./dumper";
 import { uploadToDrive } from "./uploader";
 import { cleanupOldBackups } from "./cleaner";
 import { log } from "../lib/logger";
+import { stripControlChars } from "../lib/log-sanitize";
+import { isValidDriveId } from "../lib/drive-utils";
 import type { BackupResult } from "./types";
 
 let lastBackupResult: BackupResult | null = null;
@@ -53,7 +55,14 @@ export function startBackupScheduler(): void {
   const schedule = process.env.BACKUP_CRON_SCHEDULE ?? "0 2 * * *";
 
   if (!cron.validate(schedule)) {
-    log("error", `[Scheduler] Invalid BACKUP_CRON_SCHEDULE: "${schedule}" — scheduler not started`);
+    // The value comes from the environment: strip control characters so it cannot forge log lines
+    log("error", `[Scheduler] Invalid BACKUP_CRON_SCHEDULE: "${stripControlChars(schedule)}" — scheduler not started`);
+    return;
+  }
+
+  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  if (folderId && !isValidDriveId(folderId)) {
+    log("error", "[Scheduler] GOOGLE_DRIVE_BACKUP_FOLDER_ID has an invalid format — scheduler not started");
     return;
   }
 

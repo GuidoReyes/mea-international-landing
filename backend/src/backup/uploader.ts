@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { google } from "googleapis";
 import { log } from "../lib/logger";
 import { buildDriveClient } from "./drive-auth";
+import { buildBackupListQuery, isBackupFileName, requireDriveId } from "../lib/drive-utils";
 import type { UploadResult, DriveFile } from "./types";
 
 async function createFile(
@@ -9,7 +10,8 @@ async function createFile(
   filePath: string,
   fileName: string
 ): Promise<UploadResult> {
-  const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  const rawFolderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  const folderId = rawFolderId ? requireDriveId(rawFolderId, "GOOGLE_DRIVE_BACKUP_FOLDER_ID") : undefined;
   const fileSize = fs.statSync(filePath).size;
   const uploadType = fileSize > 5 * 1024 * 1024 ? "resumable" : "multipart";
 
@@ -56,18 +58,16 @@ export async function listDriveBackups(maxResults = 20): Promise<DriveFile[]> {
   const drive = buildDriveClient();
   const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
 
-  const query = folderId
-    ? `'${folderId}' in parents and trashed = false`
-    : "trashed = false";
-
   const response = await drive.files.list({
-    q: query,
+    q: buildBackupListQuery(folderId),
     fields: "files(id,name,size,createdTime,webViewLink)",
     orderBy: "createdTime desc",
     pageSize: maxResults,
   });
 
-  return (response.data.files ?? []).map((f) => ({
+  return (response.data.files ?? [])
+    .filter((f) => isBackupFileName(f.name ?? ""))
+    .map((f) => ({
     id: f.id!,
     name: f.name!,
     size: Number(f.size ?? 0),

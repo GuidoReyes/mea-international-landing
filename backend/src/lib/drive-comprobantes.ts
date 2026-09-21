@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { buildDriveClient, isDriveConfigured } from "../backup/drive-auth";
 import { log } from "./logger";
+import { escapeDriveQueryValue, requireDriveId } from "./drive-utils";
 
 const ROOT_FOLDER_NAME = "Pagos con depósito";
 
@@ -9,8 +10,11 @@ async function findOrCreateFolder(
   name: string,
   parentId: string
 ): Promise<string> {
-  const escaped = name.replace(/'/g, "\\'");
-  const query = `name = '${escaped}' and '${parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+  // The folder name is built from the student's own first/last name: escape backslashes too,
+  // otherwise a trailing "\" swallows the closing quote and lets them alter the query.
+  const escaped = escapeDriveQueryValue(name);
+  const safeParentId = requireDriveId(parentId, "ID de carpeta de Drive");
+  const query = `name = '${escaped}' and '${safeParentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
 
   const existing = await drive.files.list({ q: query, fields: "files(id)", pageSize: 1 });
   const found = existing.data.files?.[0]?.id;

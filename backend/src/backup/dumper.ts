@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { log } from "../lib/logger";
 import type { DumpResult, DbConnectionParams } from "./types";
@@ -17,34 +18,61 @@ function parseDatabaseUrl(url: string): DbConnectionParams {
   };
 }
 
-export async function dumpDatabase(): Promise<DumpResult> {
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) throw new Error("DATABASE_URL not set");
+/** Escapes a value for a double-quoted string in a MySQL option file. */
+export function escapeOptionValue(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
+}
 
-  const config = parseDatabaseUrl(dbUrl);
-  const backupDir = path.join(__dirname, "../../backups");
-  fs.mkdirSync(backupDir, { recursive: true });
+export function buildDefaultsFileContent(config: DbConnectionParams): string {
+  return [
+    "[client]",
+    `user=${config.user}`,
+    `password="${escapeOptionValue(config.password)}"`,
+    `host=${config.host}`,
+    `port=${config.port}`,
+    "",
+  ].join("\n");
+}
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const fileName = `${config.database}_${timestamp}.sql.gz`;
-  const filePath = path.join(backupDir, fileName);
+export function buildDumpArgs(defaultsFilePath: string, database: string): string[] {
+  // --defaults-extra-file must be the first option
+  return [
+    `--defaults-extra-file=${defaultsFilePath}`,
+    "--single-transaction",
+    "--quick",
+    "--routines",
+    "--triggers",
+    database,
+  ];
+}
+
+export interface DefaultsFile {
+  readonly filePath: string;
+  cleanup(): void;
+}
+
+/**
+ * Writes the credentials to a private temp file so the password never appears in the
+ * process arguments, which any local user can read with `ps`. The directory is created
+ * 0700 and the file 0600; call cleanup() in a finally block.
+ */
+export function createDefaultsFile(config: DbConnectionParams): DefaultsFile {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mea-dump-"));
+  const filePath = path.join(dir, "client.cnf");
+  fs.writeFileSync(filePath, buildDefaultsFileContent(config), { mode: 0o600 });
+  return { filePath, cleanup: () => fs.rmSync(dir, { recursive: true, force: true }) };
+}
+
+function runDump(args: string[], filePath: string, fileName: string): Promise<DumpResult> {
   const startTime = Date.now();
 
-  log("info", `[Dumper] Starting dump → ${fileName}`);
-
   return new Promise((resolve, reject) => {
-    const mysqldump = spawn("mysqldump", [
-      `-h${config.host}`,
-      `-P${config.port}`,
-      `-u${config.user}`,
-      `-p${config.password}`,
-      "--single-transaction",
-      "--quick",
-      "--routines",
-      "--triggers",
-      config.database,
-    ]);
-
+    const mysqldump = spawn("mysqldump", args);
     const gzip = spawn("gzip");
     const output = fs.createWriteStream(filePath);
 
@@ -76,4 +104,26 @@ export async function dumpDatabase(): Promise<DumpResult> {
 
     output.on("error", reject);
   });
+}
+
+export async function dumpDatabase(): Promise<DumpResult> {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) throw new Error("DATABASE_URL not set");
+
+  const config = parseDatabaseUrl(dbUrl);
+  const backupDir = path.join(__dirname, "../../backups");
+  fs.mkdirSync(backupDir, { recursive: true });
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const fileName = `${config.database}_${timestamp}.sql.gz`;
+  const filePath = path.join(backupDir, fileName);
+
+  log("info", `[Dumper] Starting dump → ${fileName}`);
+
+  const defaults = createDefaultsFile(config);
+  try {
+    return await runDump(buildDumpArgs(defaults.filePath, config.database), filePath, fileName);
+  } finally {
+    defaults.cleanup();
+  }
 }

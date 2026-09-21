@@ -12,10 +12,16 @@ import { log } from "../lib/logger";
 export function verifyTwilioSignature(req: Request, res: Response, next: NextFunction): void {
   const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-  // Skip verification in development when no token is configured
   if (!authToken) {
-    log("warn", "[Twilio] TWILIO_AUTH_TOKEN not set — skipping signature verification");
-    next();
+    // Only local development may run without a token. Anywhere else an unset token would
+    // leave the admin command channel open to the internet, so fail closed.
+    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+      log("warn", "[Twilio] TWILIO_AUTH_TOKEN not set — skipping signature verification (development only)");
+      next();
+      return;
+    }
+    log("error", "[Twilio] TWILIO_AUTH_TOKEN not set — rejecting webhook");
+    res.status(500).json({ error: "Server misconfiguration" });
     return;
   }
 

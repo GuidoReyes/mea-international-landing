@@ -4,6 +4,7 @@ import { log } from "../lib/logger";
 import { verificarFirmaWebhook, agregarMeses } from "../lib/recurrente";
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
+import { requireRawBody } from "../middleware/raw-body.middleware";
 
 const router = Router();
 
@@ -30,7 +31,7 @@ function extraerSuscripcionId(payload: WebhookRecurrente): number | null {
 }
 
 // POST /api/webhooks/recurrente
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", requireRawBody, async (req: Request, res: Response) => {
   const secret = process.env.RECURRENTE_WEBHOOK_SECRET;
   if (!secret) {
     log("error", "[WebhookRecurrente] RECURRENTE_WEBHOOK_SECRET no configurado");

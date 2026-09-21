@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { verifyMetaHmac } from "../middleware/hmac.middleware";
 import { safeEqual } from "../lib/safe-equal";
+import { normalizePhone } from "../lib/phone-utils";
+import { requireRawBody } from "../middleware/raw-body.middleware";
 import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
 import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
@@ -150,7 +152,7 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 // POST — recibir y procesar mensajes de WhatsApp
-router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Response) => {
+router.post("/", rateLimitWhatsApp, requireRawBody, verifyMetaHmac, async (req: Request, res: Response) => {
   // Responder 200 a Meta inmediatamente (requerido en <20s)
   res.status(200).send("OK");
 
@@ -159,7 +161,7 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
   if (!messages?.length) return;
 
   for (const msg of messages) {
-    const telefono = msg.from;
+    const telefono = normalizePhone(msg.from);
     const mask = maskPhone(telefono);
 
     // El asesor solo manda comandos de texto — un adjunto suyo no es un

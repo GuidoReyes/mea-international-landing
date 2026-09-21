@@ -36,8 +36,14 @@ export function verifyJWT(req: Request, res: Response, next: NextFunction): void
   }
 
   try {
-    const payload = jwt.verify(token, secret) as AdminPayload;
-    req.admin = payload;
+    const payload = jwt.verify(token, secret) as Partial<AdminPayload>;
+    // Los tokens de alumno se firman con el mismo JWT_SECRET ({alumnoId, email}):
+    // sin esta comprobación cualquier alumno con sesión entraría a las rutas de admin.
+    if (typeof payload.adminId !== "number") {
+      res.status(401).json({ error: "Token inválido o expirado" });
+      return;
+    }
+    req.admin = payload as AdminPayload;
     next();
   } catch {
     res.status(401).json({ error: "Token inválido o expirado" });

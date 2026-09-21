@@ -5,6 +5,7 @@ import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
 import { isRecurrenteConfigurado, crearCheckoutRecurrente } from "../lib/recurrente";
 import { subirComprobanteDeposito, isDriveConfigured } from "../lib/drive-comprobantes";
 import { log } from "../lib/logger";
+import { puedeSubirComprobante } from "../lib/pago-estado";
 
 const router = Router();
 
@@ -75,6 +76,11 @@ router.post("/checkout", verifyAlumnoJWT, rateLimitCheckout, async (req: Request
     res.status(404).json({ error: "Precio de plan no encontrado" });
     return;
   }
+  // PlanPrecio no tiene campo activo/publico: un precio en 0 no debe llegar al cobro
+  if (planPrecio.precioTotalCentavos <= 0) {
+    res.status(400).json({ error: "Este plan no tiene un precio válido" });
+    return;
+  }
 
   const alumno = await prisma.alumno.findUnique({ where: { id: req.alumno!.alumnoId } });
   if (!alumno || !alumno.activo) {
@@ -141,6 +147,11 @@ router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: 
   });
   if (!planPrecio) {
     res.status(404).json({ error: "Precio de plan no encontrado" });
+    return;
+  }
+  // PlanPrecio no tiene campo activo/publico: un precio en 0 no debe llegar al cobro
+  if (planPrecio.precioTotalCentavos <= 0) {
+    res.status(400).json({ error: "Este plan no tiene un precio válido" });
     return;
   }
 
@@ -216,6 +227,11 @@ router.post(
 
     if (!pago || pago.suscripcion.alumnoId !== req.alumno!.alumnoId) {
       res.status(404).json({ error: "Pago no encontrado" });
+      return;
+    }
+
+    if (!puedeSubirComprobante(pago.estado)) {
+      res.status(409).json({ error: "Este pago ya fue procesado y no admite más comprobantes" });
       return;
     }
 

@@ -1,5 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import { timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
+
+// Hashing gives both sides a fixed length, so the comparison is exact and constant-time
+// regardless of how long the provided key is (no padding tricks).
+function isValidKey(provided: string, expected: string): boolean {
+  const digest = (value: string): Buffer => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(provided), digest(expected));
+}
 
 export function securityKeyMiddleware(req: Request, res: Response, next: NextFunction): void {
   const expectedKey = process.env.SECURITY_DASHBOARD_SECRET;
@@ -16,16 +23,10 @@ export function securityKeyMiddleware(req: Request, res: Response, next: NextFun
     return;
   }
 
-  // Constant-time comparison to prevent timing attacks
-  try {
-    const a = Buffer.from(provided.padEnd(expectedKey.length));
-    const b = Buffer.from(expectedKey.padEnd(provided.length));
-    if (a.length === b.length && timingSafeEqual(a, b)) {
-      next();
-      return;
-    }
-  } catch {
-    // fall through to 403
+  // ?key=a&key=b arrives as an array; only a plain string can be a valid key
+  if (typeof provided === "string" && isValidKey(provided, expectedKey)) {
+    next();
+    return;
   }
 
   res.status(403).json({ error: "Invalid security key" });

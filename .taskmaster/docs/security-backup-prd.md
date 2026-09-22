@@ -116,7 +116,10 @@ NEVER invent vulnerabilities.
 
 ### 1.7 API Routes (security.routes.ts)
 
-All routes protected by X-Security-Key header or ?key= query param.
+All routes protected by X-Security-Key header (CLI/CI) or a `security_session` httpOnly
+cookie (browsers). Issued by `POST /api/security/login` (tarea 477, decisión D1). The
+`?key=` query param is no longer accepted — it leaked into browser history, logs and
+Referer headers (vuln_053).
 
 GET  /security                        Serve dashboard HTML
 GET  /security/assets/styles.css      Serve dashboard CSS
@@ -264,7 +267,7 @@ Phase 8 - Documentation and validation: SECURITY_AGENT.md, tsc --noEmit, verify 
 ## Success Criteria
 
 1. npx tsc --noEmit exits with 0 errors
-2. GET /security?key=SECRET loads dashboard HTML
+2. POST /api/security/login with X-Security-Key: SECRET sets the session cookie, then GET /security loads the dashboard HTML (superseded ?key=SECRET, tarea 477)
 3. POST /api/security/scan returns { scan_id, status: "PENDING" }
 4. GET /api/security/results returns ScanResult matching schema
 5. POST /api/security/email sends HTML email

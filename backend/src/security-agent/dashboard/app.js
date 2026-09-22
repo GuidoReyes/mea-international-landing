@@ -1,5 +1,6 @@
 /* ── Config ─────────────────────────────────────────────────────────────── */
-let SK = sessionStorage.getItem('sk') || new URLSearchParams(location.search).get('key') || '';
+// D1 (tarea 477): no hay clave en el cliente — la sesión vive en una cookie httpOnly
+// que este script nunca lee; el navegador la manda sola con cada fetch.
 let vulns = [], activeFilter = 'ALL', activeScanId = null, pollTimer = null, currentVulnId = null;
 
 /* ── Gauge constants ─────────────────────────────────────────────────────── */
@@ -76,23 +77,8 @@ function animateNum(el, from, to, ms) {
 /* ── Boot ───────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initGauge();
-
-  if (!SK) {
-    document.getElementById('keyGate').classList.remove('hidden');
-    document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitKey(); });
-    document.getElementById('keySubmit').addEventListener('click', submitKey);
-    return;
-  }
   boot();
 });
-
-function submitKey() {
-  SK = document.getElementById('keyInput').value.trim();
-  if (!SK) return;
-  sessionStorage.setItem('sk', SK);
-  document.getElementById('keyGate').classList.add('hidden');
-  boot();
-}
 
 function boot() {
   loadResults();
@@ -115,15 +101,28 @@ function bindEvents() {
   document.querySelectorAll('.f-btn').forEach(b => b.addEventListener('click', setFilter));
   document.querySelectorAll('.d-tab').forEach(b => b.addEventListener('click', switchDTab));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+  document.getElementById('vulnList').addEventListener('click', e => {
+    const card = e.target.closest('[data-vuln-id]');
+    if (card) openDrawer(card.dataset.vulnId);
+  });
+  document.getElementById('historyList').addEventListener('click', e => {
+    const row = e.target.closest('[data-hist-index]');
+    if (row) loadHistItem(Number(row.dataset.histIndex));
+  });
 }
 
 /* ── API ────────────────────────────────────────────────────────────────── */
 async function api(method, path, body) {
   const r = await fetch(path, {
     method,
-    headers: { 'X-Security-Key': SK, 'Content-Type': 'application/json' },
+    credentials: 'same-origin', // manda la cookie de sesión; no hay clave que leer en JS
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (r.status === 401 || r.status === 403) {
+    location.replace('/security/login');
+    throw new Error('Session expired');
+  }
   if (!r.ok) {
     const e = await r.json().catch(() => ({ error: r.statusText }));
     throw new Error(e.error || r.statusText);
@@ -257,7 +256,7 @@ function renderVulns() {
   }
 
   list.innerHTML = filtered.map(v => `
-    <div class="vuln-card ${v.resolved ? 'resolved' : ''}" onclick="openDrawer('${v.id}')">
+    <div class="vuln-card ${v.resolved ? 'resolved' : ''}" data-vuln-id="${esc(v.id)}">
       <div class="vuln-stripe stripe-${v.severity}"></div>
       <div class="vuln-inner">
         <div class="vuln-top">
@@ -291,7 +290,7 @@ function renderHistory(history) {
   if (!history.length) { list.innerHTML = ''; return; }
   list.innerHTML = history.map((h, i) => {
     const c = scoreColor(h.security_score);
-    return `<div class="hist-row" onclick="loadHistItem(${i})">
+    return `<div class="hist-row" data-hist-index="${i}">
       <span class="hist-score" style="color:${c}">${h.security_score}</span>
       <span class="hist-date">${new Date(h.timestamp).toLocaleDateString()}</span>
       <span class="hist-vulns">${h.vulnerabilities.length}v</span>

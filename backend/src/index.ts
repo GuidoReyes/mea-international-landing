@@ -30,6 +30,7 @@ import finanzasRouter from "./routes/finanzas";
 import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 import { globalLimiter, securityAuthLimiter, webhookLimiter } from "./middleware/rate-limit.middleware";
+import { dashboardHeaders } from "./security-agent/headers";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
 import jarvisBridgeRouter from "./routes/jarvis-bridge";
@@ -107,7 +108,7 @@ app.use("/api/jarvis", jarvisBridgeRouter);
 
 // Security dashboard + backup (protected by X-Security-Key middleware).
 // Solo cuentan los intentos fallidos con la clave, por IP (fuerza bruta).
-app.use(["/security", "/api/security", "/api/backup"], securityAuthLimiter);
+app.use(["/security", "/api/security", "/api/backup"], securityAuthLimiter, dashboardHeaders);
 app.use(securityRouter);
 app.use(backupRouter);
 

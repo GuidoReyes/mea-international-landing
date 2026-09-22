@@ -2769,17 +2769,16 @@
         "id": "83",
         "title": "End-to-End Testing and Validation",
         "description": "Perform comprehensive testing of both systems: run full scan, verify vulnerabilities detected, test email delivery, trigger backup, verify Drive upload, validate all success criteria",
-        "details": "Test checklist:\n\n1. TypeScript Compilation:\n   - Run: npx tsc --noEmit\n   - Verify: 0 errors\n\n2. Security Agent:\n   - Start server: npm run dev\n   - Access: GET /security?key=SECRET\n   - Verify: Dashboard HTML loads\n   - Trigger scan: POST /api/security/scan with X-Security-Key header\n   - Verify: Returns { scan_id, status: \"PENDING\" }\n   - Poll status: GET /api/security/status/:scan_id\n   - Verify: Progress updates, eventually COMPLETED\n   - Get results: GET /api/security/results\n   - Verify: Returns ScanResult matching schema with vulnerabilities array, security_score, scan_summary\n   - Send email: POST /api/security/email\n   - Verify: Email received with HTML template, score color correct, CRITICAL/HIGH vulns listed\n   - Test UI: Load dashboard, verify scan progress overlay, vulnerability cards, modal tabs, Mark Resolved\n\n3. Database Backup:\n   - Trigger: POST /api/backup/trigger with X-Security-Key\n   - Verify: .sql.gz file created in ./backups/\n   - Verify: File uploaded to Google Drive\n   - Verify: Local file deleted after upload\n   - Check Drive: GET /api/backup/history\n   - Verify: Returns array of Drive files with name, createdTime, webViewLink\n   - Check status: GET /api/backup/status\n   - Verify: Returns last backup metadata with success: true\n   - Test scheduler: Change BACKUP_CRON_SCHEDULE to \"* * * * *\" (every minute), wait 1 min, verify backup runs\n   - Test cleanup: Create 5 local backups, verify only 3 kept (BACKUP_LOCAL_KEEP_COUNT=3)\n\n4. Dashboard Backup Section:\n   - Verify last backup info displays\n   - Click Run Backup Now, verify triggers POST /api/backup/trigger\n   - Verify Drive history table populates\n   - Verify countdown timer counts down to next 2:00 AM\n\n5. Security:\n   - Test without X-Security-Key: Verify 403 Forbidden\n   - Test with invalid key: Verify 403\n   - Test with ?key= query param: Verify 200 OK\n\n6. Integration:\n   - Verify existing routes still work: GET /api/cursos, POST /api/auth/login\n   - Verify scheduler starts on boot (check logs)\n   - Verify .security-scans/ and ./backups/ in .gitignore\n\n7. Railway Compatibility:\n   - Deploy to Railway\n   - Verify mysqldump available (Railway MySQL buildpack includes it)\n   - Verify backups upload to Drive (local files ephemeral)\n   - Verify scheduler runs on deployed instance\n\nDocument any failures and fix before marking complete.",
-        "testStrategy": "Create detailed test report documenting each criterion with PASS/FAIL status, include screenshots of dashboard UI, email screenshot, Drive folder screenshot, logs showing scheduler execution, TypeScript compilation output, and API response examples for all endpoints",
-        "priority": "high",
+        "status": "in-progress",
         "dependencies": [
           "80",
           "81",
           "82"
         ],
-        "status": "in-progress",
-        "subtasks": [],
-        "updatedAt": "2026-07-12T20:47:33.602Z"
+        "priority": "high",
+        "details": "Test checklist:\n\n1. TypeScript Compilation:\n   - Run: npx tsc --noEmit\n   - Verify: 0 errors\n\n2. Security Agent:\n   - Start server: npm run dev\n   - Access: GET /security without session cookie\n   - Verify: Redirects to /security/login (not 403 direct)\n   - Test login flow:\n     * POST /api/security/login with X-Security-Key header (correct key)\n     * Verify: Returns 200 OK and sets httpOnly cookie 'security_session' (SameSite=Strict, Secure in production, 30 min TTL)\n     * POST /api/security/login with invalid key\n     * Verify: Returns 403 Forbidden, no cookie set\n   - Access: GET /security with valid session cookie\n   - Verify: Dashboard HTML loads (index.html)\n   - Test asset authentication (vuln_028 remediation):\n     * GET /security/assets/app.js without session cookie → 403 Forbidden\n     * GET /security/assets/styles.css without session cookie → 403 Forbidden\n     * GET /security/assets/app.js with valid session cookie → 200 OK\n     * GET /security/assets/styles.css with valid session cookie → 200 OK\n   - Trigger scan: POST /api/security/scan with X-Security-Key header (header auth still works for CLI/CI)\n   - Verify: Returns { scan_id, status: \"PENDING\" }\n   - Poll status: GET /api/security/status/:scan_id\n   - Verify: Progress updates, eventually COMPLETED\n   - Get results: GET /api/security/results\n   - Verify: Returns ScanResult matching schema with vulnerabilities array, security_score, scan_summary\n   - Send email: POST /api/security/email\n   - Verify: Email received with HTML template, score color correct, CRITICAL/HIGH vulns listed\n   - Test UI: Load dashboard, verify scan progress overlay, vulnerability cards, modal tabs, Mark Resolved\n\n3. Database Backup:\n   - Trigger: POST /api/backup/trigger with X-Security-Key\n   - Verify: .sql.gz file created in ./backups/\n   - Verify: File uploaded to Google Drive\n   - Verify: Local file deleted after upload\n   - Check Drive: GET /api/backup/history\n   - Verify: Returns array of Drive files with name, createdTime, webViewLink\n   - Check status: GET /api/backup/status\n   - Verify: Returns last backup metadata with success: true\n   - Test scheduler: Change BACKUP_CRON_SCHEDULE to \"* * * * *\" (every minute), wait 1 min, verify backup runs\n   - Test cleanup: Create 5 local backups, verify only 3 kept (BACKUP_LOCAL_KEEP_COUNT=3)\n\n4. Dashboard Backup Section:\n   - Verify last backup info displays\n   - Click Run Backup Now, verify triggers POST /api/backup/trigger\n   - Verify Drive history table populates\n   - Verify countdown timer counts down to next 2:00 AM\n\n5. Security (vuln_053 and authentication remediation - task 477, decision D1):\n   - Test query parameter rejection (vuln_053):\n     * GET /security?key=CORRECT_SECRET → Redirects to /security/login (query param NEVER accepted)\n     * POST /api/security/login?key=CORRECT_SECRET (no header) → 403 Forbidden\n   - Test session-based authentication:\n     * POST /api/security/login with X-Security-Key: CORRECT_SECRET → 200 OK, sets security_session cookie\n     * GET /security with valid session cookie → 200 OK, serves dashboard\n     * GET /security/assets/app.js with valid session cookie → 200 OK (previously public, vuln_028)\n     * GET /security/assets/styles.css with valid session cookie → 200 OK (previously public, vuln_028)\n   - Test header-based authentication (CLI/CI workflow):\n     * POST /api/security/scan with X-Security-Key header (no cookie) → 200 OK\n     * GET /api/security/results with X-Security-Key header (no cookie) → 200 OK\n   - Test unauthorized access:\n     * POST /api/security/scan without X-Security-Key or cookie → 403 Forbidden\n     * GET /api/security/results without authentication → 403 Forbidden\n     * GET /security/assets/app.js without session cookie → 403 Forbidden\n\n6. Integration:\n   - Verify existing routes still work: GET /api/cursos, POST /api/auth/login\n   - Verify scheduler starts on boot (check logs)\n   - Verify .security-scans/ and ./backups/ in .gitignore\n\n7. Railway Compatibility:\n   - Deploy to Railway\n   - Verify mysqldump available (Railway MySQL buildpack includes it)\n   - Verify backups upload to Drive (local files ephemeral)\n   - Verify scheduler runs on deployed instance\n\nDocument any failures and fix before marking complete.",
+        "testStrategy": "Create detailed test report documenting each criterion with PASS/FAIL status, include screenshots of dashboard UI (login page, authenticated dashboard), email screenshot, Drive folder screenshot, logs showing scheduler execution, TypeScript compilation output, API response examples for all endpoints, and cookie inspection showing security_session with correct attributes (httpOnly, SameSite=Strict, 30min maxAge)",
+        "subtasks": []
       },
       {
         "id": "84",
@@ -7686,8 +7685,9 @@
         "dependencies": [
           "474"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-22T03:21:24.365Z"
       },
       {
         "id": "478",
@@ -7831,9 +7831,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-22T00:42:15.549Z",
+      "lastModified": "2026-09-22T03:21:24.366Z",
       "taskCount": 487,
-      "completedCount": 391,
+      "completedCount": 392,
       "tags": [
         "master"
       ]

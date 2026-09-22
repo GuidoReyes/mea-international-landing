@@ -6,7 +6,10 @@ import { analyzeChunks } from "../security-agent/analyzer";
 import { buildScanResult } from "../security-agent/reporter";
 import { saveResult, getLatest, getHistory, markResolved, isValidVulnId } from "../security-agent/storage";
 import { sendSecurityEmail } from "../security-agent/emailer";
-import { securityKeyMiddleware } from "../security-agent/middleware";
+import type { Request, Response } from "express";
+import { authorize, securityKeyMiddleware } from "../security-agent/middleware";
+import { SESSION_COOKIE, createSessionToken, sessionCookieOptions } from "../security-agent/session";
+import { safeEqual } from "../lib/safe-equal";
 import { scanLimiter } from "../middleware/rate-limit.middleware";
 import { log } from "../lib/logger";
 
@@ -21,18 +24,48 @@ interface ScanState {
 const scanStates = new Map<string, ScanState>();
 
 // ── Dashboard assets ──────────────────────────────────────────────────────────
+// D1 (tarea 477): la clave nunca se acepta en la URL (vuln_053) y los assets ya no son
+// públicos (vuln_028). Los navegadores no pueden mandar X-Security-Key al cargar un
+// <script>, así que el acceso es por cookie de sesión, emitida por /api/security/login.
 
 const DASHBOARD_DIR = path.join(__dirname, "../security-agent/dashboard");
 
-router.get("/security", securityKeyMiddleware, (_req, res) => {
+export function dashboardPage(req: Request, res: Response): void {
+  if (authorize(req) !== "ok") {
+    res.redirect("/security/login");
+    return;
+  }
   res.sendFile(path.join(DASHBOARD_DIR, "index.html"));
-});
+}
 
-router.get("/security/assets/styles.css", (_req, res) => {
+export function loginHandler(req: Request, res: Response): void {
+  const secret = process.env.SECURITY_DASHBOARD_SECRET;
+  if (!secret) {
+    res.status(500).json({ error: "SECURITY_DASHBOARD_SECRET not configured" });
+    return;
+  }
+
+  // Solo el header cuenta como intento de login: la query nunca es una fuente válida de clave
+  const provided = req.headers["x-security-key"];
+  if (typeof provided !== "string" || !safeEqual(provided, secret)) {
+    res.status(403).json({ error: "Invalid security key" });
+    return;
+  }
+
+  res.cookie(SESSION_COOKIE, createSessionToken(secret), sessionCookieOptions());
+  res.json({ ok: true });
+}
+
+router.get("/security", dashboardPage);
+router.get("/security/login", (_req, res) => res.sendFile(path.join(DASHBOARD_DIR, "login.html")));
+router.get("/security/login.js", (_req, res) => res.sendFile(path.join(DASHBOARD_DIR, "login.js")));
+router.post("/api/security/login", loginHandler); // securityAuthLimiter ya está montado en index.ts sobre /api/security
+
+router.get("/security/assets/styles.css", securityKeyMiddleware, (_req, res) => {
   res.sendFile(path.join(DASHBOARD_DIR, "styles.css"));
 });
 
-router.get("/security/assets/app.js", (_req, res) => {
+router.get("/security/assets/app.js", securityKeyMiddleware, (_req, res) => {
   res.sendFile(path.join(DASHBOARD_DIR, "app.js"));
 });
 

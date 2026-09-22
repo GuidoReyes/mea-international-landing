@@ -49,7 +49,8 @@ const CASES: readonly Case[] = [
   { name: "clave inválida (header)", headers: { "x-security-key": "wrong" }, query: {}, expectPass: false, expectStatus: 403 },
   { name: "clave inválida (query)", headers: {}, query: { key: "wrong" }, expectPass: false, expectStatus: 403 },
   { name: "clave válida (header)", headers: { "x-security-key": SECRET }, query: {}, expectPass: true, expectStatus: null },
-  { name: "clave válida (query)", headers: {}, query: { key: SECRET }, expectPass: true, expectStatus: null },
+  // D1 (tarea 477): la clave ya no se acepta en la URL, ni siquiera siendo correcta
+  { name: "clave correcta por ?key= se rechaza", headers: {}, query: { key: SECRET }, expectPass: false, expectStatus: 403 },
   { name: "clave + espacios finales (header)", headers: { "x-security-key": `${SECRET}   ` }, query: {}, expectPass: false, expectStatus: 403 },
   { name: "clave + espacios finales (query)", headers: {}, query: { key: `${SECRET}   ` }, expectPass: false, expectStatus: 403 },
   { name: "prefijo de la clave", headers: { "x-security-key": SECRET.slice(0, 8) }, query: {}, expectPass: false, expectStatus: 403 },

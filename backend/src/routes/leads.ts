@@ -12,6 +12,10 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   const limit = Math.min(100, parseInt(req.query.limit as string) || 10);
   const skip = (page - 1) * limit;
   const estado = req.query.estado as string | undefined;
+  if (estado !== undefined && !(ESTADOS_VALIDOS as readonly string[]).includes(estado)) {
+    res.status(400).json({ error: `Estado inválido. Valores: ${ESTADOS_VALIDOS.join(", ")}` });
+    return;
+  }
 
   const where = estado ? { estado } : {};
 
@@ -29,8 +33,14 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   res.json({ data: leads, meta: { total, page, limit } });
 });
 
-function escapeCsv(value: unknown): string {
-  const str = value == null ? "" : String(value);
+// Excel/Sheets tratan una celda que empieza con = + - @ (o tab/CR) como fórmula al abrir
+// el CSV; anteponer una comilla simple neutraliza eso sin cambiar el valor visible
+// (vuln_022). Mitigación estándar de OWASP contra CSV/Formula Injection.
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+export function escapeCsv(value: unknown): string {
+  let str = value == null ? "" : String(value);
+  if (FORMULA_TRIGGER.test(str)) str = `'${str}`;
   if (str.includes(",") || str.includes('"') || str.includes("\n")) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -39,6 +49,10 @@ function escapeCsv(value: unknown): string {
 
 router.get("/export/csv", verifyJWT, auditLog("EXPORT_CSV", "leads"), async (req: Request, res: Response) => {
   const estado = req.query.estado as string | undefined;
+  if (estado !== undefined && !(ESTADOS_VALIDOS as readonly string[]).includes(estado)) {
+    res.status(400).json({ error: `Estado inválido. Valores: ${ESTADOS_VALIDOS.join(", ")}` });
+    return;
+  }
   const where = estado ? { estado } : {};
 
   const leads = await prisma.lead.findMany({

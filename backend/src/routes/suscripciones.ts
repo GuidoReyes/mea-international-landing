@@ -7,10 +7,12 @@ import { subirComprobanteDeposito, isDriveConfigured } from "../lib/drive-compro
 import { log } from "../lib/logger";
 import { puedeSubirComprobante } from "../lib/pago-estado";
 import { checkoutLimiter as rateLimitCheckout, uploadLimiter } from "../middleware/rate-limit.middleware";
+import { validateUpload } from "../lib/upload-utils";
 
 const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const COMPROBANTE_MIMES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 const CUENTA_DEPOSITO = {
   banco: "Banco Industrial",
@@ -207,10 +209,16 @@ router.post(
       return;
     }
 
+    const uploadCheck = validateUpload(req.file, COMPROBANTE_MIMES);
+    if (!uploadCheck.valid) {
+      res.status(400).json({ error: uploadCheck.error });
+      return;
+    }
+
     const { mesPagado } = req.body as { mesPagado?: string };
     const mes = mesPagado && /^\d{4}-\d{2}$/.test(mesPagado) ? mesPagado : mesActual();
     const alumno = pago.suscripcion.alumno;
-    const extension = req.file.originalname.split(".").pop() ?? "jpg";
+    const extension = uploadCheck.extension; // del MIME real, nunca del nombre del archivo
 
     try {
       const comprobante = await subirComprobanteDeposito({

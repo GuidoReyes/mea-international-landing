@@ -4,11 +4,18 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { validateUpload } from "../lib/upload-utils";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+const CSV_MIMES = ["text/csv", "application/vnd.ms-excel"];
 
 const ESTADOS_VALIDOS = ["ACTIVA", "COMPLETADA", "CANCELADA", "SUSPENDIDA"] as const;
+export const ESTADOS_INSCRIPCION_VALIDOS = ESTADOS_VALIDOS;
+
+export function isEstadoInscripcionValido(value: string | undefined): value is (typeof ESTADOS_VALIDOS)[number] {
+  return value !== undefined && (ESTADOS_VALIDOS as readonly string[]).includes(value);
+}
 
 const csvRowSchema = z.object({
   carnet_o_email: z.string().min(1),
@@ -24,6 +31,11 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   const skip = (page - 1) * limit;
 
   const { estado, alumnoId, edicionId } = req.query as Record<string, string | undefined>;
+
+  if (estado !== undefined && !isEstadoInscripcionValido(estado)) {
+    res.status(400).json({ error: `Estado inválido. Valores: ${ESTADOS_VALIDOS.join(", ")}` });
+    return;
+  }
 
   const where: Record<string, unknown> = {};
   if (estado) where.estado = estado;
@@ -104,6 +116,12 @@ router.post(
   async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ error: "Se requiere un archivo CSV" });
+      return;
+    }
+
+    const uploadCheck = validateUpload(req.file, CSV_MIMES);
+    if (!uploadCheck.valid) {
+      res.status(400).json({ error: uploadCheck.error });
       return;
     }
 
@@ -203,6 +221,9 @@ router.post(
   upload.single("file"),
   async (req: Request, res: Response) => {
     if (!req.file) { res.status(400).json({ error: "Se requiere un archivo CSV" }); return; }
+
+    const uploadCheck = validateUpload(req.file, CSV_MIMES);
+    if (!uploadCheck.valid) { res.status(400).json({ error: uploadCheck.error }); return; }
 
     const text    = req.file.buffer.toString("utf-8");
     const lines   = text.split(/\r?\n/).filter((l) => l.trim());

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
@@ -15,6 +16,42 @@ import {
 import { joinLimiter as rateLimitJoin } from "../middleware/rate-limit.middleware";
 
 const router = Router();
+
+// El link se muestra a los alumnos que entran a la clase: debe ser https y de zoom.us,
+// nunca un dominio que solo contenga "zoom.us" en el path o la query (vuln_015).
+export const urlZoomSchema = z
+  .string()
+  .url()
+  .refine((url) => {
+    try {
+      const { protocol, hostname } = new URL(url);
+      return protocol === "https:" && (hostname === "zoom.us" || hostname.endsWith(".zoom.us"));
+    } catch {
+      return false;
+    }
+  }, "urlZoom debe ser una URL https de zoom.us");
+
+const grupoBaseSchema = z.object({
+  nombre: z.string().min(1).optional(),
+  audiencia: z.string().min(1).optional(),
+  niveles: z.string().min(1).optional(),
+  descripcion: z.string().optional(),
+  profesor: z.string().optional(),
+  urlZoom: urlZoomSchema.optional(),
+  duracionMinutos: z.number().int().positive().optional(),
+});
+
+const createGrupoSchema = grupoBaseSchema.extend({
+  slug: z.string().min(1),
+  nombre: z.string().min(1),
+  audiencia: z.string().min(1),
+  niveles: z.string().min(1),
+  urlZoom: urlZoomSchema,
+});
+
+const updateGrupoSchema = grupoBaseSchema.extend({
+  activo: z.boolean().optional(),
+});
 
 // GET /api/clases-en-vivo/horario — público. NUNCA incluye urlZoom.
 router.get("/horario", async (_req: Request, res: Response) => {
@@ -120,25 +157,13 @@ router.post(
   verifyJWT,
   auditLog("CREAR_GRUPO_CLASE_EN_VIVO", "clases-en-vivo"),
   async (req: Request, res: Response) => {
-    const { slug, nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos } = req.body as {
-      slug?: string;
-      nombre?: string;
-      audiencia?: string;
-      niveles?: string;
-      descripcion?: string;
-      profesor?: string;
-      urlZoom?: string;
-      duracionMinutos?: number;
-    };
-
-    if (!slug || !nombre || !audiencia || !niveles || !urlZoom) {
-      res.status(400).json({ error: "Faltan campos requeridos: slug, nombre, audiencia, niveles, urlZoom" });
+    const parsed = createGrupoSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
 
-    const grupo = await prisma.grupoClaseEnVivo.create({
-      data: { slug, nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos },
-    });
+    const grupo = await prisma.grupoClaseEnVivo.create({ data: parsed.data });
     res.status(201).json(grupo);
   }
 );
@@ -154,20 +179,15 @@ router.patch(
       return;
     }
 
-    const { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo } = req.body as {
-      nombre?: string;
-      audiencia?: string;
-      niveles?: string;
-      descripcion?: string;
-      profesor?: string;
-      urlZoom?: string;
-      duracionMinutos?: number;
-      activo?: boolean;
-    };
+    const parsed = updateGrupoSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
+      return;
+    }
 
     const grupo = await prisma.grupoClaseEnVivo.update({
       where: { id },
-      data: { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo },
+      data: parsed.data,
     });
     res.json(grupo);
   }

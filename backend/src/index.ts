@@ -31,6 +31,7 @@ import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
 import { globalLimiter, securityAuthLimiter, webhookLimiter } from "./middleware/rate-limit.middleware";
 import { dashboardHeaders } from "./security-agent/headers";
+import { errorHandler } from "./middleware/error.middleware";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
 import jarvisBridgeRouter from "./routes/jarvis-bridge";
@@ -138,6 +139,10 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT ==
     }
   });
 }
+
+// Middleware de errores: SIEMPRE al final, después de todas las rutas. Express 5
+// reenvía aquí cualquier promesa rechazada de un handler async (vuln_024).
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   if (process.env.NODE_ENV !== "production") console.log(`MEA Backend corriendo en puerto ${PORT}`);

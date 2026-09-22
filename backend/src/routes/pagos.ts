@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { parseDateFilter } from "../lib/date-utils";
 
 const router = Router();
 
@@ -19,14 +20,21 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
 
   const { estado, moneda, metodo, fechaDesde, fechaHasta } = req.query as Record<string, string | undefined>;
 
+  const desde = parseDateFilter(fechaDesde);
+  const hasta = parseDateFilter(fechaHasta);
+  if (!desde.valid || !hasta.valid) {
+    res.status(400).json({ error: "fechaDesde/fechaHasta inválidas — usá formato ISO (YYYY-MM-DD)" });
+    return;
+  }
+
   const where: Record<string, unknown> = {};
   if (estado) where.estado = estado;
   if (moneda) where.moneda = moneda;
   if (metodo) where.metodo = metodo;
-  if (fechaDesde || fechaHasta) {
+  if (desde.date || hasta.date) {
     where.creadoEn = {
-      ...(fechaDesde ? { gte: new Date(fechaDesde) } : {}),
-      ...(fechaHasta ? { lte: new Date(fechaHasta) } : {}),
+      ...(desde.date ? { gte: desde.date } : {}),
+      ...(hasta.date ? { lte: hasta.date } : {}),
     };
   }
 

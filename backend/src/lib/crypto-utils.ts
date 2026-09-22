@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, randomInt, scryptSync } from "crypto";
 
 const PREFIX = "enc:v1:";
 const ALGORITHM = "aes-256-gcm";
@@ -14,6 +14,27 @@ function deriveKey(secret: string, salt: Buffer): Buffer {
 
 export function isEncrypted(payload: string): boolean {
   return payload.startsWith(PREFIX);
+}
+
+// A-Z, a-z, 0-9 y símbolos que no chocan con CSV, shells ni URLs (sin comillas, backtick,
+// backslash ni espacio). 70 caracteres: a longitud 12 da ~73.9 bits de entropía.
+const PASSWORD_CHARSET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+const MIN_PASSWORD_LENGTH = 12;
+
+/**
+ * Generates a password using crypto.randomInt (rejection sampling — no modulo bias),
+ * never Math.random(). Each position is drawn independently from PASSWORD_CHARSET.
+ */
+export function generateSecurePassword(length: number = MIN_PASSWORD_LENGTH): string {
+  if (!Number.isInteger(length) || length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`);
+  }
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += PASSWORD_CHARSET[randomInt(PASSWORD_CHARSET.length)];
+  }
+  return password;
 }
 
 /**

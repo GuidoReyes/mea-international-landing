@@ -7764,8 +7764,9 @@
         "testStrategy": "RED: Write tests measuring OTP response time variance (existing vs non-existing), password randomness distribution. GREEN: Implement crypto-based generation, constant-time OTP, feature flag. Verify timing variance <10ms, entropy sufficient. Coordinate frontend migration before removing flag. Run tsc --noEmit.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-22T04:51:07.504Z"
       },
       {
         "id": "484",
@@ -7831,9 +7832,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-22T03:21:24.366Z",
+      "lastModified": "2026-09-22T04:51:07.504Z",
       "taskCount": 487,
-      "completedCount": 392,
+      "completedCount": 393,
       "tags": [
         "master"
       ]

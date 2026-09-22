@@ -7,6 +7,7 @@ import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
 import { sendTemplateMessage } from "../lib/whatsapp-send";
 import { log } from "../lib/logger";
 import { alumnoLoginLimiter as rateLimitLogin } from "../middleware/rate-limit.middleware";
+import { verifyOtpCode } from "../lib/otp-utils";
 
 const router = Router();
 
@@ -269,7 +270,10 @@ router.post("/otp/verificar", rateLimitLogin, async (req: Request, res: Response
     orderBy: { creadoEn: "desc" },
   });
 
-  const valido = otp ? await bcrypt.compare(codigo, otp.codigoHash) : false;
+  // Siempre corre bcrypt.compare, exista o no el registro (vuln_013): un `otp ? compare() : false`
+  // resuelve casi al instante cuando no hay OTP pendiente, y ese tiempo distinto es
+  // suficiente para que alguien enumere números de teléfono con un OTP activo.
+  const valido = await verifyOtpCode(codigo, otp?.codigoHash);
   if (!otp || !valido) {
     res.status(401).json({ error: "Código incorrecto o vencido. Pedí uno nuevo." });
     return;

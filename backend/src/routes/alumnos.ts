@@ -5,6 +5,7 @@ import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
+import { generateSecurePassword } from "../lib/crypto-utils";
 
 const router = Router();
 
@@ -100,7 +101,7 @@ router.post("/", verifyJWT, auditLog("CREAR_ALUMNO", "alumnos"), async (req: Req
 
   const { nombre, apellido, email, whatsapp, pais, fechaNacimiento } = parsed.data;
   const carnet = await generarCarnet();
-  const tempPassword = Math.random().toString(36).slice(-10);
+  const tempPassword = generateSecurePassword();
   const password = await bcrypt.hash(tempPassword, 10);
 
   const alumno = await prisma.alumno.create({
@@ -134,7 +135,7 @@ router.post("/:id/reset-password", verifyJWT, auditLog("RESET_PASSWORD_ALUMNO", 
     return;
   }
 
-  const tempPassword = Math.random().toString(36).slice(-10);
+  const tempPassword = generateSecurePassword();
   const password = await bcrypt.hash(tempPassword, 10);
   await prisma.alumno.update({
     where: { id },

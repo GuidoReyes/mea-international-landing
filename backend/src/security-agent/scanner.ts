@@ -122,9 +122,30 @@ function buildChunks(scanPaths: string[]): { chunks: FileChunk[]; allFiles: File
   return { chunks, allFiles };
 }
 
+/**
+ * Resolves the scan paths against `baseDir` and rejects any that escape it (".." segments,
+ * absolute paths elsewhere, or symlinks pointing outside). SECURITY_SCAN_PATHS comes from the
+ * environment, and the scanned code is sent to an external API, so it must stay inside the project.
+ */
+export function resolveScanPaths(rawPaths: string[], baseDir: string): string[] {
+  const paths = rawPaths.map((p) => p.trim()).filter(Boolean);
+  if (paths.length === 0) throw new Error("SECURITY_SCAN_PATHS no contiene ninguna ruta");
+
+  const realBase = fs.realpathSync(baseDir);
+  return paths.map((p) => {
+    const resolved = path.resolve(realBase, p);
+    const real = fs.existsSync(resolved) ? fs.realpathSync(resolved) : resolved;
+    const relative = path.relative(realBase, real);
+    if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+      throw new Error(`SECURITY_SCAN_PATHS contiene una ruta fuera del proyecto: ${JSON.stringify(p)}`);
+    }
+    return real;
+  });
+}
+
 export function scanCodebase(customPaths?: string[]): { chunks: FileChunk[]; allFiles: FileMetadata[] } {
   const rawPaths = customPaths ?? (process.env.SECURITY_SCAN_PATHS ?? "./src").split(",");
-  const scanPaths = rawPaths.map((p) => p.trim()).filter(Boolean);
+  const scanPaths = resolveScanPaths(rawPaths, process.cwd());
   log("info", `[Scanner] Scanning paths: ${scanPaths.join(", ")}`);
   return buildChunks(scanPaths);
 }

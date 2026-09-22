@@ -213,8 +213,9 @@ curl https://api.mea.edu.gt/api/backup/status \
 
 ## Security Considerations
 
-- **Rotate `SECURITY_DASHBOARD_SECRET` immediately** if it was ever logged, shared, or committed. Generate a new one: `openssl rand -hex 32`.
+- **Rotate `SECURITY_DASHBOARD_SECRET` immediately** if it was ever logged, shared, or committed. Generate a new one: `openssl rand -hex 32`. **Rotating it makes the existing scan history unreadable**, because the history is encrypted with a key derived from this secret. The old file is kept aside as `history.json.unreadable-<timestamp>` (never overwritten) and a new history starts. There is no automatic re-encryption, so export what you need first with `GET /api/security/history` (it returns the history decrypted).
 - Use HTTPS in production (Railway provides it automatically on `.railway.app` and custom domains with cert).
 - Rotate the Google service account JSON key every 90 days: GCP Console → Service Accounts → Keys → Add Key, then delete the old one and update `GOOGLE_SERVICE_ACCOUNT_JSON`.
 - The dashboard key uses constant-time comparison (`timingSafeEqual`) to prevent timing attacks.
-- Scan results stored in `.security-scans/history.json` may contain file paths and vulnerability details — don't expose this directory publicly.
+- Scan results are stored in `.security-scans/history.json`, **encrypted with AES-256-GCM** (key derived from `SECURITY_DASHBOARD_SECRET` via scrypt) and written with `0600` permissions. A plaintext file from an older version is encrypted on the next save. The file holds file paths, code snippets and vulnerability details — don't expose this directory publicly.
+- Scanning is restricted to paths inside the project (`SECURITY_SCAN_PATHS` entries with `..`, absolute paths elsewhere or symlinks pointing outside are rejected). The audited code is sent to the Anthropic API wrapped in random-boundary markers and flagged as untrusted data, which reduces (but does not eliminate) prompt injection from the scanned code.

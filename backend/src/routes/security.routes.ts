@@ -4,7 +4,7 @@ import * as path from "path";
 import { scanCodebase } from "../security-agent/scanner";
 import { analyzeChunks } from "../security-agent/analyzer";
 import { buildScanResult } from "../security-agent/reporter";
-import { saveResult, getLatest, getHistory, markResolved } from "../security-agent/storage";
+import { saveResult, getLatest, getHistory, markResolved, isValidVulnId } from "../security-agent/storage";
 import { sendSecurityEmail } from "../security-agent/emailer";
 import { securityKeyMiddleware } from "../security-agent/middleware";
 import { scanLimiter } from "../middleware/rate-limit.middleware";
@@ -117,7 +117,12 @@ router.post("/api/security/email", securityKeyMiddleware, async (_req, res) => {
 });
 
 router.patch("/api/security/vuln/:id/resolve", securityKeyMiddleware, (req, res) => {
-  const success = markResolved(req.params["id"] as string);
+  const id = req.params["id"] as string;
+  if (!isValidVulnId(id)) {
+    res.status(400).json({ error: "Invalid vulnerability id" });
+    return;
+  }
+  const success = markResolved(id);
   if (!success) {
     res.status(404).json({ error: "Vulnerability not found" });
     return;

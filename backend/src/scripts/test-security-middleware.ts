@@ -3,10 +3,12 @@
  * Uso: node -r ts-node/register/transpile-only src/scripts/test-security-middleware.ts
  */
 import assert from "node:assert/strict";
+import { randomBytes } from "crypto";
 import type { Request, Response } from "express";
 import { securityKeyMiddleware } from "../security-agent/middleware";
 
-const SECRET = "test-secret-123";
+// Random per run: a hardcoded secret in a test file gets copied into real configs
+const SECRET = randomBytes(16).toString("hex");
 
 interface Outcome {
   readonly passed: boolean;
@@ -50,7 +52,7 @@ const CASES: readonly Case[] = [
   { name: "clave válida (query)", headers: {}, query: { key: SECRET }, expectPass: true, expectStatus: null },
   { name: "clave + espacios finales (header)", headers: { "x-security-key": `${SECRET}   ` }, query: {}, expectPass: false, expectStatus: 403 },
   { name: "clave + espacios finales (query)", headers: {}, query: { key: `${SECRET}   ` }, expectPass: false, expectStatus: 403 },
-  { name: "prefijo de la clave", headers: { "x-security-key": "test-secret" }, query: {}, expectPass: false, expectStatus: 403 },
+  { name: "prefijo de la clave", headers: { "x-security-key": SECRET.slice(0, 8) }, query: {}, expectPass: false, expectStatus: 403 },
   { name: "query como arreglo", headers: {}, query: { key: ["a", "b"] }, expectPass: false, expectStatus: 403 },
 ];
 

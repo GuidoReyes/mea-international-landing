@@ -5,6 +5,7 @@ import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { validateUpload } from "../lib/upload-utils";
+import { createWithUniqueRetry } from "../lib/retry-on-conflict";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -167,6 +168,13 @@ router.post(
           const edicion = await tx.edicion.findUnique({ where: { id: parseInt(edicion_id) } });
           if (!edicion) throw new Error(`Edición ${edicion_id} no encontrada`);
 
+          // Reimportar el mismo CSV no debe duplicar la inscripción (ni su pago) — el
+          // mismo chequeo que ya usa importar-historico (vuln_025).
+          const existente = await tx.inscripcion.findFirst({
+            where: { alumnoId: alumno.id, edicionId: edicion.id },
+          });
+          if (existente) throw new Error(`${carnet_o_email} ya tiene inscripción en edición ${edicion_id}`);
+
           const ins = await tx.inscripcion.create({
             data: { alumnoId: alumno.id, edicionId: edicion.id, estado: "ACTIVA" },
           });
@@ -265,9 +273,14 @@ router.post(
           // Buscar o crear alumno
           let alumno = await tx.alumno.findFirst({ where: { email } });
           if (!alumno) {
-            const count  = await tx.alumno.count({ where: { carnet: { startsWith: `MEA-${año}-` } } });
-            const carnet = `MEA-${año}-${String(count + 1).padStart(4, "0")}`;
-            alumno = await tx.alumno.create({ data: { carnet, nombre, apellido, email, whatsapp, activo: true } });
+            // count()+1 es racy entre filas de importaciones concurrentes; el índice
+            // UNIQUE de la BD ya rechaza el duplicado (P2002), createWithUniqueRetry solo
+            // recalcula el carnet y reintenta en vez de que la fila falle de una (vuln_027).
+            alumno = await createWithUniqueRetry(async () => {
+              const count  = await tx.alumno.count({ where: { carnet: { startsWith: `MEA-${año}-` } } });
+              const carnet = `MEA-${año}-${String(count + 1).padStart(4, "0")}`;
+              return tx.alumno.create({ data: { carnet, nombre, apellido, email, whatsapp, activo: true } });
+            }, "carnet");
           }
 
           // Verificar que la edición existe

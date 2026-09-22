@@ -6,6 +6,7 @@ import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
 import { generateSecurePassword } from "../lib/crypto-utils";
+import { createWithUniqueRetry } from "../lib/retry-on-conflict";
 
 const router = Router();
 
@@ -100,22 +101,31 @@ router.post("/", verifyJWT, auditLog("CREAR_ALUMNO", "alumnos"), async (req: Req
   }
 
   const { nombre, apellido, email, whatsapp, pais, fechaNacimiento } = parsed.data;
-  const carnet = await generarCarnet();
   const tempPassword = generateSecurePassword();
   const password = await bcrypt.hash(tempPassword, 10);
 
-  const alumno = await prisma.alumno.create({
-    data: {
-      carnet,
-      nombre,
-      apellido,
-      email,
-      whatsapp,
-      pais,
-      fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
-      password,
+  // generarCarnet() lee un count() y arma el siguiente número: dos creaciones casi
+  // simultáneas pueden leer el mismo count y proponer el mismo carnet. El índice
+  // UNIQUE de la BD (Alumno_carnet_key) ya rechaza el duplicado (P2002); acá solo se
+  // reintenta con un carnet recién generado en vez de devolver un 500 crudo (vuln_017).
+  const alumno = await createWithUniqueRetry(
+    async () => {
+      const carnet = await generarCarnet(); // recalculado en cada intento, no reutilizado
+      return prisma.alumno.create({
+        data: {
+          carnet,
+          nombre,
+          apellido,
+          email,
+          whatsapp,
+          pais,
+          fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento) : undefined,
+          password,
+        },
+      });
     },
-  });
+    "carnet"
+  );
 
   res.status(201).json({ ...alumno, tempPassword });
 });

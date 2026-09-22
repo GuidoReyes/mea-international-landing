@@ -7788,8 +7788,9 @@
         "testStrategy": "RED: Create tests simulating race condition (10 parallel alumno creates), duplicate CSV import. GREEN: Add constraints, implement retry logic, duplicate checking. Verify no duplicate carnets created, CSV import idempotent, P2002 handled gracefully. Run prisma migrate dev (after duplicate check). Run tsc --noEmit.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2026-09-22T19:24:39.261Z"
       },
       {
         "id": "486",
@@ -7833,7 +7834,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-22T16:36:33.121Z",
+      "lastModified": "2026-09-22T19:24:39.261Z",
       "taskCount": 487,
       "completedCount": 394,
       "tags": [

@@ -14,6 +14,7 @@ import { desactivarModoHumano } from "../lib/human-handoff";
 import { isAdvisorPhone, handleAdvisorMessage } from "../lib/advisor-commands";
 import { notifyAdvisorConversacion } from "../lib/advisor-notify";
 import { log } from "../lib/logger";
+import { maskPhone } from "../lib/log-sanitize";
 
 const router = Router();
 
@@ -46,10 +47,6 @@ interface MetaWebhookBody {
       value?: { messages?: MetaMessage[] };
     }>;
   }>;
-}
-
-function maskPhone(telefono: string) {
-  return `XXX-${telefono.slice(-4)}`;
 }
 
 // Imagen o documento (comprobante de pago, etc.): se descarga de Meta, se

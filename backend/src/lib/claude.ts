@@ -8,6 +8,7 @@ import { estaModoHumano, activarModoHumano } from "./human-handoff";
 import { sendTemplateMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
 import { detectIntent, notifyAdvisorIfNeeded } from "./advisor-notify";
+import { maskPhone } from "./log-sanitize";
 
 interface Message {
   role: "user" | "assistant";
@@ -122,7 +123,8 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
         const asesorPhone  = process.env.MIRCE_PERSONAL_PHONE;
         const adminTwilio  = process.env.ADMIN_TWILIO_WHATSAPP;
         const motivo       = parsed.motivo ?? "sin motivo";
-        const mask         = `XXX-${telefono.slice(-4)}`;
+        // vuln_001: usa el helper compartido en vez de reimplementar el enmascarado acá.
+        const mask         = maskPhone(telefono);
 
         // Persistir escalación en BD
         prisma.escalacionLog.create({

@@ -1,6 +1,7 @@
 import { sendWhatsAppMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
 import { log } from "./logger";
+import { maskPhone } from "./log-sanitize";
 
 export type AdvisorNotifIntent =
   | "clase_prueba"
@@ -82,7 +83,7 @@ export async function notifyAdvisorIfNeeded(
   const preview = mensaje.length > 80 ? `${mensaje.slice(0, 80)}…` : mensaje;
   const body = `${base}\n📱 +${telefono}\n💬 "${preview}"`;
 
-  log("info", `[AdvisorNotify] Intent=${intent} → notificando asesor (${telefono.slice(-4)})`);
+  log("info", `[AdvisorNotify] Intent=${intent} → notificando asesor (${maskPhone(telefono)})`);
 
   await notificarAsesorAmbosCanales(body);
 }

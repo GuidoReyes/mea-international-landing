@@ -6,6 +6,7 @@ import prisma from "../lib/prisma";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
 import { sendTemplateMessage } from "../lib/whatsapp-send";
 import { log } from "../lib/logger";
+import { maskPhone } from "../lib/log-sanitize";
 import { alumnoLoginLimiter as rateLimitLogin } from "../middleware/rate-limit.middleware";
 import { verifyOtpCode } from "../lib/otp-utils";
 
@@ -243,7 +244,8 @@ router.post("/otp/solicitar", rateLimitLogin, async (req: Request, res: Response
   const envio = await sendTemplateMessage(numero, template, [codigo]);
 
   if (!envio.success) {
-    log("error", `[AuthAlumno] No se pudo enviar OTP a ${numero}: ${envio.error ?? "sin detalle"}`);
+    // vuln_017: antes logueaba el número completo en el log de fallo.
+    log("error", `[AuthAlumno] No se pudo enviar OTP a ${maskPhone(numero)}: ${envio.error ?? "sin detalle"}`);
     res.status(502).json({ error: "No pudimos enviarte el código por WhatsApp. Verificá el número e intentá de nuevo." });
     return;
   }

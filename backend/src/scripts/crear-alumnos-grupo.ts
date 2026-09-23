@@ -248,7 +248,8 @@ async function main(): Promise<void> {
           .join(",")
       ),
     ].join("\n");
-    writeFileSync(outFile, csv, "utf8");
+    // 0600: solo el dueño del archivo puede leerlo — contiene contraseñas en texto plano (vuln_036)
+    writeFileSync(outFile, csv, { mode: 0o600, encoding: "utf8" });
     console.log(`\nCredenciales escritas en: ${outFile}`);
     console.log("⚠️  Contiene contraseñas en texto plano. Borralo después de repartirlas.");
   }

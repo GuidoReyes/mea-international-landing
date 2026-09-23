@@ -5,6 +5,7 @@ import { verifyJWT } from "../middleware/auth.middleware";
 import { getJSON, setJSON } from "../lib/redis";
 import { log } from "../lib/logger";
 import { generateCertificadoPdf, subirCertificadoPdf } from "../lib/certificado-pdf";
+import { certVerifyLimiter } from "../middleware/rate-limit.middleware";
 
 const router = Router();
 
@@ -94,7 +95,7 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
 });
 
 // GET /api/certificados/verify/:codigo — público, sin JWT
-router.get("/verify/:codigo", async (req: Request, res: Response) => {
+router.get("/verify/:codigo", certVerifyLimiter, async (req: Request, res: Response) => {
   const { codigo } = req.params as { codigo: string };
 
   const cacheKey = `cert:${codigo}`;

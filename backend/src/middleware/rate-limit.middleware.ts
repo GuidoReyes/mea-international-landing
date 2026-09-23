@@ -137,3 +137,25 @@ export const webhookLimiter = redisLimiter({
   limit: max("RATE_LIMIT_WEBHOOK_MAX", 100),
   message: "Demasiadas solicitudes.",
 });
+
+/** Verificación pública de certificados (vuln_020): sin JWT, por IP. El código
+ * tiene 64 bits de entropía (no es fuerza-bruteable en la práctica), pero sigue
+ * siendo el único endpoint de certificados sin límite — esto también corta el
+ * scraping/DoS trivial. */
+export const certVerifyLimiter = redisLimiter({
+  name: "cert-verify",
+  windowMs: MINUTE_MS,
+  limit: max("RATE_LIMIT_CERT_VERIFY_MAX", 20),
+  message: "Demasiadas verificaciones. Intentá de nuevo en un minuto.",
+});
+
+/** Reportes financieros (vuln_035): ya requieren SUPER_ADMIN, pero son consultas
+ * de agregación pesadas — un límite bajo por admin evita que un script con bug
+ * (o una cuenta comprometida) las machaque en loop. */
+export const financialReportsLimiter = redisLimiter({
+  name: "financial-reports",
+  windowMs: MINUTE_MS,
+  limit: max("RATE_LIMIT_FINANCIAL_REPORTS_MAX", 5),
+  message: "Demasiadas solicitudes de reportes. Esperá un minuto.",
+  keyGenerator: (req) => `admin:${req.admin?.adminId ?? ipKey(req)}`,
+});

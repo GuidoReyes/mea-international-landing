@@ -7998,8 +7998,9 @@
         "testStrategy": "Extend test-rate-limiting.ts: (1) Certificate verification: exceed limit → 429. (2) Financial reports: exceed limit → 429. (3) Valid requests within limit → 200. Verify ResilientStore fallback works if Redis unavailable.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T14:40:18.779Z"
       },
       {
         "id": "502",
@@ -8114,9 +8115,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T14:37:01.331Z",
+      "lastModified": "2026-09-23T14:40:18.780Z",
       "taskCount": 509,
-      "completedCount": 411,
+      "completedCount": 412,
       "tags": [
         "master"
       ]

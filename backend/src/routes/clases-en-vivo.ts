@@ -53,6 +53,14 @@ const updateGrupoSchema = grupoBaseSchema.extend({
   activo: z.boolean().optional(),
 });
 
+// vuln_021: antes solo se chequeaba que diaSemana y horaInicio vinieran presentes,
+// sin validar formato/rango — Prisma los persistía tal cual (ej. diaSemana: -1 o 99,
+// horaInicio: "no-es-una-hora"). Mismo rango que documenta el modelo HorarioClase.
+export const horarioSchema = z.object({
+  diaSemana: z.number().int().min(0).max(6),
+  horaInicio: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "horaInicio debe ser HH:mm (24h)"),
+});
+
 // GET /api/clases-en-vivo/horario — público. NUNCA incluye urlZoom.
 router.get("/horario", async (_req: Request, res: Response) => {
   const grupos = await prisma.grupoClaseEnVivo.findMany({
@@ -204,14 +212,14 @@ router.post(
       return;
     }
 
-    const { diaSemana, horaInicio } = req.body as { diaSemana?: number; horaInicio?: string };
-    if (diaSemana === undefined || !horaInicio) {
-      res.status(400).json({ error: "diaSemana y horaInicio requeridos" });
+    const parsed = horarioSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0]?.message ?? "diaSemana y horaInicio inválidos" });
       return;
     }
 
     const horario = await prisma.horarioClase.create({
-      data: { grupoId, diaSemana, horaInicio },
+      data: { grupoId, diaSemana: parsed.data.diaSemana, horaInicio: parsed.data.horaInicio },
     });
     res.status(201).json(horario);
   }

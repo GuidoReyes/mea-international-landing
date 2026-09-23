@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma";
 import redisClient, { getJSON, setJSON, COURSE_CACHE_TTL } from "../lib/redis";
 import { verifyJWT } from "../middleware/auth.middleware";
@@ -6,6 +7,19 @@ import { auditLog } from "../middleware/audit.middleware";
 
 const router = Router();
 const CACHE_KEY = "cursos:all";
+
+// vuln_027: nombre/descripcion/precio/modalidad/duracion solo se chequeaban con
+// `!campo` (rechaza vacío, pero no tipo ni rango) — precio negativo o un string
+// numérico ("100") pasaban derecho a Prisma.
+const cursoBaseSchema = z.object({
+  nombre: z.string().min(1),
+  descripcion: z.string().min(1),
+  precio: z.number().positive(),
+  modalidad: z.string().min(1),
+  duracion: z.string().min(1),
+});
+export const createCursoSchema = cursoBaseSchema;
+export const updateCursoSchema = cursoBaseSchema.partial().extend({ activo: z.boolean().optional() });
 
 async function invalidateCache() {
   try { await redisClient.del(CACHE_KEY); } catch { /* Redis unavailable, skip */ }
@@ -33,22 +47,13 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.post("/", verifyJWT, auditLog("CREAR_CURSO", "cursos"), async (req: Request, res: Response) => {
-  const { nombre, descripcion, precio, modalidad, duracion } = req.body as {
-    nombre?: string;
-    descripcion?: string;
-    precio?: number;
-    modalidad?: string;
-    duracion?: string;
-  };
-
-  if (!nombre || !descripcion || precio === undefined || !modalidad || !duracion) {
-    res.status(400).json({ error: "Faltan campos requeridos: nombre, descripcion, precio, modalidad, duracion" });
+  const parsed = createCursoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Datos inválidos" });
     return;
   }
 
-  const curso = await prisma.curso.create({
-    data: { nombre, descripcion, precio, modalidad, duracion },
-  });
+  const curso = await prisma.curso.create({ data: parsed.data });
 
   await invalidateCache();
   res.status(201).json(curso);
@@ -61,18 +66,15 @@ router.patch("/:id", verifyJWT, auditLog("ACTUALIZAR_CURSO", "cursos"), async (r
     return;
   }
 
-  const { nombre, descripcion, precio, modalidad, duracion, activo } = req.body as {
-    nombre?: string;
-    descripcion?: string;
-    precio?: number;
-    modalidad?: string;
-    duracion?: string;
-    activo?: boolean;
-  };
+  const parsed = updateCursoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Datos inválidos" });
+    return;
+  }
 
   const curso = await prisma.curso.update({
     where: { id },
-    data: { nombre, descripcion, precio, modalidad, duracion, activo },
+    data: parsed.data,
   });
 
   await invalidateCache();

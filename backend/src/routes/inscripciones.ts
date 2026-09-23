@@ -6,6 +6,7 @@ import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { validateUpload } from "../lib/upload-utils";
 import { createWithUniqueRetry } from "../lib/retry-on-conflict";
+import { parseCsvRows } from "../lib/csv-utils";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -127,14 +128,16 @@ router.post(
     }
 
     const text = req.file.buffer.toString("utf-8");
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    // vuln_025: parser real (RFC 4180) en vez de split(",") — un campo citado con
+    // coma (ej. "Pérez, Jr.") ya no desalinea las columnas siguientes.
+    const rows = parseCsvRows(text);
 
-    if (lines.length < 2) {
+    if (rows.length < 2) {
       res.status(400).json({ error: "CSV vacío o sin filas de datos" });
       return;
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers = rows[0].map((h) => h.trim().toLowerCase());
     const required = ["carnet_o_email", "edicion_id", "monto", "metodo"];
     const missing = required.filter((h) => !headers.includes(h));
     if (missing.length > 0) {
@@ -145,9 +148,9 @@ router.post(
     const exitosos: number[] = [];
     const errores: Array<{ row: number; error: string }> = [];
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = rows[i].map((v) => v.trim());
       const raw = Object.fromEntries(headers.map((h, idx) => [h, values[idx] ?? ""]));
 
       const parsed = csvRowSchema.safeParse(raw);
@@ -233,11 +236,12 @@ router.post(
     const uploadCheck = validateUpload(req.file, CSV_MIMES);
     if (!uploadCheck.valid) { res.status(400).json({ error: uploadCheck.error }); return; }
 
-    const text    = req.file.buffer.toString("utf-8");
-    const lines   = text.split(/\r?\n/).filter((l) => l.trim());
-    if (lines.length < 2) { res.status(400).json({ error: "CSV vacío o sin filas de datos" }); return; }
+    const text = req.file.buffer.toString("utf-8");
+    // vuln_025: mismo fix que importar-csv — parser real en vez de split(",").
+    const rows = parseCsvRows(text);
+    if (rows.length < 2) { res.status(400).json({ error: "CSV vacío o sin filas de datos" }); return; }
 
-    const headers  = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers  = rows[0].map((h) => h.trim().toLowerCase());
     const required = ["nombre","apellido","email","whatsapp","edicion_id","fecha_inicio_clases","monto_cuota","total_cuotas","cuotas_pagadas","metodo_pago"];
     const missing  = required.filter((h) => !headers.includes(h));
     if (missing.length) { res.status(400).json({ error: `Columnas faltantes: ${missing.join(", ")}` }); return; }
@@ -246,9 +250,9 @@ router.post(
     const errores:  Array<{ fila: number; error: string }> = [];
     const año = new Date().getFullYear();
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = rows[i].map((v) => v.trim());
       const raw    = Object.fromEntries(headers.map((h, idx) => [h, values[idx] ?? ""]));
 
       const parsed = csvHistoricoSchema.safeParse(raw);

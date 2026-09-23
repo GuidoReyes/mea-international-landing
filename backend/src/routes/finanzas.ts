@@ -7,11 +7,13 @@ import { auditLog } from "../middleware/audit.middleware";
 
 const router = Router();
 
+export const CATEGORIAS_EGRESO = ["SALARIO", "COMISION", "OPERATIVO", "MARKETING"] as const;
+
 const egresoSchema = z.object({
   concepto: z.string().min(1),
   monto: z.number().positive(),
   moneda: z.enum(["GTQ", "USD"]).default("GTQ"),
-  categoria: z.enum(["SALARIO", "COMISION", "OPERATIVO", "MARKETING"]),
+  categoria: z.enum(CATEGORIAS_EGRESO),
   fecha: z.string().datetime(),
   nota: z.string().optional(),
 });
@@ -23,6 +25,14 @@ router.get("/egresos", verifyJWT, async (req: Request, res: Response) => {
   const skip  = (page - 1) * limit;
   const categoria = req.query.categoria as string | undefined;
   const mes   = req.query.mes as string | undefined; // YYYY-MM
+
+  // vuln_023: categoria venía sin validar al where — un valor inválido no rompía
+  // nada (Prisma solo no matchea nada), pero fallar claro con 400 es más útil que
+  // devolver una lista vacía silenciosa.
+  if (categoria !== undefined && !(CATEGORIAS_EGRESO as readonly string[]).includes(categoria)) {
+    res.status(400).json({ error: `categoria inválida. Valores: ${CATEGORIAS_EGRESO.join(", ")}` });
+    return;
+  }
 
   const where: Record<string, unknown> = {};
   if (categoria) where.categoria = categoria;

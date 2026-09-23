@@ -7950,8 +7950,9 @@
         "testStrategy": "Write test-bot-security.ts: (1) With NODE_ENV=production and no flag, route returns 404. (2) With flag, invalid telefono/mensaje → 400 with Zod errors. (3) Valid input → 200. Verify no raw error messages leak in responses.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T12:40:09.078Z"
       },
       {
         "id": "498",
@@ -8110,9 +8111,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T03:17:35.361Z",
+      "lastModified": "2026-09-23T12:40:09.079Z",
       "taskCount": 509,
-      "completedCount": 407,
+      "completedCount": 408,
       "tags": [
         "master"
       ]

@@ -115,28 +115,28 @@ app.use(backupRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real.
 // Protegido con la key del security dashboard: envía WhatsApp REAL y gasta
-// tokens de Anthropic, así que aunque el flag quede activo por accidente
-// nadie sin la key puede usarlo.
-if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
+// tokens de Anthropic. Sin bandera de reactivación (vuln_002): solo depende de
+// NODE_ENV, no hay forma de forzarlo en producción con una variable mal puesta.
+if (process.env.NODE_ENV !== "production") {
   const { responderMensaje } = require("./lib/claude");
   const { guardarMensajes } = require("./lib/persistence");
   const { sendWhatsAppMessage } = require("./lib/whatsapp-send");
   const { securityKeyMiddleware } = require("./security-agent/middleware");
+  const { testBotInputSchema } = require("./lib/test-bot-validation");
 
   app.post("/api/test-bot", securityKeyMiddleware, async (req: Request, res: Response) => {
-    const { telefono, mensaje } = req.body as { telefono?: string; mensaje?: string };
-    if (!telefono || !mensaje) {
-      res.status(400).json({ error: "Se requiere telefono y mensaje" });
+    const parsed = testBotInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
-    try {
-      const respuesta = await responderMensaje(telefono, mensaje);
-      await guardarMensajes(telefono, mensaje, respuesta);
-      const sent = await sendWhatsAppMessage(telefono, respuesta);
-      res.json({ respuesta, enviado: sent.success, messageId: sent.messageId, error: sent.error });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
+    const { telefono, mensaje } = parsed.data;
+    // Sin try/catch: Express 5 reenvía la promesa rechazada a errorHandler
+    // (vuln_004 — antes se devolvía String(err) crudo al cliente).
+    const respuesta = await responderMensaje(telefono, mensaje);
+    await guardarMensajes(telefono, mensaje, respuesta);
+    const sent = await sendWhatsAppMessage(telefono, respuesta);
+    res.json({ respuesta, enviado: sent.success, messageId: sent.messageId, error: sent.error });
   });
 }
 

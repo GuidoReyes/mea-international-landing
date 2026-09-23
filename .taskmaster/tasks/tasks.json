@@ -8010,8 +8010,9 @@
         "testStrategy": "Write test-jarvis-bridge.ts: (1) JARVIS_BRIDGE_TOKEN with <32 chars → server startup fails or logs warning. (2) Valid token → server starts normally. (3) For vuln_031, document decision; if filtering added, test that conversation with mock credit card number → sanitized before external call.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T16:34:40.609Z"
       },
       {
         "id": "503",
@@ -8115,9 +8116,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T14:40:18.780Z",
+      "lastModified": "2026-09-23T16:34:40.610Z",
       "taskCount": 509,
-      "completedCount": 412,
+      "completedCount": 413,
       "tags": [
         "master"
       ]

@@ -10,10 +10,22 @@ import { estaModoHumano, tiempoRestanteHandoff } from "../lib/human-handoff";
 
 const router = Router();
 
+const MIN_TOKEN_LENGTH = 32;
+
+// vuln_030: antes solo se comprobaba que el token existiera, sin exigir un
+// largo mínimo — un JARVIS_BRIDGE_TOKEN corto pasaría la comparación
+// timing-safe igual, pero sería trivial de adivinar. Se valida en cada
+// request (no al importar el módulo): dotenv.config() en index.ts corre
+// después del import de este router, así que un chequeo a nivel de módulo
+// leería process.env antes de que .env se cargue.
+export function isValidBridgeToken(token: string | undefined): token is string {
+  return typeof token === "string" && token.length >= MIN_TOKEN_LENGTH;
+}
+
 function jarvisAuth(req: Request, res: Response, next: NextFunction): void {
   const expected = process.env.JARVIS_BRIDGE_TOKEN;
-  if (!expected) {
-    res.status(503).json({ error: "JARVIS_BRIDGE_TOKEN no configurado" });
+  if (!isValidBridgeToken(expected)) {
+    res.status(503).json({ error: "JARVIS_BRIDGE_TOKEN no configurado o demasiado corto" });
     return;
   }
   const provided = req.headers["x-jarvis-token"] as string | undefined;
@@ -76,6 +88,13 @@ router.get("/whatsapp/pending-humans", jarvisAuth, async (_req: Request, res: Re
 });
 
 // GET /api/jarvis/whatsapp/conversations?limit=10 — últimas conversaciones
+//
+// vuln_031 (riesgo aceptado, decisión del dueño del proyecto — ronda 2, tarea
+// #502): el contenido de los mensajes se manda sin filtrar patrones sensibles
+// (tarjetas, PINs). JARVIS necesita el texto real para resumir la conversación;
+// filtrarlo rompería esa funcionalidad sin una ganancia real de seguridad —
+// este es un bridge interno de solo lectura, ya protegido por jarvisAuth
+// (token + comparación timing-safe) y con el teléfono ya enmascarado.
 router.get("/whatsapp/conversations", jarvisAuth, async (req: Request, res: Response) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
 

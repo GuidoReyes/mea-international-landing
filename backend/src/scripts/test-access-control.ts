@@ -3,10 +3,14 @@
  * Uso: node -r ts-node/register/transpile-only src/scripts/test-access-control.ts
  */
 import assert from "node:assert/strict";
+import { randomBytes } from "crypto";
 import jwt from "jsonwebtoken";
 import type { Request, Response } from "express";
 
-process.env.JWT_SECRET = "test-jwt-secret";
+// Aleatorio por corrida: un secreto fijo en un archivo de prueba puede terminar
+// copiado a una config real (vuln_047 del re-scan).
+const TEST_JWT_SECRET = randomBytes(32).toString("hex");
+process.env.JWT_SECRET = TEST_JWT_SECRET;
 
 import { verifyJWT } from "../middleware/auth.middleware";
 import edicionesRouter from "../routes/ediciones";
@@ -42,7 +46,7 @@ function runVerifyJWT(authorization?: string): { passed: boolean; status: number
   return { passed, status };
 }
 
-const sign = (payload: object, secret = "test-jwt-secret"): string => `Bearer ${jwt.sign(payload, secret)}`;
+const sign = (payload: object, secret = TEST_JWT_SECRET): string => `Bearer ${jwt.sign(payload, secret)}`;
 
 check("verifyJWT acepta un token de admin", () => {
   const out = runVerifyJWT(sign({ adminId: 1, email: "a@b.c", rol: "ADMIN" }));

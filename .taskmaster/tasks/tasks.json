@@ -7833,16 +7833,276 @@
         "testStrategy": "✓ Compiled backend and root with 0 errors. ✓ Ran all 12+ test scripts - all passed. ✓ Manual smoke test of public routes. ✓ Obtained re-scan authorization. ✓ Executed re-scan (6ef109d5) and compared results. ✓ Created complete 60-item tracking table with status, evidence, and justification for each. ✓ Verified all 60 original vulnerabilities closed: 51 Fixed, 6 False Positive, 1 Accepted Risk. ✓ Confirmed 0 regression from original 13 HIGH. PARTIAL: Re-scan found 13 new HIGH (11 out of scope, 1 fixed immediately, 1 Accepted Risk) and achieved score 69 vs target 80. Decision needed on out-of-scope findings before marking complete.",
         "subtasks": [],
         "updatedAt": "2026-09-23T02:53:15.793Z"
+      },
+      {
+        "id": 488,
+        "title": "Fix IDOR in certificados-online.ts (vuln_016)",
+        "description": "Add authorization control to urlPdf endpoint in certificados-online.ts:47",
+        "details": "Verify if vuln_016 (urlPdf at certificados-online.ts:47) requires authentication or if certificate codes are sufficiently random. First, read backend/src/routes/certificados-online.ts and backend/src/lib/certificados-online.ts to understand current implementation. Check the Certificado model in schema.prisma to assess randomness of certificate codes. If codes are predictable, add verifyJWT middleware. If codes are cryptographically secure (e.g., UUID v4), document as Accepted Risk with justification that the URL design relies on unguessable tokens. Implementation: Import verifyJWT from middleware/auth.middleware.ts and apply to the route if needed. Test: Create test in backend/src/scripts/test-access-control.ts that attempts access with/without valid session.",
+        "testStrategy": "RED→GREEN: Write test-certificados-online.ts that verifies unauthorized access returns 403/404 when auth is required, or document that certificate codes provide sufficient security. Generate test JWT with crypto.randomBytes, never hardcoded. Verify 200 response for authorized requests.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 489,
+        "title": "Fix IDOR in certificados.ts GET endpoint (vuln_018)",
+        "description": "Add requireRole or ownership filter to certificados.ts:22",
+        "details": "Read backend/src/routes/certificados.ts:22 to verify the hallazgo. Apply requireRole('SUPER_ADMIN') or requireRole('ADMIN') if the endpoint is admin-only, following the pattern from reportes.ts. If the endpoint should be accessible by students who own the certificate, add a filter by alumnoId from the JWT token (similar to inscripciones.ts ownership pattern from task #482). Check app/admin/** to ensure no frontend code depends on the current unrestricted behavior. Implementation: Import { verifyJWT, requireRole } from '../middleware/auth.middleware', apply middleware chain [verifyJWT, requireRole('ADMIN')] or add WHERE alumnoId = req.admin.alumnoId filter.",
+        "testStrategy": "Write test in test-access-control.ts: (1) user without admin role → 403, (2) admin user → 200, (3) if ownership-based, student accessing another's certificate → 404, own certificate → 200. Use crypto.randomBytes for test secrets.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 490,
+        "title": "Fix IDOR in certificados.ts verification endpoint (vuln_019)",
+        "description": "Add authorization to certificados.ts:80 verification endpoint",
+        "details": "Read backend/src/routes/certificados.ts:80 to confirm the vulnerability. This is likely the certificate verification endpoint. Decide if this is public (anyone can verify a certificate with its code) or requires authentication. If public by design and certificate codes are sufficiently random (UUIDs), document as Accepted Risk. If verification should be restricted, add verifyJWT middleware. Check existing rate limiting (vuln_020 addresses this endpoint separately). Implementation follows same pattern as task #488-489.",
+        "testStrategy": "If auth required: test unauthorized access → 403, authorized → 200. If public: document that certificate code randomness provides security, verify rate limiting is applied (covered in task #494).",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 491,
+        "title": "Fix IDOR in crm.ts (vuln_022)",
+        "description": "Add requireRole to CRM endpoint at crm.ts:94",
+        "details": "Read backend/src/routes/crm.ts:94 to verify hallazgo. CRM endpoints should be admin-only. Apply requireRole pattern: import { verifyJWT, requireRole } from '../middleware/auth.middleware' and add middleware chain [verifyJWT, requireRole('ADMIN')] or [verifyJWT, requireRole('SUPER_ADMIN')] depending on the sensitivity of the operation. Check app/admin/crm/** or similar frontend paths to ensure the change doesn't break existing UI. Follow exact pattern from reportes.ts which already uses requireRole('SUPER_ADMIN').",
+        "testStrategy": "Write test in test-access-control.ts: non-admin user → 403, admin user → 200. Generate JWT secrets with crypto.randomBytes in test file.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 492,
+        "title": "Fix IDOR in cuotas.ts (vuln_026)",
+        "description": "Add authorization to cuotas.ts:55",
+        "details": "Read backend/src/routes/cuotas.ts:55 to verify hallazgo. Cuotas (installments/payments) should either be admin-only or filtered by alumnoId ownership. Decide: (1) Admin-only → requireRole('ADMIN'), or (2) Student can see own cuotas → filter WHERE alumnoId = token.alumnoId. Check frontend consumption in app/admin/** before adding restrictions. Implementation: Apply verifyJWT + requireRole for admin access, or verifyJWT + ownership filter for student access (similar to inscripciones.ts from task #482).",
+        "testStrategy": "Test: (1) unauthorized user → 403/404, (2) authorized admin → 200, (3) if student access allowed, student accessing another's cuota → 404, own cuota → 200. Use crypto.randomBytes for test JWT secrets.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 493,
+        "title": "Fix IDOR in pagos.ts GET endpoint (vuln_032)",
+        "description": "Add authorization to pagos.ts:17",
+        "details": "Read backend/src/routes/pagos.ts:17 to verify hallazgo. Payments should be restricted to admin or filtered by alumnoId. Decision: admin-only → requireRole('ADMIN'), or ownership-based → WHERE alumnoId = req.admin.alumnoId. Check if there's a student-facing payment history feature in the frontend. Implementation: Import { verifyJWT, requireRole } from '../middleware/auth.middleware' and apply appropriate pattern. Reuse existing helpers, do not create new authorization logic.",
+        "testStrategy": "Write test in test-access-control.ts: non-admin without ownership → 403/404, admin or owner → 200. Generate test secrets with crypto.randomBytes, never literals.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 494,
+        "title": "Fix IDOR in reportes-leccion.ts (vuln_033)",
+        "description": "Add requireRole to lesson reports endpoint at reportes-leccion.ts:16",
+        "details": "Read backend/src/routes/reportes-leccion.ts:16 to verify hallazgo. Lesson reports (reportes de lección) are likely admin-only analytics. Apply requireRole('ADMIN') or requireRole('SUPER_ADMIN') following the exact pattern from reportes.ts (task #482). Check app/admin/** for frontend consumers. Implementation: import { verifyJWT, requireRole } from '../middleware/auth.middleware', apply [verifyJWT, requireRole('ADMIN')].",
+        "testStrategy": "Write test in test-access-control.ts: non-admin → 403, admin → 200. Use crypto.randomBytes for JWT secrets in test.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 495,
+        "title": "Fix IDOR in suscripciones.ts (vuln_036)",
+        "description": "Review and fix authorization in suscripciones.ts:168",
+        "details": "Read backend/src/routes/suscripciones.ts:168 and backend/src/lib/suscripciones.ts to verify hallazgo. The PRD notes that deposit receipts (comprobantes de depósito) already have ownership filtering by alumnoId from round 1, so verify if vuln_036 refers to a different field or operation. If it's a distinct issue, apply ownership filter (WHERE alumnoId = token.alumnoId) or requireRole as appropriate. Follow same pattern as inscripciones.ts (task #482).",
+        "testStrategy": "Write test in test-access-control.ts: user accessing another user's subscription → 404, own subscription → 200, admin access → 200. Use crypto.randomBytes for test secrets.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 496,
+        "title": "Fix XSS in security-agent emailer (vuln_053, vuln_054)",
+        "description": "Add HTML escaping to security agent email notifications",
+        "details": "Create escHtml() function in backend/src/security-agent/emailer.ts (or extract to backend/src/lib/html-escape.ts for reuse). Escape &, <, >, \", ' characters. Read emailer.ts:29 and :45 to identify all fields interpolated in buildHtml: title, file, severity, scan_summary, and any AI-generated content. Apply escHtml to each before interpolation. This is server-side HTML generation, distinct from the browser-side esc() in dashboard/app.js. Implementation: const escHtml = (str: string) => str.replace(/[&<>\"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":\"&#39;\"}[c]!)); Apply to all dynamic fields in email template.",
+        "testStrategy": "Write test-emailer-xss.ts: inject payload like '<img src=x onerror=alert(1)>' into title/file/severity fields, call buildHtml, verify output contains '&lt;img src=x onerror=alert(1)&gt;' (escaped), not raw HTML. Test all interpolated fields.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 497,
+        "title": "Harden /api/test-bot endpoint (vuln_002, vuln_004, vuln_005)",
+        "description": "Add validation and error handling to test-bot endpoint in index.ts",
+        "details": "Read backend/src/index.ts:113, :120, :130 to verify hallazgos. Decision: (1) Remove ENABLE_TEST_ENDPOINT entirely if not needed in production (already protected by securityKeyMiddleware, medium-low risk), or (2) Add phone allowlist + Zod validation. Implementation: Add Zod schema validating telefono (phone format) and mensaje (string, max length). Replace res.json({error: String(err)}) with errorHandler from middleware/error.middleware.ts. Use sanitizeForLog before logging. If keeping endpoint, ensure NODE_ENV=production check prevents mounting without explicit flag. Check if allowlist is needed or if securityKeyMiddleware is sufficient.",
+        "testStrategy": "Write test-bot-security.ts: (1) With NODE_ENV=production and no flag, route returns 404. (2) With flag, invalid telefono/mensaje → 400 with Zod errors. (3) Valid input → 200. Verify no raw error messages leak in responses.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 498,
+        "title": "Validate MS Graph tenant/client IDs and sanitize errors (vuln_051, vuln_052)",
+        "description": "Add UUID validation and error sanitization to notifications.ts",
+        "details": "Read backend/src/services/notifications.ts:34 and :72 to verify hallazgos. Validate MS_TENANT_ID and MS_CLIENT_ID against UUID regex before interpolating into token URL: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i. Fail fast with clear message if invalid. For error logging at :72, import sanitizeForLog from lib/log-sanitize.ts and apply to error response before logging. This prevents leaking sensitive details from MS Graph API errors. Implementation: Add validation at service initialization or first use, apply sanitizeForLog to all error objects before log().",
+        "testStrategy": "Write test-notifications.ts: (1) Invalid MS_TENANT_ID format → throws with clear message before making request. (2) Mock MS Graph error response, verify logged error is sanitized (no sensitive tokens/details). Use crypto.randomBytes for any test secrets.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 499,
+        "title": "Harden crear-alumnos-grupo.ts script (vuln_040, vuln_041, vuln_042, vuln_043)",
+        "description": "Apply secure password generation, unique retry, and path validation to student creation script",
+        "details": "Read backend/src/scripts/crear-alumnos-grupo.ts to verify hallazgos. (vuln_041) Replace weak password generation with generateSecurePassword from lib/crypto-utils.ts (already used in alumnos.ts, task #483). (vuln_042) Wrap carnet generation in createWithUniqueRetry from lib/retry-on-conflict.ts (task #485). (vuln_043) Validate ROSTER_FILE resolves within allowed directory, similar to resolveScanPaths in security-agent/scanner.ts (task #479) — use path.resolve and check startsWith(allowedDir). (vuln_040) CSV with plaintext passwords already has 0600 permissions (round 1); decide if CSV output should migrate to stdout or encrypted channel — THIS REQUIRES PROJECT OWNER DECISION before changing behavior. Document decision in code comment. Do NOT change CSV output flow without explicit approval.",
+        "testStrategy": "Extend existing helper tests to cover this script: (1) Passwords generated with generateSecurePassword have ≥12 chars and sufficient entropy. (2) Carnet collision triggers retry. (3) ROSTER_FILE with path traversal (../../etc/passwd) is rejected. (4) Document vuln_040 decision; if CSV remains, verify file has 0600 permissions.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 500,
+        "title": "Add input validation for clases-en-vivo, finanzas, inscripciones, cursos, pagos (vuln_021, vuln_023, vuln_025, vuln_027, vuln_034)",
+        "description": "Apply Zod validation schemas to multiple endpoints with missing validation",
+        "details": "Read each file to verify hallazgos: (vuln_021) clases-en-vivo.ts:228 (horario), (vuln_023) finanzas.ts:36 (categoria), (vuln_027) cursos.ts:52 (mass assignment), (vuln_034) pagos.ts:34 (filters). Apply Zod schemas following task #484 pattern. (vuln_025) inscripciones.ts:178 CSV parsing: Replace manual split(',') with csv-parse or papaparse library to handle quoted fields. Assess impact on existing CSV import behavior before changing — verify test data or production CSV format. Implementation: Install csv-parse, replace split with proper parser in both CSV import routes. For other validations, create Zod schemas and apply .safeParse() with 400 responses on failure.",
+        "testStrategy": "Write test-input-validation-round2.ts: (1) Invalid horario → 400. (2) Invalid categoria → 400. (3) Mass assignment with unexpected fields → rejected or stripped. (4) Invalid pagos filters → 400. (5) CSV with quoted commas (e.g., 'Name, Jr.',12345) parses correctly after fix. Test each endpoint with malformed input.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 501,
+        "title": "Add rate limiting to certificados.ts verification and reportes.ts financial endpoints (vuln_020, vuln_035)",
+        "description": "Apply rate limiting middleware to public certificate verification and financial reports",
+        "details": "Read backend/src/routes/certificados.ts:89 (public verification) and backend/src/routes/reportes.ts:37 (financial endpoints) to verify hallazgos. Reuse createLimiter and ResilientStore from lib/rate-limit-store.ts (task #475). Do NOT create new rate limiting mechanism. Apply limiter middleware to these routes: e.g., const verifyLimiter = createLimiter({windowMs: 60000, max: 10, message: 'Demasiadas verificaciones'}); router.get('/verify', verifyLimiter, handler). For financial reports, consider stricter limit (e.g., max: 5 per minute). Implementation follows existing rate-limit.middleware.ts patterns.",
+        "testStrategy": "Extend test-rate-limiting.ts: (1) Certificate verification: exceed limit → 429. (2) Financial reports: exceed limit → 429. (3) Valid requests within limit → 200. Verify ResilientStore fallback works if Redis unavailable.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 502,
+        "title": "Validate JARVIS bridge token length and sanitize conversation content (vuln_030, vuln_031)",
+        "description": "Add token validation at startup and decide on conversation content filtering",
+        "details": "Read backend/src/routes/jarvis-bridge.ts:24 and :103 to verify hallazgos. (vuln_030) At server startup, validate JARVIS_BRIDGE_TOKEN has ≥32 characters. If invalid, either throw error preventing startup or log clear warning. Implementation: Add validation in startup sequence (index.ts or jarvis-bridge.ts module init). (vuln_031) Conversation content sanitization is a product decision: JARVIS needs content to summarize, so filtering may break functionality. Options: (1) Document as intentional (Accepted Risk with justification), or (2) Add regex filter for sensitive patterns (credit card numbers, PINs) before sending to JARVIS. THIS REQUIRES PRODUCT DECISION. Do not implement filtering without explicit approval — may break core feature.",
+        "testStrategy": "Write test-jarvis-bridge.ts: (1) JARVIS_BRIDGE_TOKEN with <32 chars → server startup fails or logs warning. (2) Valid token → server starts normally. (3) For vuln_031, document decision; if filtering added, test that conversation with mock credit card number → sanitized before external call.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 503,
+        "title": "Apply phone masking and log sanitization to claude.ts, whatsapp.webhook.ts, auth-alumno.ts, seed-cursos-online.ts (vuln_001, vuln_037, vuln_017, vuln_050)",
+        "description": "Apply maskPhone and sanitizeForLog to prevent logging sensitive data",
+        "details": "Read each file to verify hallazgos: (vuln_001) claude.ts:112 (phone in notification), (vuln_037) whatsapp.webhook.ts:172 (phone in log), (vuln_017) auth-alumno.ts:263 (OTP in failure log), (vuln_050) seed-cursos-online.ts:208 (sensitive data in log). Import maskPhone and sanitizeForLog from lib/log-sanitize.ts (task #476). Apply maskPhone to phone numbers before logging (e.g., log({phone: maskPhone(telefono)})). Apply sanitizeForLog to objects containing OTPs or sensitive fields. Ensure no full phone numbers or OTP codes appear in logs. Implementation: Replace direct log(obj) with log(sanitizeForLog(obj)) for objects, log({phone: maskPhone(phone)}) for phone-only logs.",
+        "testStrategy": "Write test-log-sanitize-round2.ts: (1) Log from claude.ts → phone appears as XXX-5678. (2) Log from auth-alumno.ts failure → OTP redacted. (3) Log from whatsapp.webhook.ts → phone masked. (4) Log from seed script → no sensitive data exposed. Verify sanitizeForLog redacts fields matching SENSITIVE_KEY pattern.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 504,
+        "title": "Review logger.ts log level design (vuln_009)",
+        "description": "Decide if LOG_LEVEL env var is needed or if security events should be upgraded to warn",
+        "details": "Read backend/src/lib/logger.ts:9 to verify hallazgo. vuln_009 notes that 'info' level is suppressed in production, potentially hiding security events. This is a design decision, not a mechanical fix. Options: (1) Introduce LOG_LEVEL env var to allow configurable levels (info/warn/error). (2) Upgrade security-relevant events to 'warn' level so they're always visible. (3) Document current behavior as intentional (Accepted Risk) if info-level noise is problematic in production. Evaluate existing log() calls to identify security events that should be elevated. Implementation depends on decision — may require changing log.info() → log.warn() for auth failures, rate limit hits, etc.",
+        "testStrategy": "If LOG_LEVEL added: test that LOG_LEVEL=info in prod shows info logs. If events upgraded: verify auth failures, rate limits log at warn level and appear in production. If Accepted Risk: document decision with justification.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 505,
+        "title": "Add LRU/TTL to scanStates Map and review session cookie Secure flag (vuln_039, vuln_056)",
+        "description": "Prevent unbounded memory growth in security agent and validate cookie security setting",
+        "details": "Read backend/src/security-agent/security.routes.ts:47 (scanStates Map) and backend/src/security-agent/session.ts:48 (cookie Secure flag) to verify hallazgos. (vuln_039) Implement LRU cache or TTL expiration on scanStates Map to prevent memory exhaustion from thousands of scan IDs. Options: use lru-cache package (already in node_modules) or manual TTL cleanup. Implementation: const scanStates = new LRUCache<string, ScanState>({max: 1000, ttl: 1000*60*60}); (vuln_056) Verify if cookie without Secure in dev is actually a problem — standard pattern is secure: NODE_ENV === 'production', which allows localhost:3000 (HTTP) in dev. If current code already does this, mark as False Positive with justification. If not, add the condition.",
+        "testStrategy": "Write test-security-agent-memory.ts: (1) Create 10,000 scan state entries, verify memory doesn't grow unbounded (LRU evicts old entries). (2) For cookie flag, verify session.ts sets secure: NODE_ENV === 'production' (or document False Positive if already correct). Test in dev (HTTP) that cookie works, in prod (HTTPS) that Secure is set.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 506,
+        "title": "Fix SSRF in generar-audio-faltante.ts and sanitize AI content in generate-leccion.ts (vuln_044, vuln_045, vuln_046)",
+        "description": "Apply isTrustedR2Url validation and API key validation to generation scripts",
+        "details": "Read backend/src/scripts/generar-audio-faltante.ts:93 (SSRF), generate-leccion.ts:348 (AI content sanitization), and generate-leccion.ts:196 (API key validation) to verify hallazgos. (vuln_044) Import isTrustedR2Url from lib/r2-url.ts (task #486) and validate audio URLs before fetching. Pattern: if (!isTrustedR2Url(audioUrl, R2_PUBLIC_PREFIX)) throw new Error('Untrusted URL'). (vuln_045) Verify if frontend uses dangerouslySetInnerHTML for lessons (check app/** components). If NOT, this is a False Positive (same analysis as vuln_048 from round 1) — document it. If yes, add sanitization. (vuln_046) Import validateAnthropicApiKey (if exists) and apply at the cited line. If validator doesn't exist, create simple length/format check.",
+        "testStrategy": "Extend test-script-security.ts: (1) generar-audio-faltante.ts with evil URL (https://media.mea.edu.gt.evil.com) → rejected. (2) Trusted R2 URL → passes. (3) generate-leccion.ts with missing/invalid ANTHROPIC_API_KEY → fails with clear message. (4) For vuln_045, if False Positive, document that frontend doesn't use dangerouslySetInnerHTML for lesson content.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 507,
+        "title": "Low-risk cleanup: advisor-commands, claude.ts, error.middleware, notion-context, rate-limit, etc. (13 LOW findings)",
+        "description": "Review and fix heterogeneous low-severity findings across multiple files",
+        "details": "Address remaining LOW findings: vuln_003 (advisor-commands.ts:28), vuln_006 (claude.ts:22, unencrypted Redis history), vuln_007 (claude.ts:101, missing await), vuln_008 (index.ts:55, CORS localhost in all envs), vuln_011 (error.middleware.ts:42, verify if False Positive), vuln_012 (notion-context.ts:6), vuln_013 (rate-limit.middleware.ts:38, INCR+EXPIRE not atomic), vuln_014 (piper-tts.ts:37), vuln_015 (notion-context.ts:57), vuln_024 (finanzas.ts:42), vuln_028 (certificados.ts:15), vuln_029 (marketing.ts:84), vuln_049 (seed-curriculum-500.ts:160). Read each file individually to assess actual risk. Many are minutes to fix. vuln_011 is likely False Positive — errorHandler already conditionally includes stack only in dev (NODE_ENV !== 'production'), which is intentional design from task #484. Confirm before 'fixing'. vuln_013 (INCR+EXPIRE race) may need Lua script or INCREX if Redis version supports. Prioritize based on actual exploitability.",
+        "testStrategy": "For each finding: (1) Read code to verify if hallazgo is real or False Positive. (2) If real, apply minimal fix following existing patterns. (3) Add test or verification: e.g., vuln_007 (missing await) → add await, verify no unhandled promise rejection. vuln_008 (CORS) → restrict localhost to dev only. vuln_011 → document as intentional design if stack is already conditional. vuln_013 → use INCREX or Lua script for atomicity if needed. Document all decisions.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 508,
+        "title": "Disable LEGACY_TOKEN_IN_BODY after frontend confirmation (vuln_010)",
+        "description": "Remove legacy token-in-body support once production frontend is verified",
+        "details": "vuln_010 continuation from round 1. DO NOT execute without explicit confirmation from project owner. Steps: (1) Owner verifies production build at https://mea.edu.gt/admin using browser Network tab that login NO LONGER sends 'token' field in request body (only uses httpOnly cookie or Authorization header). (2) Once confirmed, set LEGACY_TOKEN_IN_BODY=false in Railway env vars. (3) Deploy and verify login still works. (4) In a subsequent commit, remove the flag entirely and delete the field extraction code from backend/src/routes/auth.ts (or wherever it's implemented). This is a two-phase change: env var flip first, code removal second. Do NOT proceed without owner confirmation — breaking production login is unacceptable.",
+        "testStrategy": "Owner provides confirmation that frontend no longer uses token field. After env var change: test login flow in production → still works. After code removal: verify build passes, login integration test passes, no regressions. Document decision and confirmation in commit message.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 509,
+        "title": "Final verification and second security re-scan (depends on all previous tasks)",
+        "description": "Compile, run all tests, execute authorized re-scan, update report",
+        "details": "After completing tasks 488-508: (1) Run npx tsc --noEmit in backend/ and project root → 0 errors. (2) Run all 14 test suites from round 1 + new tests from this round → all green. (3) ONLY WITH EXPLICIT AUTHORIZATION (costs money), run second real security scan against fix/security-remediation branch. (4) Compare new scan results against baseline (scan_id 6ef109d5-ecef-4560-ad4d-238858e26e16, 69 score, 56 findings). (5) Update .taskmaster/docs/security-remediation-report.md with table of all 53 vulnerability IDs from this round, their dispositions (Fixed, False Positive with evidence, Accepted Risk with justification), and new security score. (6) Verify 0 HIGH findings remain open without documented disposition. Document any new findings for round 3, do NOT mix them into this round's work.",
+        "testStrategy": "Acceptance: (1) TypeScript compiles cleanly in backend/ and root. (2) All tests pass (round 1 + round 2). (3) Re-scan authorized and executed. (4) Report updated with 53 vulnerability dispositions. (5) 0 CRITICAL/HIGH open without explicit decision. (6) No regressions from round 1 fixes.",
+        "priority": "high",
+        "dependencies": [
+          488,
+          489,
+          490,
+          491,
+          492,
+          493,
+          494,
+          495,
+          496,
+          497,
+          498,
+          499,
+          500,
+          501,
+          502,
+          503,
+          504,
+          505,
+          506,
+          507,
+          508
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
-      "version": "1.0.0",
-      "lastModified": "2026-09-23T02:53:15.794Z",
-      "taskCount": 487,
-      "completedCount": 398,
-      "tags": [
-        "master"
-      ]
+      "created": "2026-09-23T03:10:30.352Z",
+      "updated": "2026-09-23T03:10:30.352Z",
+      "description": "Tasks for master context"
     }
   },
   "seo-mea": {

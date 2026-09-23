@@ -7974,8 +7974,9 @@
         "testStrategy": "Extend existing helper tests to cover this script: (1) Passwords generated with generateSecurePassword have ≥12 chars and sufficient entropy. (2) Carnet collision triggers retry. (3) ROSTER_FILE with path traversal (../../etc/passwd) is rejected. (4) Document vuln_040 decision; if CSV remains, verify file has 0600 permissions.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T14:32:03.417Z"
       },
       {
         "id": "500",
@@ -8112,9 +8113,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T14:27:37.250Z",
+      "lastModified": "2026-09-23T14:32:03.418Z",
       "taskCount": 509,
-      "completedCount": 409,
+      "completedCount": 410,
       "tags": [
         "master"
       ]

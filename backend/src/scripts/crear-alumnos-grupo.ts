@@ -1,8 +1,10 @@
 import bcrypt from "bcrypt";
-import { readFileSync, writeFileSync } from "fs";
+import { randomInt } from "crypto";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "fs";
 import path from "path";
 import prisma from "../lib/prisma";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
+import { createWithUniqueRetry } from "../lib/retry-on-conflict";
 
 // Crea (o reutiliza) una cuenta de Alumno por cada estudiante de un grupo que ya
 // pagó, les otorga acceso a TODAS las lecciones vía una Suscripcion "manual_admin"
@@ -45,15 +47,35 @@ function normalizarNombre(valor: string): string {
     .replace(/[^a-z0-9]/g, "");
 }
 
-function generarPassword(nombre: string, email: string): string {
+// vuln_041: antes usaba Math.random() (PRNG no criptográfico y predecible) para
+// los 3 dígitos finales. randomInt() es criptográficamente seguro. Se mantiene
+// el formato legible iam<nombre><nnn>: es un pedido explícito del usuario para
+// repartir las contraseñas por WhatsApp (ver memoria student-password-format);
+// generateSecurePassword() de lib/crypto-utils.ts rompería ese formato.
+export function generarPassword(nombre: string, email: string): string {
   const local = email.split("@")[0] ?? "";
   const primerNombre = nombre.trim().split(/\s+/)[0] ?? "";
   const base = normalizarNombre(primerNombre) || normalizarNombre(local) || "alumno";
-  const digitos = String(Math.floor(100 + Math.random() * 900));
+  const digitos = String(randomInt(100, 1000));
   return `iam${base}${digitos}`;
 }
 
-function parseRoster(raw: string): EstudianteInput[] {
+// vuln_043: ROSTER_FILE es una ruta de archivo tomada de una variable de entorno;
+// esto evita que un valor como "../../etc/passwd" (por error o por un wrapper
+// menos confiable) resuelva fuera del directorio del proyecto. Mismo patrón que
+// resolveScanPaths en security-agent/scanner.ts (tarea #479).
+export function resolveRosterPath(rawPath: string, baseDir: string): string {
+  const realBase = realpathSync(baseDir);
+  const resolved = path.resolve(realBase, rawPath);
+  const real = existsSync(resolved) ? realpathSync(resolved) : resolved;
+  const relative = path.relative(realBase, real);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`ROSTER_FILE debe resolver dentro de ${realBase}: ${JSON.stringify(rawPath)}`);
+  }
+  return real;
+}
+
+export function parseRoster(raw: string): EstudianteInput[] {
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -95,6 +117,20 @@ async function generarCarnetBase(): Promise<{ year: number; siguiente: number }>
     where: { carnet: { startsWith: `MEA-${year}-` } },
   });
   return { year, siguiente: count + 1 };
+}
+
+// vuln_042: recalculado con un count() fresco en cada llamada (no un contador
+// local incrementado en memoria), para usarlo dentro de createWithUniqueRetry —
+// mismo patrón que generarCarnet() en routes/alumnos.ts (tareas #483/#485). El
+// índice UNIQUE de la BD (Alumno_carnet_key) ya rechaza el duplicado (P2002); si
+// otro proceso (ej. el panel admin) crea un alumno mientras corre este script,
+// se reintenta con un carnet recién generado en vez de fallar.
+async function generarCarnet(): Promise<string> {
+  const year = new Date().getFullYear();
+  const count = await prisma.alumno.count({
+    where: { carnet: { startsWith: `MEA-${year}-` } },
+  });
+  return `MEA-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 async function planPrecioParaAccesoManual() {
@@ -153,7 +189,8 @@ async function main(): Promise<void> {
   const otorgarAcceso =
     process.env.OTORGAR_ACCESO === "1" || process.env.OTORGAR_ACCESO === "true";
 
-  const estudiantes = parseRoster(readFileSync(path.resolve(rosterFile), "utf8"));
+  const rosterPath = resolveRosterPath(rosterFile, process.cwd());
+  const estudiantes = parseRoster(readFileSync(rosterPath, "utf8"));
   console.log(`Estudiantes en el roster: ${estudiantes.length}${dryRun ? "  (DRY_RUN)" : ""}`);
   console.log(`Otorgar acceso a lecciones: ${otorgarAcceso ? "sí" : "no (solo crea login)"}`);
 
@@ -202,44 +239,63 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const carnet = `MEA-${carnetBase.year}-${String(siguienteCarnet).padStart(4, "0")}`;
-    siguienteCarnet += 1;
     const password = est.password ?? generarPassword(est.nombre, est.email);
 
-    if (!dryRun) {
-      const alumno = await prisma.alumno.create({
-        data: {
-          carnet,
-          nombre: est.nombre,
-          apellido: est.apellido,
-          email: est.email,
-          whatsapp: est.whatsapp,
-          pais: "GT",
-          activo: true,
-          primerLogin: false,
-          password: await bcrypt.hash(password, BCRYPT_ROUNDS),
-        },
+    if (dryRun) {
+      // Solo vista previa: el carnet real sale de generarCarnet() (count() fresco)
+      // dentro de createWithUniqueRetry cuando se crea de verdad, no de este contador.
+      const carnetPreview = `MEA-${carnetBase.year}-${String(siguienteCarnet).padStart(4, "0")}`;
+      siguienteCarnet += 1;
+      resultados.push({
+        nombre: `${est.nombre} ${est.apellido}`,
+        email: est.email,
+        carnet: carnetPreview,
+        password,
+        estado: "se crearía",
       });
-      if (planPrecio) await otorgarAccesoTotal(alumno.id, planPrecio.id);
+      continue;
     }
+
+    const alumno = await createWithUniqueRetry(
+      async () => {
+        const carnet = await generarCarnet(); // recalculado en cada intento, no reutilizado
+        return prisma.alumno.create({
+          data: {
+            carnet,
+            nombre: est.nombre,
+            apellido: est.apellido,
+            email: est.email,
+            whatsapp: est.whatsapp,
+            pais: "GT",
+            activo: true,
+            primerLogin: false,
+            password: await bcrypt.hash(password, BCRYPT_ROUNDS),
+          },
+        });
+      },
+      "carnet"
+    );
+    if (planPrecio) await otorgarAccesoTotal(alumno.id, planPrecio.id);
 
     resultados.push({
       nombre: `${est.nombre} ${est.apellido}`,
       email: est.email,
-      carnet,
+      carnet: alumno.carnet,
       password,
-      estado: dryRun
-        ? "se crearía"
-        : planPrecio
-          ? "creado · acceso OK"
-          : "creado (login)",
+      estado: planPrecio ? "creado · acceso OK" : "creado (login)",
     });
   }
 
   console.table(resultados);
 
   if (!dryRun) {
-    const outFile = path.resolve(`${rosterFile}.credenciales.csv`);
+    // vuln_040 (HIGH, Accepted Risk en la ronda 1, retomado en la ronda 2): el CSV
+    // sigue con contraseñas en texto plano y permisos 0600 (solo el dueño del
+    // archivo puede leerlo). Migrar a stdout o a un canal cifrado es un cambio de
+    // flujo operativo (cómo se reparten las credenciales por WhatsApp), no un fix
+    // de una línea — requiere que el dueño del proyecto decida antes de tocar
+    // este comportamiento. Queda pendiente, documentado acá.
+    const outFile = `${rosterPath}.credenciales.csv`;
     const csv = [
       "nombre,email,carnet,password,estado",
       ...resultados.map((r) =>
@@ -248,16 +304,21 @@ async function main(): Promise<void> {
           .join(",")
       ),
     ].join("\n");
-    // 0600: solo el dueño del archivo puede leerlo — contiene contraseñas en texto plano (vuln_036)
     writeFileSync(outFile, csv, { mode: 0o600, encoding: "utf8" });
     console.log(`\nCredenciales escritas en: ${outFile}`);
     console.log("⚠️  Contiene contraseñas en texto plano. Borralo después de repartirlas.");
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e instanceof Error ? e.message : e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// vuln_042 (relacionado): antes main() se ejecutaba incondicionalmente al cargar
+// el módulo, así que importar cualquier función de este archivo (p. ej. desde un
+// test) disparaba una corrida real contra la BD como efecto secundario. Mismo bug
+// y mismo fix que seed-admin.ts (tarea #486).
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error(e instanceof Error ? e.message : e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

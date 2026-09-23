@@ -1,6 +1,16 @@
 import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 import { sendTwilioWhatsApp } from "../lib/twilio-send";
 import { log } from "../lib/logger";
+import { isValidClientId, isValidTenantId } from "../lib/ms-graph-validation";
+import { stripControlChars } from "../lib/log-sanitize";
+
+const MAX_LOGGED_ERROR_LENGTH = 500;
+
+// vuln_052: el cuerpo de un error de MS Graph puede traer saltos de línea (falsea
+// el log) o ser extremadamente largo; se recorta y limpia antes de loguearlo.
+function sanitizeErrorText(text: string): string {
+  return stripControlChars(text).slice(0, MAX_LOGGED_ERROR_LENGTH);
+}
 
 // --- 34.2: MS Graph token cache en memoria ---
 interface TokenCache {
@@ -21,6 +31,14 @@ async function getMsGraphToken(): Promise<string> {
 
   if (!tenantId || !clientId || !clientSecret) {
     throw new Error("MS Graph credentials not configured (MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET)");
+  }
+  // vuln_051: tenantId/clientId se interpolan en la URL del token; validar el formato
+  // antes evita que un valor mal puesto (o alterado) rearme la URL de destino.
+  if (!isValidTenantId(tenantId)) {
+    throw new Error("MS_TENANT_ID has an invalid format (expected a GUID or common/organizations/consumers)");
+  }
+  if (!isValidClientId(clientId)) {
+    throw new Error("MS_CLIENT_ID has an invalid format (expected a GUID)");
   }
 
   const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -82,7 +100,7 @@ export async function sendTransactionalEmail(to: string, subject: string, html: 
 
     if (!response.ok) {
       const text = await response.text();
-      log("error", `[Notifications] Error enviando email: HTTP ${response.status} — ${text}`);
+      log("error", `[Notifications] Error enviando email: HTTP ${response.status} — ${sanitizeErrorText(text)}`);
       return false;
     }
 

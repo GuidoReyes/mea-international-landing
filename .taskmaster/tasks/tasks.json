@@ -7962,8 +7962,9 @@
         "testStrategy": "Write test-notifications.ts: (1) Invalid MS_TENANT_ID format → throws with clear message before making request. (2) Mock MS Graph error response, verify logged error is sanitized (no sensitive tokens/details). Use crypto.randomBytes for any test secrets.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T14:27:37.250Z"
       },
       {
         "id": "499",
@@ -8111,9 +8112,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T12:40:09.079Z",
+      "lastModified": "2026-09-23T14:27:37.250Z",
       "taskCount": 509,
-      "completedCount": 408,
+      "completedCount": 409,
       "tags": [
         "master"
       ]

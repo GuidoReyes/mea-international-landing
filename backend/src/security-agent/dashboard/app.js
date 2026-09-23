@@ -223,7 +223,7 @@ async function loadResults() {
 }
 
 function applyResult(r) {
-  updateGauge(r.security_score);
+  updateGauge(safeScore(r.security_score));
   document.getElementById('summaryText').textContent = r.scan_summary;
   document.getElementById('lastScanTime').textContent = new Date(r.timestamp).toLocaleString();
 
@@ -285,15 +285,23 @@ async function loadHistory() {
   } catch (e) { console.warn(e.message); }
 }
 
+function safeScore(score) {
+  // vuln_055: el score viene de un JSON generado por IA; si alguna vez no fuera
+  // un número, no debe insertarse tal cual en el HTML.
+  const n = Number(score);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : 0;
+}
+
 function renderHistory(history) {
   const list = document.getElementById('historyList');
   if (!history.length) { list.innerHTML = ''; return; }
   list.innerHTML = history.map((h, i) => {
-    const c = scoreColor(h.security_score);
+    const score = safeScore(h.security_score);
+    const c = scoreColor(score);
     return `<div class="hist-row" data-hist-index="${i}">
-      <span class="hist-score" style="color:${c}">${h.security_score}</span>
-      <span class="hist-date">${new Date(h.timestamp).toLocaleDateString()}</span>
-      <span class="hist-vulns">${h.vulnerabilities.length}v</span>
+      <span class="hist-score" style="color:${c}">${score}</span>
+      <span class="hist-date">${esc(new Date(h.timestamp).toLocaleDateString())}</span>
+      <span class="hist-vulns">${esc(String(h.vulnerabilities.length))}v</span>
     </div>`;
   }).join('');
 }
@@ -371,16 +379,28 @@ async function loadBackupStatus() {
   }
 }
 
+const DRIVE_LINK_PREFIX = 'https://drive.google.com/';
+
 async function loadDriveHistory() {
   const list = document.getElementById('driveList');
   try {
     const files = await api('GET', '/api/backup/history');
     if (!files.length) { list.innerHTML = '<span class="loading-line">No backups in Drive yet.</span>'; return; }
-    list.innerHTML = files.map(f => `
+    list.innerHTML = files.map(f => {
+      // vuln_054: nombre y link vienen de la API de Drive — se escapan igual, y solo
+      // se enlaza si el link es realmente de Drive (nunca javascript: ni otro origen).
+      const name = esc(f.name);
+      const isDriveLink = typeof f.webViewLink === 'string' && f.webViewLink.startsWith(DRIVE_LINK_PREFIX);
+      const linkOpen = isDriveLink
+        ? `<a href="${esc(f.webViewLink)}" target="_blank" rel="noopener noreferrer" title="${name}">`
+        : '<span title="Link no disponible">';
+      const linkClose = isDriveLink ? '</a>' : '</span>';
+      return `
       <div class="drive-item">
-        <a href="${f.webViewLink}" target="_blank" title="${f.name}">${f.name}</a>
-        <span class="drive-size">${fmtBytes(f.size)}</span>
-      </div>`).join('');
+        ${linkOpen}${name}${linkClose}
+        <span class="drive-size">${esc(fmtBytes(f.size))}</span>
+      </div>`;
+    }).join('');
   } catch (_) {
     list.innerHTML = '<span class="loading-line">Drive not configured.</span>';
   }

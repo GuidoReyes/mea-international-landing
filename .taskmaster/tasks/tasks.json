@@ -7938,8 +7938,9 @@
         "testStrategy": "Write test-emailer-xss.ts: inject payload like '<img src=x onerror=alert(1)>' into title/file/severity fields, call buildHtml, verify output contains '&lt;img src=x onerror=alert(1)&gt;' (escaped), not raw HTML. Test all interpolated fields.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-23T03:17:35.360Z"
       },
       {
         "id": "497",
@@ -8109,9 +8110,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-23T03:14:39.277Z",
+      "lastModified": "2026-09-23T03:17:35.361Z",
       "taskCount": 509,
-      "completedCount": 406,
+      "completedCount": 407,
       "tags": [
         "master"
       ]

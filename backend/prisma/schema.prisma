@@ -157,6 +157,15 @@ model Inscripcion {
   creadoEn    DateTime          @default(now())
   pagos       Pago[]
   certificado Certificado?
+
+  // TODO(vuln_025): agregar @@unique([alumnoId, edicionId]) — verificado sin
+  // duplicados en producción (0 filas en la tabla, 2026-09-22), pero la migración
+  // quedó bloqueada por un problema preexistente en el historial: la migración
+  // 20260513120000_add_auditoria_admin falla al reproducirse en la base sombra de
+  // `prisma migrate dev` ("Failed to open the referenced table 'Admin'"), lo que
+  // bloquea CUALQUIER migrate dev hasta resolverse (no solo esta). El chequeo de
+  // duplicados a nivel de aplicación (findFirst antes de create en
+  // routes/inscripciones.ts) ya protege ambos flujos de importación CSV mientras tanto.
 }
 
 model Pago {

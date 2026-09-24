@@ -1,12 +1,12 @@
 /**
- * Pruebas de autenticación (tarea 483): contraseñas con crypto, OTP en tiempo constante
- * y la bandera de transición del token en el cuerpo del login.
+ * Pruebas de autenticación (tarea 483): contraseñas con crypto y OTP en tiempo constante.
  * Uso: node -r ts-node/register/transpile-only src/scripts/test-auth-security.ts
  */
 import assert from "node:assert/strict";
+import * as fs from "fs";
+import * as path from "path";
 import { generateSecurePassword } from "../lib/crypto-utils";
 import { verifyOtpCode } from "../lib/otp-utils";
-import { shouldIncludeTokenInBody } from "../routes/auth";
 
 let failures = 0;
 
@@ -120,31 +120,17 @@ await check("con registro y sin registro: tiempos del mismo orden de magnitud", 
   assert.ok(ratio < 5, `con registro=${withRecord.toFixed(1)}ms, sin registro=${withoutRecord.toFixed(1)}ms, razón=${ratio.toFixed(1)}`);
 });
 
-// ── auth.ts: bandera LEGACY_TOKEN_IN_BODY ────────────────────────────────────
+// ── auth.ts: vuln_010 cerrado (tarea #508, ronda 2) — sin bandera, sin token en el body ──
 
-function withEnv(value: string | undefined, fn: () => void): void {
-  const previous = process.env.LEGACY_TOKEN_IN_BODY;
-  if (value === undefined) delete process.env.LEGACY_TOKEN_IN_BODY;
-  else process.env.LEGACY_TOKEN_IN_BODY = value;
-  try {
-    fn();
-  } finally {
-    if (previous === undefined) delete process.env.LEGACY_TOKEN_IN_BODY;
-    else process.env.LEGACY_TOKEN_IN_BODY = previous;
-  }
-}
-
-await check("bandera sin definir -> incluye el token (compatibilidad por defecto)", () => {
-  withEnv(undefined, () => assert.equal(shouldIncludeTokenInBody(), true));
-});
-
-await check("bandera 'false' -> NO incluye el token", () => {
-  withEnv("false", () => assert.equal(shouldIncludeTokenInBody(), false));
-});
-
-await check("bandera 'true' o cualquier otro valor -> incluye el token", () => {
-  withEnv("true", () => assert.equal(shouldIncludeTokenInBody(), true));
-  withEnv("otra-cosa", () => assert.equal(shouldIncludeTokenInBody(), true));
+await check("auth.ts ya no tiene la bandera LEGACY_TOKEN_IN_BODY ni el campo token en la respuesta", () => {
+  const authSource = fs.readFileSync(path.join(__dirname, "../routes/auth.ts"), "utf-8");
+  // El código (fuera de comentarios) ya no debe declarar ni llamar la función.
+  const codeOnly = authSource.replace(/^\s*\/\/.*$/gm, "");
+  assert.equal(/shouldIncludeTokenInBody/.test(codeOnly), false);
+  assert.equal(/process\.env\.LEGACY_TOKEN_IN_BODY/.test(codeOnly), false);
+  // La respuesta de POST /login solo debe tener `admin` — el token vive únicamente
+  // en la cookie httpOnly, confirmado con un login real contra producción.
+  assert.match(authSource, /res\.json\(\{\s*\n\s*admin: \{ id: admin\.id, email: admin\.email, nombre: admin\.nombre, rol: admin\.rol \},\s*\n\s*\}\);/);
 });
 
 if (failures > 0) {

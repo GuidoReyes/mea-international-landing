@@ -8082,8 +8082,9 @@
         "testStrategy": "Owner provides confirmation that frontend no longer uses token field. After env var change: test login flow in production → still works. After code removal: verify build passes, login integration test passes, no regressions. Document decision and confirmation in commit message.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-24T20:08:05.594Z"
       },
       {
         "id": "509",
@@ -8121,9 +8122,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-24T13:39:40.933Z",
+      "lastModified": "2026-09-24T20:08:05.595Z",
       "taskCount": 509,
-      "completedCount": 418,
+      "completedCount": 419,
       "tags": [
         "master"
       ]

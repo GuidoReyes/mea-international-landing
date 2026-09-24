@@ -9,16 +9,6 @@ const router = Router();
 
 const TOKEN_TTL_HORAS = 8; // jornada laboral — reduce la ventana ante robo de sesión
 
-// vuln_010: el token viaja en cookie httpOnly (inmune a robo por XSS) desde antes; el
-// panel de admin (lib/api.ts) ya usa credentials:"include" en todo y no lee este campo
-// del cuerpo — verificado en el código del frontend. La bandera es la red de seguridad
-// por si algún build de Vercel más viejo siguiera desplegado esperando el token en el
-// body. Por defecto sigue incluido; poner LEGACY_TOKEN_IN_BODY=false una vez confirmado
-// que el frontend en producción no lo necesita, y luego borrar la bandera y el campo.
-export function shouldIncludeTokenInBody(): boolean {
-  return process.env.LEGACY_TOKEN_IN_BODY !== "false";
-}
-
 // Fuerza bruta: 5 intentos por IP+email cada 15 minutos. Requiere
 // app.set("trust proxy", 1) en index.ts para que req.ip sea el cliente real
 // detrás del proxy de Railway.
@@ -81,11 +71,14 @@ router.post("/login", loginLimiter, async (req: Request, res: Response) => {
   );
 
   // El token viaja en cookie httpOnly — el JS del panel no puede leerlo,
-  // así que un XSS ya no puede exfiltrarlo.
+  // así que un XSS ya no puede exfiltrarlo. vuln_010 (ronda 1, cerrado en la
+  // ronda 2 tarea #508): el panel de admin (lib/api.ts) ya no lee ni necesita
+  // el token en el cuerpo desde hace tiempo — confirmado en el código del
+  // frontend y en un login real contra producción tras poner
+  // LEGACY_TOKEN_IN_BODY=false. La bandera y el campo ya no existen.
   res.cookie("mea_admin_token", token, cookieOptions());
 
   res.json({
-    ...(shouldIncludeTokenInBody() ? { token } : {}),
     admin: { id: admin.id, email: admin.email, nombre: admin.nombre, rol: admin.rol },
   });
 });

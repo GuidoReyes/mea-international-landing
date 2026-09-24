@@ -116,6 +116,14 @@ check("log() redacta el meta y muestra el mensaje de un Error", () => {
   assert.equal(lines[1].includes("boom"), true);
 });
 
+// ── vuln_009 (ronda 2, tarea #504): decisión documentada, sin cambio de
+// comportamiento — "info" sigue suprimido en producción; se confirma que la
+// decisión (riesgo aceptado) quedó explicada en el propio archivo.
+check("logger.ts documenta la decisión de vuln_009 (riesgo aceptado)", () => {
+  const src = require("fs").readFileSync(require("path").join(__dirname, "../lib/logger.ts"), "utf-8");
+  assert.match(src, /vuln_009 \(riesgo aceptado/);
+});
+
 if (failures > 0) {
   console.log(`\n${failures} prueba(s) fallaron`);
   process.exit(1);

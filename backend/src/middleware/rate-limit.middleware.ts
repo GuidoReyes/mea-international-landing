@@ -32,7 +32,14 @@ export async function rateLimitWhatsApp(req: Request, res: Response, next: NextF
   try {
     const key = `ratelimit:wa:${telefono}`;
     const count = await client.incr(key);
-    if (count === 1) {
+    // vuln_013: INCR y EXPIRE son dos round-trips separados, no atómicos. Antes
+    // solo se armaba el TTL cuando count===1; si el proceso se caía justo entre
+    // el INCR y el EXPIRE, la clave quedaba contando para siempre sin vencer —
+    // un phone quedaría bloqueado permanentemente. pTTL cubre ambos casos (clave
+    // nueva Y clave que perdió su expiración), mismo self-heal que ResilientStore
+    // (lib/rate-limit-store.ts, tarea #475).
+    const ttlMs = await client.pTTL(key);
+    if (ttlMs < 0) {
       await client.expire(key, WINDOW_SECONDS);
     }
 

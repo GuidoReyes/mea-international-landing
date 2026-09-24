@@ -33,6 +33,13 @@ router.get("/egresos", verifyJWT, async (req: Request, res: Response) => {
     res.status(400).json({ error: `categoria inválida. Valores: ${CATEGORIAS_EGRESO.join(", ")}` });
     return;
   }
+  // vuln_024: mes se pegaba a "-01" y se parseaba sin validar el formato —
+  // un valor mal puesto (ej. "2024-13" o texto libre) produce un Invalid Date
+  // que Prisma ignora en silencio en vez de fallar con un error claro.
+  if (mes !== undefined && !/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+    res.status(400).json({ error: "mes inválido — usá el formato YYYY-MM" });
+    return;
+  }
 
   const where: Record<string, unknown> = {};
   if (categoria) where.categoria = categoria;

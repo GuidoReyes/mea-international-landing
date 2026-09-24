@@ -15,6 +15,14 @@ interface Message {
   content: string;
 }
 
+// vuln_006 (riesgo aceptado, decisión del dueño del proyecto — ronda 2, tarea
+// #507): el historial se guarda en Redis sin cifrar, con TTL corto
+// (CHAT_HISTORY_TTL). Redis es un servicio interno de Railway, no expuesto
+// públicamente; cifrar/descifrar en cada turno de conversación agregaría
+// complejidad y costo de performance sin un atacante realista que no tuviera
+// ya acceso directo a Redis de por sí. Misma familia de decisión que vuln_031
+// (jarvis-bridge.ts): el contenido real es necesario para que el bot pueda
+// seguir la conversación.
 async function getHistory(telefono: string): Promise<Message[]> {
   try {
     const history = await getJSON<Message[]>(`chat:${telefono}`);

@@ -53,10 +53,14 @@ app.use(
     // Con credentials, cors echa el origin exacto (no se permite "*").
     // Se filtra el "" para que un FRONTEND_URL sin setear no habilite
     // requests sin header Origin.
+    // vuln_008: localhost:3000 solo tiene sentido en desarrollo — en
+    // producción, permitirlo habilitaría que una página servida desde
+    // localhost (ej. un dev server comprometido) haga requests con
+    // credenciales contra la API real.
     origin: [
       process.env.FRONTEND_URL,
       "https://www.mea.edu.gt",
-      "http://localhost:3000",
+      ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
     ].filter((o): o is string => Boolean(o)),
     credentials: true,
   })

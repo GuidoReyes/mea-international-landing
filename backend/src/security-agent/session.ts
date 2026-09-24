@@ -39,6 +39,9 @@ export function sessionCookieOptions(): CookieOptions {
   return {
     httpOnly: true, // not readable from JavaScript, so an XSS cannot steal the session
     sameSite: "strict",
+    // vuln_056 (falso positivo confirmado — ronda 2, tarea #505): esto ES el
+    // patrón estándar (secure solo en producción, para no romper localhost:3000
+    // por HTTP en desarrollo), no un descuido.
     secure: process.env.NODE_ENV === "production",
     maxAge: SESSION_TTL_MS,
     path: "/", // the dashboard (/security) and its API (/api/security, /api/backup) share it

@@ -28,6 +28,7 @@ import prisma from "../lib/prisma";
 import { leccionContenidoSchema, PasoLeccion } from "../lib/leccion-contenido.schema";
 import { isPiperConfigurado, sintetizarAudioPiper, limpiarTextoParaVoz } from "../lib/piper-tts";
 import { subirArchivoR2 } from "../lib/storage";
+import { isTrustedR2Url } from "../lib/r2-url";
 
 // Mismo placeholder que generate-leccion.ts escribe en los pasos "escuchar"
 // antes de reemplazarlo con el audio real.
@@ -83,6 +84,16 @@ async function sintetizarPaso(
 
     if (!url) {
       console.warn(`  ✗ Leccion #${leccionId} · ${paso.id}: no se pudo subir a R2 — se deja como estaba.`);
+      return { paso, ok: false };
+    }
+
+    // subirArchivoR2 siempre arma esta URL desde CLOUDFLARE_R2_PUBLIC_URL, así que hoy
+    // no hay forma de que apunte a otro lado — este chequeo es una defensa extra por si
+    // esa función cambia en el futuro (vuln_044: nunca hacer fetch a un host distinto de R2).
+    // Mismo guard que generate-leccion.ts (tarea #486, ronda 1) — este script es su espejo.
+    const r2PublicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
+    if (!r2PublicUrl || !isTrustedR2Url(url, r2PublicUrl)) {
+      console.warn(`  ✗ Leccion #${leccionId} · ${paso.id}: URL de audio fuera del bucket de R2 configurado, se omite: ${url}`);
       return { paso, ok: false };
     }
 
@@ -202,9 +213,14 @@ async function main(): Promise<void> {
   if (dryRun) console.log("--dry-run: no se sintetizó audio ni se guardó nada.");
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exitCode = 1;
-  })
-  .finally(() => prisma.$disconnect());
+// Igual que seed-admin.ts (tarea #486) y crear-alumnos-grupo.ts (tarea #499):
+// sin este guard, importar cualquier función de este archivo (p. ej. desde un
+// test) dispararía una corrida real contra la BD/Piper/R2 como efecto secundario.
+if (require.main === module) {
+  main()
+    .catch((err) => {
+      console.error(err);
+      process.exitCode = 1;
+    })
+    .finally(() => prisma.$disconnect());
+}

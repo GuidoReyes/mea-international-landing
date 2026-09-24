@@ -8058,8 +8058,9 @@
         "testStrategy": "Extend test-script-security.ts: (1) generar-audio-faltante.ts with evil URL (https://media.mea.edu.gt.evil.com) → rejected. (2) Trusted R2 URL → passes. (3) generate-leccion.ts with missing/invalid ANTHROPIC_API_KEY → fails with clear message. (4) For vuln_045, if False Positive, document that frontend doesn't use dangerouslySetInnerHTML for lesson content.",
         "priority": "low",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-09-24T02:16:47.923Z"
       },
       {
         "id": "507",
@@ -8119,9 +8120,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-24T02:13:45.189Z",
+      "lastModified": "2026-09-24T02:16:47.924Z",
       "taskCount": 509,
-      "completedCount": 416,
+      "completedCount": 417,
       "tags": [
         "master"
       ]

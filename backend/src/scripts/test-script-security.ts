@@ -85,6 +85,44 @@ check("el CSV de credenciales se escribe con permisos 0600 (crear-alumnos-grupo.
   }
 });
 
+// ── ronda 2 (tarea #506) ──────────────────────────────────────────────────────
+
+const generarAudioSource = fs.readFileSync(
+  path.join(__dirname, "generar-audio-faltante.ts"),
+  "utf-8"
+);
+
+check("vuln_044: generar-audio-faltante.ts valida la URL de R2 antes del fetch, igual que generate-leccion.ts", () => {
+  assert.match(generarAudioSource, /import \{ isTrustedR2Url \} from "\.\.\/lib\/r2-url"/);
+  assert.match(generarAudioSource, /isTrustedR2Url\(url, r2PublicUrl\)/);
+  // El fetch de cotejo debe venir DESPUÉS del chequeo, no antes.
+  const idxCheck = generarAudioSource.indexOf("isTrustedR2Url(url, r2PublicUrl)");
+  const idxFetch = generarAudioSource.indexOf('fetch(url, { method: "HEAD" })');
+  assert.ok(idxCheck > 0 && idxFetch > idxCheck, "el fetch debe ocurrir después de validar la URL");
+});
+
+check("generar-audio-faltante.ts no ejecuta main() al importarlo (mismo bug que seed-admin.ts, tarea #486)", () => {
+  assert.match(generarAudioSource, /if \(require\.main === module\)/);
+});
+
+check("vuln_045: falso positivo confirmado — el frontend no usa dangerouslySetInnerHTML para lecciones", () => {
+  // La única aparición de dangerouslySetInnerHTML en todo el frontend es
+  // components/ui/legal-modal.tsx (términos/privacidad estáticos), no lecciones.
+  const leccionPageSource = fs.readFileSync(
+    path.join(__dirname, "../../../app/cursos/[slug]/leccion/[leccionSlug]/page.tsx"),
+    "utf-8"
+  );
+  assert.equal(/dangerouslySetInnerHTML/.test(leccionPageSource), false);
+});
+
+check("vuln_046: falso positivo confirmado — generate-leccion.ts ya valida ANTHROPIC_API_KEY (ronda 1, tarea #483)", () => {
+  const generateLeccionSource = fs.readFileSync(
+    path.join(__dirname, "generate-leccion.ts"),
+    "utf-8"
+  );
+  assert.match(generateLeccionSource, /validateAnthropicApiKey\(process\.env\.ANTHROPIC_API_KEY\)/);
+});
+
 if (failures > 0) {
   console.log(`\n${failures} prueba(s) fallaron`);
   process.exit(1);

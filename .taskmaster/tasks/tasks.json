@@ -8866,7 +8866,7 @@
   "seo-mea-fase4": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Corregir valor inicial en 0 de AnimatedCounter",
         "description": "app/page.tsx:196-197 — AnimatedCounter arranca en useState(0) y anima por cliente hasta stat.value (ej. 200 estudiantes). Un crawler sin JS o el HTML inicial servido ve 0 en vez de la cifra real. Verificado en vivo 2026-09-25 (PRD v1.1 TASK-004).",
         "details": "Renderizar el valor final real en el HTML inicial (server component o valor estático) y usar la animación solo como mejora visual progresiva del lado del cliente, sin que el DOM inicial muestre 0. Aplica a todos los usos de AnimatedCounter en la home (stat.value de la sección de stats, línea ~594).",
@@ -8878,7 +8878,7 @@
         "updatedAt": "2026-09-25T06:32:40.618Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Terminar y commitear el fix de carga diferida del hero Spline",
         "description": "Ya hay un fix WIP sin commitear en components/ui/splite.tsx (git status) que difiere el montaje de @splinetool/react-spline hasta 1.5s después del evento load, para sacar el runtime 3D (~2MB, ~10s CPU) de la ventana de medición de TTI/LCP de Lighthouse (Performance 39/100, TBT 5.9s medido antes del fix).",
         "details": "1) Decidir si el retraso visible del hero (~1.5s+ tras load) es aceptable para UX real o si conviene un enfoque distinto (imagen estática de fallback más rica, escena 3D más liviana, o precarga condicionada a conexión rápida). 2) Ajustar el loader/fallback para que nunca quede como 'zona vacía' o spinner indefinido, tal como exige el PRD v1.1 TASK-004. 3) Commitear. 4) Remedir Lighthouse.\n<info added on 2026-09-25T15:44:24.239Z>\nI need to analyze the codebase to understand the current implementation and provide accurate task update details.Now let me check if there are any build errors or type errors:Perfect! Now let me check if the CSS animation for `animate-pulse-ring` exists:Excellent! Let me verify the CSS animation is properly defined:Perfect! Now let me check the git history to see if there are any recent commits related to this:Based on my analysis of the codebase, here is the new text that should be appended to the task details:\n\n**RESOLUCIÓN IMPLEMENTADA 2026-09-25:**\n\nSe confirmó la estrategia de diferir el montaje del componente Spline hasta 1.5s después del evento 'load' del navegador (línea 44 y 49 en components/ui/splite.tsx). Esta decisión está basada en evidencia empírica de Lighthouse (Performance 39/100, TBT 5.9s antes del fix) y evita que el runtime 3D (~2MB JS+WASM, ~10s CPU en móvil) compita con la ventana de medición de TTI/LCP.\n\n**Mejora del fallback (líneas 14-21):** Se reemplazó el spinner-sobre-fondo-vacío original por un contenedor estilizado con:\n- Degradé de marca: bg-gradient-to-br from-[#00C4B4]/10 via-[#0A2540] to-[#0A2540]\n- Bordes redondeados (rounded-3xl) para coincidir con el diseño del hero\n- Anillo de pulso animado detrás del spinner (animate-pulse-ring definido en app/globals.css:75-78 y línea 105-107)\n- Este mismo fallback se usa tanto en el estado inicial (!listo, línea 59) como en el Suspense boundary (línea 62)\n\n**Validación técnica completada:**\n- tsc --noEmit sin errores de tipo\n- next build exitoso (confirmado con salida de producción)\n- Animación CSS pulse-ring existente en globals.css, no requiere cambios adicionales\n\n**BLOQUEADOR PENDIENTE:** La remedición de Lighthouse está bloqueada localmente por ausencia de Chrome instalado en esta máquina. Se debe ejecutar desde:\n1. PageSpeed Insights sobre el deploy de Vercel (https://pagespeed.web.dev/), o\n2. Pipeline de CI con Lighthouse configurado, o\n3. Otra máquina de desarrollo con Chrome disponible\n\nEsta remedición se trackea como parte de la tarea 7 (baseline formal de Lighthouse y CWV), que depende de esta tarea y debe ejecutarse ANTES y DESPUÉS del fix para demostrar la mejora cuantitativa.\n</info added on 2026-09-25T15:44:24.239Z>",
@@ -8892,7 +8892,7 @@
         "updatedAt": "2026-09-25T15:44:36.189Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Corregir herencia de Open Graph/Twitter en lecciones noindex",
         "description": "Confirmado 2026-09-25: app/cursos/[slug]/leccion/[leccionSlug]/page.tsx (rama !esGratis, líneas 43-50) devuelve Metadata sin openGraph ni twitter. Next.js hereda esos campos del root layout (app/layout.tsx:29-43), que apunta a SITE_URL, SITE_TITLE y SITE_DESCRIPTION de la home. Resultado: al compartir una lección noindex, og:url/title/description muestran la home, no la lección — coincide con el hallazgo del PRD v1.1 TASK-003.",
         "details": "Definir explícitamente openGraph y twitter (title, description, url=canonical de la lección) también en la rama noindex de generateMetadata, aunque la página no sea indexable — sigue siendo compartible por WhatsApp/redes. Validar con una herramienta de vista previa social (Facebook Sharing Debugger o similar) en al menos una de las 5 lecciones noindex.",
@@ -8904,42 +8904,45 @@
         "updatedAt": "2026-09-25T06:32:40.631Z"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Completar ItemList y activar FAQPage JSON-LD",
         "description": "Verificado 2026-09-25 al cerrar fase3 #15: faqPageJsonLd() existe en lib/structured-data.ts (línea 75-88) pero no se usa en ninguna página .tsx. itemListJsonLd para /cursos no existe. El resto (Organization, WebSite, BreadcrumbList, Course, LearningResource) ya está implementado y en producción (commit 0123b61).",
-        "details": "1) Agregar itemListJsonLd en lib/structured-data.ts y renderizarlo en app/cursos/page.tsx usando los datos de getRutas(). 2) Usar faqPageJsonLd donde haya FAQs reales visibles en el HTML (ej. components/ui/faqs-1.tsx) — nunca con preguntas/respuestas inventadas, solo contenido que el usuario ya ve en la página. 3) No agregar JSON-LD sin contenido visible correspondiente.",
+        "details": "1) Agregar itemListJsonLd en lib/structured-data.ts y renderizarlo en app/cursos/page.tsx usando los datos de getRutas(). 2) Usar faqPageJsonLd donde haya FAQs reales visibles en el HTML (ej. components/ui/faqs-1.tsx) — nunca con preguntas/respuestas inventadas, solo contenido que el usuario ya ve en la página. 3) No agregar JSON-LD sin contenido visible correspondiente.\n<info added on 2026-09-25T15:51:19.346Z>\nI'll analyze the codebase to understand the current implementation of structured data and FAQ usage before generating the update.Now let me check the build output to confirm the verification mentioned in the user request:Based on my analysis of the codebase, I can now generate the update text. The user request confirms:\n\n1. The initial Task Master verification was incorrect about faqPageJsonLd not being used\n2. FAQPage JSON-LD is already properly implemented in app/page.tsx line 870\n3. ItemList was the only missing piece, now implemented in both lib/structured-data.ts and app/cursos/page.tsx\n4. Build verified successfully with 24 pages\n\nActualización de implementación (2026-09-25): La verificación inicial de Task Master sobre faqPageJsonLd contenía un error — revisión directa de app/page.tsx:870 confirma que FAQPage JSON-LD ya estaba en producción desde antes (renderizado con jsonLdScriptProps(faqPageJsonLd(defaultQuestions)) justo antes de <FaqsSection />, usando el mismo array defaultQuestions visible en el acordeón HTML). No se requirió trabajo adicional en FAQPage. ItemList era el único tipo faltante. Implementación completada: itemListJsonLd() agregada en lib/structured-data.ts:98-114 (nueva función export sin romper firmas existentes) + renderizado en app/cursos/page.tsx:40-50 usando getRutas() transformado a ItemListEntry[] (mismo conjunto de datos y orden que CatalogoRutas renderiza en el HTML). Verificación: next build limpio genera 24 páginas estáticas sin errores de tipo ni runtime (commit pendiente en fix/security-remediation).\n</info added on 2026-09-25T15:51:19.346Z>",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-09-25T15:51:30.488Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Validar JSON-LD con Rich Results Test y schema.org",
         "description": "El JSON-LD implementado (Organization, WebSite, BreadcrumbList, Course, LearningResource, y tras la tarea 4 también ItemList/FAQPage) nunca se validó formalmente con herramientas externas. PRD v1.1 TASK-007.",
-        "details": "Validar home, /cursos, una página de curso y una lección pública con Google Rich Results Test y el validador de schema.org. Confirmar 0 errores de parseo y que los campos (nombre, descripción, imagen, breadcrumbs) coincidan con el contenido visible. Documentar errores/advertencias no corregibles con su justificación, sin inventar datos (ratings, precios, certificaciones) para pasar la validación.",
+        "details": "Validar home, /cursos, una página de curso y una lección pública con Google Rich Results Test y el validador de schema.org. Confirmar 0 errores de parseo y que los campos (nombre, descripción, imagen, breadcrumbs) coincidan con el contenido visible. Documentar errores/advertencias no corregibles con su justificación, sin inventar datos (ratings, precios, certificaciones) para pasar la validación.\n<info added on 2026-09-25T15:55:23.900Z>\nI need to analyze the codebase to understand the current implementation of the structured data and the hasCourseInstance addition mentioned in the user request.Good, I can see the hasCourseInstance was indeed added to the courseJsonLd function at lines 139-142. Now let me check where this function is used to understand the deployment context better.Now let me check where the site is deployed (Vercel):Based on my codebase analysis, I can now generate the update text. The user request describes:\n1. The validation blocker (no client-side JS execution available)\n2. The fix applied (hasCourseInstance added to courseJsonLd)\n3. What's still pending (actual validation with Rich Results Test/validator.schema.org)\n\nThe update should document what was done, why, and what remains pending - all verified through the code I just read.\n\n---\n\n**2026-09-25 Parcial: Validación bloqueada en entorno local, pero se corrigió eligibilidad de Course para rich results**\n\nLa validación interactiva con Google Rich Results Test y el validador de schema.org no se pudo completar en este entorno: se intentó con WebFetch (GET a `search.google.com/test/rich-results?url=...`), pero la herramienta requiere ejecución de JavaScript del lado del cliente para correr el test — no hay submit real vía fetch estático, y no hay Chrome instalado localmente para automatizarlo con un navegador headless.\n\nSin embargo, se realizó una revisión basada en los requisitos documentados de Google para Course (`developers.google.com/search/docs/appearance/structured-data/course`). Se detectó que `courseJsonLd()` en `lib/structured-data.ts:122-144` carecía de `hasCourseInstance` u `offers` — Google exige al menos uno de los dos para que el tipo Course sea elegible a aparecer en rich results. Sin estos campos, el JSON-LD es sintácticamente válido según schema.org, pero no elegible para snippets enriquecidos en búsqueda.\n\n**Corrección aplicada (commit verificado con `next build` limpio):**\nSe agregó `hasCourseInstance: { '@type': 'CourseInstance', courseMode: 'online' }` a `courseJsonLd()` (líneas 139-142). El valor `courseMode: 'online'` es un dato real y verificable: todos los cursos de MEA son 100% online (sin sedes presenciales), confirmado en el modelo de negocio. No se inventaron campos opcionales como `startDate`, `endDate`, `instructor` ni `offers` a nivel de curso individual, ya que el pricing vive en `/planes` (suscripción mensual para acceso completo), no por curso.\n\n**Pendiente:**\nCorrer Google Rich Results Test (`search.google.com/test/rich-results`) y el validador de schema.org (`validator.schema.org`) desde una máquina con navegador (Chrome/Firefox) o contra el deploy de Vercel en producción (`mea.edu.gt`), para las 4 páginas indicadas en el PRD:\n- Home (`/`)\n- Catálogo (`/cursos`)\n- Una página de curso (ej. `/cursos/beginners`)\n- Una lección pública (ej. `/cursos/beginners/leccion/introducing-yourself`)\n\nLa validación manual desde otra máquina o el deploy confirmará si `hasCourseInstance` resuelve la eligibilidad de Course para rich results, y si el resto de los tipos JSON-LD (`Organization`, `WebSite`, `BreadcrumbList`, `ItemList`, `FAQPage`, `LearningResource`) parsean sin errores.\n</info added on 2026-09-25T15:55:23.900Z>",
         "testStrategy": "",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "4"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-09-25T15:54:28.407Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Documentar decisión de canonicalización del parámetro ?nivel=",
         "description": "Verificado 2026-09-25: ya está resuelto en código. app/planes/page.tsx usa alternates.canonical estático a '/planes' sin importar el parámetro nivel; el parámetro solo personaliza texto de UI y se propaga al checkout. No requiere cambio de código.",
-        "details": "Dejar constancia escrita de la decisión (parámetro de filtro, no variante de contenido indexable) para cerrar formalmente el TASK-002 del PRD v1.1, y confirmar que no hay otros parámetros de tracking/filtro rastreables sin canonical (revisar /cursos y query params de UTM si existieran).",
+        "details": "Dejar constancia escrita de la decisión (parámetro de filtro, no variante de contenido indexable) para cerrar formalmente el TASK-002 del PRD v1.1, y confirmar que no hay otros parámetros de tracking/filtro rastreables sin canonical (revisar /cursos y query params de UTM si existieran).\n<info added on 2026-09-25T15:52:53.795Z>\nI'll analyze the codebase to understand the current implementation and verify the claims in the user request.Now let me verify the grep results by checking a few other files to confirm that `?nivel=` is indeed the only query parameter used:Perfect! Now I have all the information I need. Let me verify the documentation file one more time to confirm the section exists:Based on my codebase analysis, I can confirm:\n\n1. **Documentation verified**: The section \"Decisión: canonicalización del parámetro ?nivel=\" exists in `.taskmaster/docs/seo-mea-fase4-pendientes.md` (lines 62-87)\n\n2. **Query parameter verification confirmed**: \n   - `grep searchParams` in the `app/` directory returns only `app/planes/page.tsx`\n   - `/cursos/page.tsx` does NOT use `searchParams` (verified by reading the file)\n   - This confirms `?nivel=` is the only query parameter used in the entire site\n\n3. **Canonical implementation verified**: `app/planes/page.tsx:19` shows `canonical: \"/planes\"` is static (not dynamic based on searchParams)\n\n4. **Implementation matches documentation**: The documentation in the PRD accurately describes that `?nivel=` is a UI personalization filter (lines 66-70 show the conditional badge display) and not an indexable content variant\n\nHere is the new text to append to the task details:\n\n---\n\nDocumentación completada el 2026-09-25 en .taskmaster/docs/seo-mea-fase4-pendientes.md líneas 62-87 (sección \"Decisión: canonicalización del parámetro ?nivel=\"). Verificación de código confirma que app/planes/page.tsx es el único archivo en app/ que lee searchParams (grep -rn \"searchParams\" app/), por lo que ?nivel= en /planes es efectivamente el único parámetro de query en todo el sitio público. No existen parámetros de tracking UTM ni otros filtros en /cursos ni en ninguna otra ruta. La implementación actual ya cumple con la decisión documentada: alternates.canonical estático a \"/planes\" (línea 19 de app/planes/page.tsx), parámetro nivel usado únicamente para personalización de UI (líneas 66-70: badge condicional \"Empezando desde nivel X\") y propagación al enlace de checkout (sin impacto en indexación). No se requirieron cambios de código. Cierra formalmente TASK-002 del PRD v1.1 con 0 hallazgos adicionales.\n</info added on 2026-09-25T15:52:53.795Z>",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-09-25T15:53:00.706Z"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Guardar baseline formal de Lighthouse y Core Web Vitals",
         "description": "No existe baseline formal guardado en el repo (PRD v1.1 TASK-005). Debe correrse ANTES y DESPUÉS del fix de la tarea 2 (hero Spline) para poder demostrar la mejora.",
         "details": "Correr Lighthouse móvil y escritorio en /, /cursos, /planes y una página de curso/lección. Registrar Performance/Accessibility/Best Practices/SEO scores, LCP, CLS, TBT y oportunidades de laboratorio. Consultar datos de campo CrUX/Search Console si hay acceso (no inferir INP de TBT). Guardar el reporte antes del fix (baseline) y después del fix (comparación), distinguiendo laboratorio de campo.",
@@ -8950,7 +8953,7 @@
         "subtasks": []
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Revisar indexación y CTR en Search Console",
         "description": "PRD v1.1 TASK-009. Sin acceso confirmado a Google Search Console en este repo/sesión — no se puede simular ni inferir el resultado. La búsqueda pública consultada por el PRD aún mostró el title anterior de la home, lo que puede ser índice desactualizado, no un defecto actual.",
         "details": "Cuando haya acceso: inspeccionar home, /cursos, /planes y una muestra de cursos/lecciones. Comprobar canonical seleccionada por Google, cobertura e indexación. Solicitar rastreo nuevo solo después de confirmar que el HTML publicado está correcto. Documentar title/description mostrados, consultas, impresiones y CTR. Distinguir resultado desactualizado de defecto real de metadata. Queda bloqueada hasta confirmar acceso — no inventar cifras.",
@@ -8961,7 +8964,7 @@
         "subtasks": []
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Re-crawl completo post-cambios y reporte final vs PRD v1.1",
         "description": "Cierra PRD v1.1 TASK-010 y las tareas fase3 #27/#28 (Validación técnica completa / Reporte SEO post-implementación). Repetir el rastreo automatizado de las URLs del sitemap tras aplicar las tareas 1-6 de esta fase4, comparando contra el baseline de este PRD (108→144 URLs, 5 lecciones antes reportadas como noindex, contadores en 0, OG heredado en lecciones noindex).",
         "details": "El reporte debe cubrir: estado HTTP/robots/canonical/title/description/H1 de todas las URLs del sitemap, 0 titles/descriptions duplicados, todas las páginas indexables con canonical coherente y H1, OG/Twitter apuntando a la página e imagen correctas, resultados de validación de JSON-LD y de Lighthouse adjuntos. Separar hallazgos confirmados de mediciones pendientes y limitaciones de acceso (Search Console).",
@@ -8980,12 +8983,14 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-09-25T15:44:36.189Z",
+      "lastModified": "2026-09-25T15:54:28.408Z",
       "taskCount": 9,
-      "completedCount": 3,
+      "completedCount": 5,
       "tags": [
         "seo-mea-fase4"
-      ]
+      ],
+      "created": "2026-09-25T15:54:30.360Z",
+      "description": "Tasks for seo-mea-fase4 context"
     }
   }
 }

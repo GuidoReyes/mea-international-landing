@@ -59,6 +59,33 @@ El rastreo actual confirma que los fundamentos on-page y técnicos principales y
 - No declarar un problema de Core Web Vitals sin medición.
 - No comprar enlaces ni crear enlaces artificiales.
 
+## Decisión: canonicalización del parámetro `?nivel=` (TASK-002, cierra fase4 #6)
+
+Verificado 2026-09-25: `?nivel=` en `/planes` (`app/planes/page.tsx`) es el **único**
+parámetro de query usado en todo el sitio (confirmado con `grep -rn "searchParams"`
+sobre todas las rutas de `app/`) — no hay otros parámetros de filtro, nivel o
+tracking (UTM u otros) en ninguna otra página.
+
+**Naturaleza del parámetro:** `nivel` es un filtro de personalización de UI. Al
+llegar con `?nivel=C1`, `/planes` muestra una línea de texto adicional
+("Empezando desde nivel C1 — cualquier plan te da acceso a tu nivel") y
+propaga el valor al enlace de checkout (`/checkout/[id]?nivel=C1`). No cambia
+el listado de planes, precios ni el contenido principal de la página — es la
+misma oferta comercial con un mensaje contextual distinto, no una página con
+intención de búsqueda propia.
+
+**Decisión:** no crear variantes indexables por nivel. `/planes` ya declara
+`alternates.canonical: "/planes"` de forma estática (sin leer `searchParams`),
+por lo que **cualquier valor de `?nivel=`** — válido o inválido — canonicaliza
+a la URL base. Esto ya estaba implementado correctamente en el código antes de
+esta revisión; no se requirió ningún cambio. `/checkout/[id]?nivel=...` no es
+indexable (no está en el sitemap y depende de sesión/checkout), así que no
+necesita canonical propio.
+
+**No objetivo cumplido:** no se crearon landings ni contenido nuevo por nivel,
+consistente con el no-objetivo del PRD v1.1 de no generar páginas casi
+duplicadas.
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |

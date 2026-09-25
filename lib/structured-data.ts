@@ -87,6 +87,32 @@ export function faqPageJsonLd(items: { title: string; content: string }[]): Reco
   };
 }
 
+export interface ItemListEntry {
+  name: string;
+  description: string;
+  url: string;
+}
+
+// Lista de las rutas/cursos reales mostradas en /cursos, en el mismo orden en
+// que aparecen en el catálogo (components/cursos-online/CatalogoRutas.tsx).
+export function itemListJsonLd(items: ItemListEntry[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: item.url,
+      item: {
+        "@type": "Course",
+        name: item.name,
+        description: item.description,
+        url: item.url,
+      },
+    })),
+  };
+}
+
 export interface CourseJsonLdInput {
   name: string;
   description: string;
@@ -104,6 +130,15 @@ export function courseJsonLd({ name, description, url }: CourseJsonLdInput): Rec
       "@type": "Organization",
       name: "MEA International",
       sameAs: "https://www.mea.edu.gt",
+    },
+    // Google exige hasCourseInstance u offers para que el Course sea elegible
+    // a rich results (si no, el JSON-LD es válido pero no elegible). Todos
+    // los cursos de MEA son 100% online (verificado en el modelo de negocio,
+    // sin sedes presenciales) — no se inventa horario, instructor ni precio
+    // por curso, ya que eso vive a nivel de plan/suscripción en /planes.
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "online",
     },
   };
 }

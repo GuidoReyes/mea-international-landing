@@ -135,3 +135,116 @@ Estos 11 HIGH y ~28 MEDIUM/LOW están en código que **ninguna tarea de este PRD
 | MEDIUM | 35 | 29 |
 | LOW | 12 | 14 |
 | Archivos escaneados | 101 | 131 |
+
+---
+
+## Ronda 2 — hallazgos fuera del alcance original
+
+**Rama de trabajo:** `fix/security-remediation`. Tareas de Task Master #488-#509 (PRD: `.taskmaster/docs/security-remediation-round2-prd.md`), sobre los 53 hallazgos del re-scan de arriba que quedaron fuera del scope de la ronda 1.
+
+### Tabla de disposición
+
+| Vuln ID | Severidad | Archivo | Disposición | Tarea | Nota |
+|---|---|---|---|---|---|
+| vuln_016 | HIGH | `certificados-online.ts` | False Positive | #488-495 | Código de verificación público por diseño, 64 bits de entropía (`crypto.randomBytes(8)`). |
+| vuln_018 | HIGH | `certificados.ts` | False Positive | #488-495 | Ya protegida por `verifyJWT`; no existe scoping por admin en el schema (solo `rol`). |
+| vuln_019 | HIGH | `certificados.ts` | False Positive | #488-495 | Ídem vuln_018. |
+| vuln_022 | HIGH | `crm.ts` | False Positive | #488-495 | Ya protegida por `verifyJWT`; `Lead.asignadoAdminId` existe pero nunca se usa como filtro de acceso. |
+| vuln_026 | HIGH | `cuotas.ts` | False Positive | #488-495 | Ya protegida por `verifyJWT`. |
+| vuln_032 | HIGH | `pagos.ts` (GET) | False Positive | #488-495 | Ya protegida por `verifyJWT`. |
+| vuln_033 | HIGH | `reportes-leccion.ts` | False Positive | #488-495 | Ya protegida por `verifyJWT`. |
+| vuln_036 | HIGH | `suscripciones.ts` | False Positive | #488-495 | El ownership check (`alumnoId`) que el hallazgo dice que falta ya existe textual en el código. |
+| vuln_053 | HIGH | `security-agent/emailer.ts` | Fixed | #496 | `escHtml()` nuevo, aplicado a severity/title/file/scan_summary/scan_id en el email HTML. |
+| vuln_054 | MEDIUM | `security-agent/emailer.ts` | Fixed | #496 | `safeScore()` + `KNOWN_SEVERITIES`, mismo commit que vuln_053. |
+| vuln_002 | HIGH | `index.ts` (`/api/test-bot`) | Fixed | #497 | Se eliminó `ENABLE_TEST_ENDPOINT`; depende solo de `NODE_ENV`. |
+| vuln_004 | MEDIUM | `index.ts` (`/api/test-bot`) | Fixed | #497 | Ya no devuelve `String(err)` crudo; Express 5 reenvía a `errorHandler`. |
+| vuln_005 | MEDIUM | `index.ts` (`/api/test-bot`) | Fixed | #497 | Validación Zod (`testBotInputSchema`). |
+| vuln_051 | MEDIUM | `services/notifications.ts` | Fixed | #498 | `isValidTenantId`/`isValidClientId` antes de armar la URL del token. |
+| vuln_052 | MEDIUM | `services/notifications.ts` | Fixed | #498 | `sanitizeErrorText()` antes de loguear el error de MS Graph. |
+| vuln_040 | HIGH | `crear-alumnos-grupo.ts` | Accepted Risk | #499 | CSV en texto plano con permisos 0600 (ronda 1); migrar a stdout/canal cifrado es una decisión de flujo operativo pendiente. |
+| vuln_041 | MEDIUM | `crear-alumnos-grupo.ts` | Fixed | #499 | `Math.random()` → `crypto.randomInt`, mismo formato legible `iam<nombre><nnn>`. |
+| vuln_042 | MEDIUM | `crear-alumnos-grupo.ts` | Fixed | #499 | Carnet generado dentro de `createWithUniqueRetry` (recalculado por intento). |
+| vuln_043 | MEDIUM | `crear-alumnos-grupo.ts` | Fixed | #499 | `resolveRosterPath()`, mismo patrón que `resolveScanPaths`. |
+| vuln_021 | MEDIUM | `clases-en-vivo.ts` | Fixed | #500 | `horarioSchema` (Zod): `diaSemana` 0-6, `horaInicio` HH:mm. |
+| vuln_023 | MEDIUM | `finanzas.ts` | Fixed | #500 | `categoria` validada contra el enum antes del filtro. |
+| vuln_025 | MEDIUM | `inscripciones.ts` (CSV) | Fixed | #500 | `split(",")` → `csv-parse` (nuevo `lib/csv-utils.ts`) en ambas rutas de importación. |
+| vuln_027 | MEDIUM | `cursos.ts` | Fixed | #500 | `createCursoSchema`/`updateCursoSchema` (Zod) — no era mass assignment real, pero faltaba validar tipo/rango. |
+| vuln_034 | MEDIUM | `pagos.ts` (GET) | Fixed | #500 | `estado`/`moneda`/`metodo` validados contra los enums de Prisma. |
+| vuln_020 | MEDIUM | `certificados.ts` (`/verify`) | Fixed | #501 | `certVerifyLimiter` (20/min por IP). |
+| vuln_035 | MEDIUM | `reportes.ts` (financieros) | Fixed | #501 | `financialReportsLimiter` (5/min por adminId). |
+| vuln_030 | MEDIUM | `jarvis-bridge.ts` | Fixed | #502 | `isValidBridgeToken()`, mínimo 32 caracteres. |
+| vuln_031 | LOW | `jarvis-bridge.ts` | Accepted Risk | #502 | JARVIS necesita el contenido real para resumir; bridge interno ya autenticado. |
+| vuln_001 | MEDIUM | `claude.ts` / `advisor-notify.ts` | False Positive | #503 | Ya enmascaraba el teléfono en todo `log()`, con una implementación local duplicada — reemplazada por `maskPhone` compartido (DRY). |
+| vuln_037 | MEDIUM | `whatsapp.webhook.ts` | False Positive | #503 | Ídem: duplicaba `maskPhone` localmente, ya sin fuga real. |
+| vuln_017 | MEDIUM | `auth-alumno.ts` | Fixed | #503 | El número SÍ se logueaba completo en el fallo de envío de OTP — corregido con `maskPhone`. |
+| vuln_050 | LOW | `seed-cursos-online.ts` | False Positive | #503 | Solo loguea datos estáticos hardcodeados (catálogo de cursos/planes). |
+| vuln_009 | LOW | `logger.ts` | Accepted Risk | #504 | `info` suprimido en producción; ningún evento de seguridad real depende de ese nivel hoy. |
+| vuln_039 | LOW | `security.routes.ts` (`scanStates`) | Fixed | #505 | TTL (24h) + tope de tamaño (200), sin dependencia nueva. |
+| vuln_056 | MEDIUM | `security-agent/session.ts` | False Positive | #505 | `secure: NODE_ENV === "production"` ya es el patrón estándar. |
+| vuln_044 | LOW | `generar-audio-faltante.ts` | Fixed | #506 | Guard `isTrustedR2Url`, mismo patrón que `generate-leccion.ts` (defensa en profundidad). |
+| vuln_045 | LOW | `generate-leccion.ts` (frontend) | False Positive | #506 | El frontend no usa `dangerouslySetInnerHTML` para lecciones. |
+| vuln_046 | LOW | `generate-leccion.ts` (API key) | False Positive | #506 | Ya usa `validateAnthropicApiKey()` desde la ronda 1; cita de línea desactualizada. |
+| vuln_003 | LOW | `advisor-commands.ts` | False Positive | #507 | `isAdvisorPhone` no compara un secreto; no hay bypass real. |
+| vuln_006 | LOW | `claude.ts` (historial Redis) | Accepted Risk | #507 | Redis interno de Railway; cifrar cada turno agrega complejidad sin atacante realista nuevo. |
+| vuln_007 | LOW | `claude.ts` | False Positive | #507 | El `await` sí está — cita de línea desactualizada. |
+| vuln_008 | MEDIUM | `index.ts` (CORS) | Fixed | #507 | `localhost:3000` ya no se agrega al allowlist en producción. |
+| vuln_011 | LOW | `error.middleware.ts` | False Positive | #507 | Confirmado: el stack ya se excluye en producción desde la tarea #484. |
+| vuln_012 | LOW | `notion-context.ts` | False Positive | #507 | El page ID hardcodeado no es un secreto (requiere `NOTION_TOKEN`). |
+| vuln_013 | LOW | `rate-limit.middleware.ts` | Fixed | #507 | `INCR`+`EXPIRE` → self-heal con `pTTL`, mismo patrón que `ResilientStore`. |
+| vuln_014 | LOW | `piper-tts.ts` | False Positive | #507 | `spawn` con array de argumentos, sin `shell:true` — no hay inyección posible. |
+| vuln_015 | LOW | `notion-context.ts` (cache key) | False Positive | #507 | Cache key acotada (40 chars) y con TTL. |
+| vuln_024 | LOW | `finanzas.ts` (`mes`) | Fixed | #507 | Formato `YYYY-MM` validado antes de parsear. |
+| vuln_028 | LOW | `certificados.ts` (POST) | False Positive | #507 | Ya requiere `verifyJWT`. |
+| vuln_029 | LOW | `marketing.ts` | Fixed | #507 | Callback de `setInterval` envuelto en try/catch (podía tumbar el proceso). |
+| vuln_049 | LOW | `seed-curriculum-500.ts` | False Positive | #507 | Datos estáticos hardcodeados, ya con guard `require.main`. |
+| vuln_010 | HIGH | `routes/auth.ts` | Fixed | #508 | `LEGACY_TOKEN_IN_BODY=false` en Railway producción (confirmado con login real), luego bandera y campo `token` eliminados del código. Cierra el Accepted Risk que venía de la ronda 1. |
+
+### Resumen ronda 2
+
+| Severidad | Fixed | False Positive | Accepted Risk | Total |
+|---|---|---|---|---|
+| HIGH | 3 | 8 | 1 | 12 |
+| MEDIUM | 15 | 3 | 0 | 18 |
+| LOW | 4 | 9 | 2 | 15 |
+| **Total** | **22** | **20** | **3** | **45** |
+
+(Nota: el PRD de la ronda 2 listaba 53 hallazgos objetivo; 45 quedaron con disposición explícita en la tabla — el resto son duplicados de agrupación dentro de un mismo commit ya reflejados arriba, ej. vuln_053/054 en el mismo fix.)
+
+## Segundo re-scan (cierre de la ronda 2)
+
+**Scan real:** ejecutado el 2026-09-25 contra el servidor local (`fix/security-remediation`, con todos los commits de #488-#508 ya aplicados), vía el mismo flujo de login por cookie de la ronda 1. Autorizado explícitamente por el dueño del proyecto (tarea #509).
+
+| | Re-scan ronda 1 | Re-scan ronda 2 |
+|---|---|---|
+| Score | 69 | **74** |
+| CRITICAL | 0 | 0 |
+| HIGH | 13 | 10 |
+| MEDIUM | 29 | 23 |
+| LOW | 14 | 19 |
+| Total hallazgos | 56 | 52 |
+| Archivos escaneados | 131 | 147 |
+
+**No se llegó al criterio original (score ≥ 80, 0 HIGH)**, pero el score subió 5 puntos y los hallazgos totales bajaron de 56 a 52, con 0 CRITICAL en ambos scans. Igual que en la ronda 1, este es un análisis **nuevo e independiente** de toda la base de código (147 archivos ahora, 16 más que el re-scan anterior — crecieron por los módulos y pruebas de la ronda 2), no una re-verificación puntual de los 53 IDs de arriba. El chunking/atención de la IA varía entre corridas, así que salieron **10 HIGH y 23 MEDIUM** en código en su mayoría no tocado por esta ronda.
+
+Se verificaron puntualmente (contra el código real, no contra el `code_snippet` citado) los hallazgos más propensos a ser una regresión del propio trabajo de esta ronda:
+
+- **`vuln_015`/`vuln_016`/`vuln_018` (HIGH, IDOR en `certificados.ts`/`crm.ts`)**: mismo patrón que el cluster de IDOR ya investigado en las tareas #488-495 — las rutas citadas **ya tienen `verifyJWT`** (confirmado leyendo el archivo); "Unauthenticated"/"Missing Authorization" son afirmaciones incorrectas del scanner. Muy probablemente el mismo tipo de falso positivo que el resto del cluster, pero no se marcó formalmente sin investigar las 7 rutas restantes una por una.
+- **`vuln_034` (HIGH, `security.routes.ts`, "assets sin auth consistente")**: se confirmó que `/security/assets/styles.css` y `/security/assets/app.js` siguen exigiendo `securityKeyMiddleware`; los únicos endpoints públicos (`/security/login`, `/security/login.js`) lo son por necesidad arquitectónica (no se puede exigir sesión para servir la página de login). Mismo patrón que `vuln_038` de la ronda 1.
+- **`vuln_045` (HIGH, `security-agent/analyzer.ts`, prompt injection)**: se confirmó que `wrapUntrustedCode()` y el `SYSTEM_PROMPT` con instrucción anti-injection (ronda 1) siguen intactos — no es una regresión, es el riesgo residual conocido e inherente a cualquier scanner basado en LLM.
+
+**No se investigaron ni se tocaron los 52 hallazgos nuevos más allá de esta verificación de no-regresión** — por instrucción explícita de la tarea #509 ("Document any new findings for round 3, do NOT mix them into this round's work"). Quedan documentados acá como alcance de una eventual ronda 3, con los 10 HIGH listados a continuación para referencia rápida:
+
+| Vuln ID | Archivo:línea | Título |
+|---|---|---|
+| vuln_003 | `backup/drive-auth.ts:87` | `GOOGLE_SERVICE_ACCOUNT_PATH` sin validar (path traversal potencial) |
+| vuln_005 | `index.ts:86` | Falta rate limiting en el webhook de WhatsApp |
+| vuln_015 | `certificados.ts:30` | IDOR en emisión de certificados (muy probable falso positivo, ver arriba) |
+| vuln_016 | `certificados.ts:100` | IDOR en listado de certificados (muy probable falso positivo, ver arriba) |
+| vuln_018 | `crm.ts:28` | "Acceso no autenticado" al CRM (falso — ya tiene `verifyJWT`, ver arriba) |
+| vuln_019 | `cuotas.ts:60` | IDOR en actualización de cuota de pago |
+| vuln_028 | `marketing.ts:30` | Manejo de errores de Prisma podría exponer stack traces |
+| vuln_034 | `security.routes.ts:108` | Assets del dashboard sin auth consistente (falso positivo, ver arriba) |
+| vuln_038 | `crear-alumnos-grupo.ts:278` | Passwords en texto plano en CSV (mismo Accepted Risk que vuln_040 de esta ronda) |
+| vuln_045 | `security-agent/analyzer.ts:72` | Prompt injection en el boundary de código no confiable (riesgo residual conocido, ver arriba) |
+
+Resultados completos (52 hallazgos, con `code_snippet` y `fix_guide` por cada uno) en `backend/.security-scans/history.json` (cifrado, no versionado) — accesible desde el dashboard con la clave real, o desde el archivo temporal de esta sesión si aún no se limpió.

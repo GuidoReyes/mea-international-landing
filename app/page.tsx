@@ -194,12 +194,16 @@ const rutasVocacionales = [
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCounter({ end, duration = 2 }: { end: number; duration?: number }) {
-  const [count, setCount] = useState(0);
+  // Arranca en `end` (no en 0) para que el HTML inicial y los rastreadores sin
+  // JS vean la cifra real; la animación de conteo solo corre como mejora
+  // progresiva del lado del cliente, una vez el elemento entra en viewport.
+  const [count, setCount] = useState(end);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
 
   useEffect(() => {
     if (!inView) return;
+    setCount(0);
     const startTime = Date.now();
     const timer = setInterval(() => {
       const elapsed = (Date.now() - startTime) / 1000;

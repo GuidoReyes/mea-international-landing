@@ -41,11 +41,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonical = `/cursos/${slug}/leccion/${leccionSlug}`;
 
   if (!leccion.esGratis) {
+    const descripcionPrivada = `Esta lección forma parte del curso ${ruta.titulo} y requiere una suscripción activa a MEA International.`;
+    const urlPrivada = `${SITE_URL}${canonical}`;
+    // Sin openGraph/twitter explícitos acá, Next.js hereda esos campos del
+    // root layout (title/description/url de la home) por el merge de
+    // metadata entre segmentos — rompe la vista previa al compartir esta
+    // lección por WhatsApp/redes aunque no sea indexable.
     return {
       title,
-      description: `Esta lección forma parte del curso ${ruta.titulo} y requiere una suscripción activa a MEA International.`,
+      description: descripcionPrivada,
       alternates: { canonical },
       robots: { index: false, follow: true },
+      openGraph: {
+        title,
+        description: descripcionPrivada,
+        url: urlPrivada,
+        siteName: "MEA International",
+        locale: "es_GT",
+        type: "article",
+        images: [OG_IMAGE],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description: descripcionPrivada,
+        images: [OG_IMAGE],
+      },
     };
   }
 

@@ -86,6 +86,73 @@ necesita canonical propio.
 consistente con el no-objetivo del PRD v1.1 de no generar páginas casi
 duplicadas.
 
+## Baseline de PageSpeed Insights / Core Web Vitals (TASK-005, cierra fase4 #7 parcialmente)
+
+Medido 2026-09-26 vía la API de Google PageSpeed Insights (`pagespeedonline/v5`,
+categoría `performance`, con una API key personal del propietario usada solo
+para esta consulta puntual — no está guardada en el repo). Son mediciones de
+**laboratorio**, no de campo — `loadingExperience` no devolvió datos de CrUX
+reales para ninguna URL (tráfico insuficiente para que Google reporte
+percentiles de campo), así que no hay LCP/INP/CLS de usuarios reales todavía;
+solo Search Console (fase4 #8, bloqueada por acceso) podría aportar eso.
+
+| Página | Estrategia | Performance | LCP | FCP | CLS | TBT | Speed Index |
+|---|---|---|---|---|---|---|---|
+| `/planes` | desktop | **100** | 0.4 s | 0.2 s | n/d | 40 ms | n/d |
+| `/planes` | mobile | **100** | 2.1 s | 1.1 s | n/d | 30 ms | n/d (Max FID 80 ms) |
+| `/cursos` | desktop | **100** | n/d | n/d | n/d | n/d | n/d |
+| `/cursos` | mobile | n/d | ~2.1 s | 1.1 s | 0 | 100 ms | ~2.26 s |
+| `/cursos/general` | desktop | **95** | 0.5 s | 0.3 s | 0 | 50 ms | 0.4 s |
+| `/cursos/general` | mobile | **92** | n/d | n/d | n/d | n/d | n/d (TTI 3.5 s, Max FID 130 ms) |
+| `/` (home) | desktop | **sin medir** | — | — | — | — | — |
+| `/` (home) | mobile | **sin medir** | — | — | — | — | — |
+
+**Home sin medir:** las 4 llamadas a la API para `/` (desktop×2, mobile×2)
+excedieron el timeout de 60s de la herramienta de fetch usada — la propia
+lentitud de la respuesta es evidencia consistente con que la home es la
+página más pesada del sitio (HTML ~1.12 MB reportado en el PRD, hero con
+Spline). No se puede confirmar todavía si el fix de carga diferida del hero
+(fase4 #2, commit `f25af79`) mejoró la medición original de Performance
+39/100 citada en fase3 #21 — sigue pendiente medirla desde una máquina con
+Chrome, PageSpeed Insights vía navegador (no API), o reintentando la API en
+otro momento con menos carga.
+
+_Actualización 2026-09-27: se reintentó 2 veces más (desktop y mobile) — mismo
+resultado, timeout de 60s. Van 6 intentos en total entre el 26 y el 27 de
+septiembre. Se descarta seguir reintentando por esta vía; queda confirmado
+que requiere una herramienta con presupuesto de tiempo mayor (Chrome local,
+o el sitio web de PageSpeed Insights directamente, que no tiene ese límite)._
+
+## Validación de JSON-LD por especificación (TASK-007, fase4 #5)
+
+La validación interactiva con Google Rich Results Test sigue bloqueada (sin
+navegador en este entorno — confirmado que la herramienta requiere JS del
+lado del cliente, no responde a un GET simple ni con la URL como query
+param). Como sustituto, se revisó cada tipo de JSON-LD implementado
+(`lib/structured-data.ts`) contra los requisitos documentados de Google
+Search y schema.org:
+
+| Tipo | Dónde se usa | Estado |
+|---|---|---|
+| `EducationalOrganization` | `app/layout.tsx` (global) | OK — tiene name, url, logo, sameAs, address, areaServed; cubre de sobra lo que Google usa para Knowledge Panel. |
+| `WebSite` | `app/layout.tsx` (global) | OK — sin `potentialAction`/`SearchAction` a propósito (el sitio no tiene una ruta de búsqueda real); decisión ya documentada en el código. |
+| `BreadcrumbList` | Cursos y lecciones | OK — `position` (1-indexado), `name` e `item` (URL) coinciden exactamente con el formato que exige Google. |
+| `Course` | `/cursos/[slug]` | **Corregido en fase4 #4-5** (commit `72e7d21`): le faltaba `hasCourseInstance` u `offers`, requisito obligatorio de Google para elegibilidad a rich results de Course (sin eso el JSON-LD es válido pero no elegible). Se agregó `hasCourseInstance.courseMode: "online"` (dato real, sin precio/horario/instructor inventado). |
+| `LearningResource` | Lecciones públicas | OK como schema.org válido — Google no tiene un rich result de búsqueda general para este tipo (es más relevante para Google for Education / datasets), así que no hay un requisito de elegibilidad adicional que perseguir. |
+| `ItemList` | `/cursos` | OK — agregado en fase4 #4, con `position`/`url`/`item` (Course anidado) por cada ruta, mismo orden que el catálogo visible. |
+| `FAQPage` | Home | **Válido, pero con una limitación de política de Google que ningún cambio de código puede resolver**: desde 2023 Google restringió el rich result de FAQ en resultados de búsqueda a sitios gubernamentales y de salud reconocidos. El JSON-LD de MEA es correcto y usa las mismas preguntas visibles en el acordeón, pero es improbable que aparezca como snippet enriquecido en Google Search por esta política, no por un defecto propio. |
+
+**Conclusión:** no se encontraron más brechas corregibles por código además de
+la de `Course` (ya resuelta). Lo que queda pendiente es exclusivamente la
+corrida real de Google Rich Results Test / validator.schema.org para
+confirmar 0 errores de parseo — bloqueada por falta de navegador en este
+entorno, igual que el baseline de la home.
+
+**Lectura de lo medido:** `/planes`, `/cursos` y una página de curso están en
+excelente estado (92-100 en laboratorio, sin problemas de CLS donde se pudo
+medir). El riesgo de rendimiento real del sitio se concentra en la home, que
+sigue sin baseline confirmado.
+
 ## Registro de cambios
 
 | Versión | Fecha | Cambio |

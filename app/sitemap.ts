@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getRutas, getRutaCurriculum } from "@/lib/rutas";
+import { getRutas, getRutaCurriculum, type LeccionCurriculum } from "@/lib/rutas";
+import { getLeccionContenidoPublico, isLessonPublished } from "@/lib/leccion-contenido";
 
 const BASE = "https://www.mea.edu.gt";
 
@@ -20,22 +21,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const leccionesGratis: MetadataRoute.Sitemap = [];
+  const candidatas: { rutaSlug: string; leccion: LeccionCurriculum }[] = [];
   for (const r of rutas) {
     const curriculum = await getRutaCurriculum(r.slug).catch(() => null);
     if (!curriculum) continue;
     for (const capitulo of curriculum.capitulos) {
       for (const leccion of capitulo.lecciones) {
-        if (leccion.esGratis) {
-          leccionesGratis.push({
-            url: `${BASE}/cursos/${r.slug}/leccion/${leccion.slug}`,
-            changeFrequency: "monthly",
-            priority: 0.7,
-          });
-        }
+        if (leccion.esGratis) candidatas.push({ rutaSlug: r.slug, leccion });
       }
     }
   }
+
+  // esGratis no alcanza: una lección sin pasos reales (contenido en
+  // preparación) no debe aparecer en el sitemap aunque sea gratuita.
+  const publicadas = await Promise.all(
+    candidatas.map(async (c) => {
+      const contenido = await getLeccionContenidoPublico(c.leccion.id).catch(() => null);
+      return isLessonPublished(contenido) ? c : null;
+    }),
+  );
+
+  const leccionesGratis: MetadataRoute.Sitemap = publicadas
+    .filter((c): c is { rutaSlug: string; leccion: LeccionCurriculum } => c !== null)
+    .map((c) => ({
+      url: `${BASE}/cursos/${c.rutaSlug}/leccion/${c.leccion.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
 
   return [...estaticas, ...paginasRutas, ...leccionesGratis];
 }

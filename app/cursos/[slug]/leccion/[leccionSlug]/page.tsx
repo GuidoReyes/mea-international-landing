@@ -3,7 +3,7 @@ import Link from "next/link";
 import LeccionClient from "@/components/cursos-online/LeccionClient";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getRutaCurriculum, type CapituloCurriculum, type LeccionCurriculum, type RutaCurriculum } from "@/lib/rutas";
-import { getLeccionContenidoPublico, resumenLegiblePasos } from "@/lib/leccion-contenido";
+import { getLeccionContenidoPublico, isLessonPublished, resumenLegiblePasos } from "@/lib/leccion-contenido";
 import { breadcrumbListJsonLd, jsonLdScriptProps, learningResourceJsonLd, OG_IMAGE } from "@/lib/structured-data";
 
 const SITE_URL = "https://www.mea.edu.gt";
@@ -72,8 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description = `Lección gratuita de inglés "${leccion.titulo}", parte del curso ${ruta.titulo} (nivel ${capitulo.nivel}). Aprendé gratis con MEA International.`;
   const url = `${SITE_URL}${canonical}`;
-
-  return {
+  const metadataComun: Metadata = {
     title,
     description,
     alternates: { canonical },
@@ -93,6 +92,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [OG_IMAGE],
     },
   };
+
+  // esGratis=true no alcanza para indexar: si la lección todavía no tiene
+  // pasos reales (contenido en preparación o API caída), se sirve noindex
+  // igual que una lección paga, para no mostrarle a Google una página vacía.
+  const contenido = await getLeccionContenidoPublico(leccion.id).catch(() => null);
+  if (!isLessonPublished(contenido)) {
+    return { ...metadataComun, robots: { index: false, follow: true } };
+  }
+
+  return metadataComun;
 }
 
 export default async function LeccionPage({ params }: Props) {

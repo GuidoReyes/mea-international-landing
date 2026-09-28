@@ -42,11 +42,19 @@ export function organizationJsonLd(): Record<string, unknown> {
     name: "MEA International",
     url: "https://www.mea.edu.gt",
     logo: "https://www.mea.edu.gt/mea%20logo.svg",
+    // Google Rich Results Test (2026-09-27) marcó "image" como campo opcional
+    // faltante — se usa la misma imagen social real (og-image.png, 1200x630).
+    image: "https://www.mea.edu.gt/og-image.png",
     telephone: "+502 5631-1728",
     email: "mea.learnandplay@gmail.com",
     address: {
       "@type": "PostalAddress",
       streetAddress: "2da calle 7-00 zona 11 de Mixco, alta villa el Naranjo D42",
+      // addressLocality agregado (2026-09-27, mismo hallazgo de Rich Results
+      // Test): "Mixco" ya está confirmado dentro de streetAddress, no es un
+      // dato nuevo. postalCode se deja afuera — no hay un código postal
+      // verificado para esta dirección, no se inventa.
+      addressLocality: "Mixco",
       addressCountry: "GT",
     },
     areaServed: "GT",

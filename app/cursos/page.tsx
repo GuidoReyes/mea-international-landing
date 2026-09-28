@@ -4,7 +4,9 @@ import { ArrowLeft } from "lucide-react";
 import CatalogoRutas from "@/components/cursos-online/CatalogoRutas";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getRutas } from "@/lib/rutas";
-import { OG_IMAGE } from "@/lib/structured-data";
+import { itemListJsonLd, jsonLdScriptProps, OG_IMAGE } from "@/lib/structured-data";
+
+const SITE_URL = "https://www.mea.edu.gt";
 
 const TITLE = "Cursos de Inglés Online por Niveles y Especialidades | MEA";
 const DESCRIPTION =
@@ -35,9 +37,17 @@ export const metadata: Metadata = {
 
 export default async function CursosPage() {
   const rutas = await getRutas();
+  const itemList = itemListJsonLd(
+    rutas.map((r) => ({
+      name: r.titulo,
+      description: r.descripcion,
+      url: `${SITE_URL}/cursos/${r.slug}`,
+    })),
+  );
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
+      <script {...jsonLdScriptProps(itemList)} />
       <header className="bg-[#0A2540] text-white relative">
         <div className="absolute top-5 right-5 z-10">
           <SesionAlumnoBadge />

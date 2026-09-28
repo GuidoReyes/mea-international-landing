@@ -1,57 +1,78 @@
 import * as fs from "fs";
 import * as path from "path";
 import { log } from "../lib/logger";
+import { readPositiveInt } from "../lib/env-utils";
+import { buildBackupListQuery, isBackupFileName } from "../lib/drive-utils";
 import { buildDriveClient } from "./drive-auth";
 
 const BACKUP_DIR = path.join(__dirname, "../../backups");
+const DEFAULT_LOCAL_KEEP = 3;
+const DEFAULT_DRIVE_KEEP = 30;
 
-export async function cleanupOldBackups(): Promise<void> {
-  const localKeep = parseInt(process.env.BACKUP_LOCAL_KEEP_COUNT ?? "3");
-  const driveKeep = parseInt(process.env.BACKUP_DRIVE_KEEP_COUNT ?? "30");
+/**
+ * Files beyond the `keep` most recent. An invalid `keep` (NaN, 0, negative) deletes nothing:
+ * slice(NaN) behaves like slice(0), which would otherwise delete every backup.
+ */
+export function selectFilesToDelete<T extends { mtime: number }>(files: readonly T[], keep: number): T[] {
+  if (!Number.isInteger(keep) || keep < 1) return [];
+  return [...files].sort((a, b) => b.mtime - a.mtime).slice(keep);
+}
 
-  // Local cleanup
-  if (fs.existsSync(BACKUP_DIR)) {
-    const files = fs
-      .readdirSync(BACKUP_DIR)
-      .filter((f) => f.endsWith(".sql.gz"))
-      .map((f) => ({ name: f, mtime: fs.statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
-      .sort((a, b) => b.mtime - a.mtime);
+function cleanLocalBackups(keep: number): void {
+  if (!fs.existsSync(BACKUP_DIR)) return;
 
-    const toDelete = files.slice(localKeep);
-    for (const f of toDelete) {
-      fs.unlinkSync(path.join(BACKUP_DIR, f.name));
-      log("info", `[Cleaner] Deleted local backup: ${f.name}`);
-    }
-    if (toDelete.length > 0) {
-      log("info", `[Cleaner] Removed ${toDelete.length} local backups (kept ${localKeep})`);
-    }
+  const files = fs
+    .readdirSync(BACKUP_DIR)
+    .filter(isBackupFileName)
+    .map((name) => ({ name, mtime: fs.statSync(path.join(BACKUP_DIR, name)).mtimeMs }));
+
+  const toDelete = selectFilesToDelete(files, keep);
+  for (const f of toDelete) {
+    fs.unlinkSync(path.join(BACKUP_DIR, f.name));
+    log("info", `[Cleaner] Deleted local backup: ${f.name}`);
   }
+  if (toDelete.length > 0) {
+    log("info", `[Cleaner] Removed ${toDelete.length} local backups (kept ${keep})`);
+  }
+}
 
-  // Google Drive cleanup
+async function cleanDriveBackups(keep: number): Promise<void> {
   const hasCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || process.env.GOOGLE_SERVICE_ACCOUNT_PATH;
   if (!hasCredentials) {
     log("warn", "[Cleaner] No Google credentials set — skipping Drive cleanup");
     return;
   }
 
-  const drive = buildDriveClient();
   const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
+  if (!folderId) {
+    // Without a dedicated folder the backups sit in the Drive root next to other files
+    // (payment receipts included): never delete blindly.
+    log("warn", "[Cleaner] GOOGLE_DRIVE_BACKUP_FOLDER_ID not set — skipping Drive cleanup");
+    return;
+  }
 
+  const drive = buildDriveClient();
   const res = await drive.files.list({
-    q: folderId ? `'${folderId}' in parents and trashed=false` : "trashed=false",
+    q: buildBackupListQuery(folderId),
     orderBy: "createdTime desc",
     fields: "files(id,name,createdTime)",
   });
 
-  const files = res.data.files ?? [];
-  const toDeleteDrive = files.slice(driveKeep);
+  const backups = (res.data.files ?? [])
+    .filter((f) => isBackupFileName(f.name ?? ""))
+    .map((f) => ({ id: f.id!, name: f.name!, mtime: Date.parse(f.createdTime ?? "") || 0 }));
 
-  for (const file of toDeleteDrive) {
-    await drive.files.delete({ fileId: file.id! });
+  const toDelete = selectFilesToDelete(backups, keep);
+  for (const file of toDelete) {
+    await drive.files.delete({ fileId: file.id });
     log("info", `[Cleaner] Deleted Drive backup: ${file.name}`);
   }
-
-  if (toDeleteDrive.length > 0) {
-    log("info", `[Cleaner] Removed ${toDeleteDrive.length} Drive backups (kept ${driveKeep})`);
+  if (toDelete.length > 0) {
+    log("info", `[Cleaner] Removed ${toDelete.length} Drive backups (kept ${keep})`);
   }
+}
+
+export async function cleanupOldBackups(): Promise<void> {
+  cleanLocalBackups(readPositiveInt(process.env.BACKUP_LOCAL_KEEP_COUNT, DEFAULT_LOCAL_KEEP));
+  await cleanDriveBackups(readPositiveInt(process.env.BACKUP_DRIVE_KEEP_COUNT, DEFAULT_DRIVE_KEEP));
 }

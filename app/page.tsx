@@ -14,6 +14,7 @@ import { WorldMap } from "@/components/ui/world-map";
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
 import { FaqsSection, defaultQuestions } from "@/components/ui/faqs-1";
 import { faqPageJsonLd, jsonLdScriptProps } from "@/lib/structured-data";
+import { socialProof } from "@/lib/social-proof";
 import { LegalModal } from "@/components/ui/legal-modal";
 import site from "@/content/site.json";
 import { buildVipWhatsAppUrl } from "@/lib/cursos-online";
@@ -84,62 +85,53 @@ function trackLlamada() {
 }
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────
-// Autenticidad confirmada por el propietario (2026-09-15). Las fotos siguen
-// siendo avatares de stock de randomuser.me (no fotos reales de los
-// estudiantes citados) — reemplazar por fotos reales si el propietario las
-// provee más adelante.
+// Autenticidad del texto confirmada por el propietario (2026-09-15) y de
+// nuevo el 2026-09-28 (permiso de publicar confirmado). Las fotos de stock
+// de randomuser.me se sacaron el 2026-09-28 (fase5 R4) — TestimonialsColumn
+// ahora muestra iniciales en vez de una foto que no es la persona real.
 const testimonials: Testimonial[] = [
   {
     text: "Después de 3 meses con MEA International, me dieron el trabajo que tanto quería en una empresa multinacional. El inglés ya no es una barrera para mí.",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
     name: "María García",
     role: "Ejecutiva de Ventas, Ciudad de Guatemala",
   },
   {
     text: "Mis clases personalizadas me ayudaron a aprobar el TOEFL con 105 puntos. El maestro fue increíble, muy paciente y profesional. 100% recomendado.",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
     name: "Carlos Méndez",
     role: "Ingeniero Civil, Guatemala",
   },
   {
     text: "Como doctora necesitaba inglés médico específico. MEA me diseñó un plan perfectamente adaptado a mi especialidad. Ver resultados en semanas fue motivador.",
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
     name: "Ana López",
     role: "Médica Pediatra, Quetzaltenango",
   },
   {
     text: "Expandí mi empresa a Estados Unidos gracias al inglés que aprendí con MEA. El retorno de inversión de las clases fue inmediato para mi negocio.",
-    image: "https://randomuser.me/api/portraits/men/71.jpg",
     name: "Roberto Hernández",
     role: "Empresario, Antigua Guatemala",
   },
   {
     text: "Empecé sin saber nada de inglés y en 6 meses logré mantener conversaciones fluidas con extranjeros. La metodología de MEA es realmente efectiva.",
-    image: "https://randomuser.me/api/portraits/women/29.jpg",
     name: "Sofía Ramírez",
     role: "Estudiante Universitaria, USAC",
   },
   {
     text: "Las clases se adaptan perfectamente a mi horario de trabajo. Puedo estudiar a las 6am o a las 9pm. Esa flexibilidad no la encuentras en ningún otro lugar.",
-    image: "https://randomuser.me/api/portraits/men/18.jpg",
     name: "Diego Castro",
     role: "Contador Público, Guatemala",
   },
   {
     text: "MEA me preparó para presentar mi trabajo de investigación en una conferencia internacional. El apoyo de los maestros fue invaluable y el resultado fue excelente.",
-    image: "https://randomuser.me/api/portraits/women/82.jpg",
     name: "Valentina Morales",
     role: "Periodista, Prensa Libre",
   },
   {
     text: "Necesitaba inglés legal para casos internacionales. El maestro de MEA tiene experiencia en vocabulario jurídico y eso marcó toda la diferencia en mi carrera.",
-    image: "https://randomuser.me/api/portraits/men/55.jpg",
     name: "Andrés Pérez",
     role: "Abogado, Guatemala City",
   },
   {
     text: "Mis alumnos me preguntan cómo mejoré mi inglés tan rápido. MEA no solo me enseñó el idioma, me dio la confianza para usarlo con naturalidad en clase.",
-    image: "https://randomuser.me/api/portraits/women/12.jpg",
     name: "Lucía Torres",
     role: "Maestra Bilingüe, Escuintla",
   },
@@ -151,10 +143,10 @@ const thirdColumn = testimonials.slice(6, 9);
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 const stats = [
-  { icon: Users, value: 200, suffix: "+", label: "Estudiantes", sublabel: "en todo el mundo" },
-  { icon: Star, value: 98, suffix: "%", label: "Satisfacción", sublabel: "garantizada" },
-  { icon: Globe, value: 10, suffix: "+", label: "Países", sublabel: "con presencia" },
-  { icon: Award, value: 0, suffix: "", label: "4.9★ Calificación", sublabel: "promedio", isFixed: true },
+  { icon: Users, value: socialProof.studentCount, suffix: "+", label: "Estudiantes", sublabel: "en todo el mundo" },
+  { icon: Star, value: socialProof.satisfactionRate, suffix: "%", label: "Satisfacción", sublabel: "garantizada" },
+  { icon: Globe, value: socialProof.countriesCount, suffix: "+", label: "Países", sublabel: "con presencia" },
+  { icon: Award, value: 0, suffix: "", label: `${socialProof.rating}★ Calificación`, sublabel: "promedio", isFixed: true },
 ];
 
 // ─── Courses & Planes ─────────────────────────────────────────────────────────
@@ -194,12 +186,16 @@ const rutasVocacionales = [
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCounter({ end, duration = 2 }: { end: number; duration?: number }) {
-  const [count, setCount] = useState(0);
+  // Arranca en `end` (no en 0) para que el HTML inicial y los rastreadores sin
+  // JS vean la cifra real; la animación de conteo solo corre como mejora
+  // progresiva del lado del cliente, una vez el elemento entra en viewport.
+  const [count, setCount] = useState(end);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
 
   useEffect(() => {
     if (!inView) return;
+    setCount(0);
     const startTime = Date.now();
     const timer = setInterval(() => {
       const elapsed = (Date.now() - startTime) / 1000;
@@ -463,7 +459,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.2 }}
               >
-                Más de 200 profesionales en Latinoamérica ya lograron la fluidez que necesitaban
+                Más de {socialProof.studentCount} profesionales en Latinoamérica ya lograron la fluidez que necesitaban
                 para crecer en su carrera. Ahora es tu turno.
               </motion.p>
 
@@ -496,18 +492,23 @@ export default function Home() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.7, delay: 0.5 }}
               >
+                {/* Iniciales de 5 de los testimonios reales de arriba, no fotos de
+                    stock — el alt anterior decía "Estudiante de MEA International"
+                    sobre fotos de randomuser.me que no son estudiantes reales. */}
                 <div className="flex -space-x-2">
-                  {[44, 32, 65, 71, 29].map((n) => (
-                    <img
-                      key={n}
-                      src={`https://randomuser.me/api/portraits/men/${n}.jpg`}
-                      width={36}
-                      height={36}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-9 h-9 rounded-full border-2 border-[#0A2540] object-cover"
-                      alt="Estudiante de MEA International"
-                    />
+                  {testimonials.slice(0, 5).map((t) => (
+                    <div
+                      key={t.name}
+                      aria-hidden="true"
+                      className="w-9 h-9 rounded-full border-2 border-[#0A2540] bg-[#00C4B4]/20 text-[#0A2540] flex items-center justify-center text-xs font-semibold"
+                    >
+                      {t.name
+                        .split(" ")
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((parte) => parte[0]?.toUpperCase())
+                        .join("")}
+                    </div>
                   ))}
                 </div>
                 <div>
@@ -516,7 +517,7 @@ export default function Home() {
                       <span key={i} className="text-sm">★</span>
                     ))}
                   </div>
-                  <p className="text-slate-400 text-xs">+200 estudiantes satisfechos</p>
+                  <p className="text-slate-400 text-xs">+{socialProof.studentCount} estudiantes satisfechos</p>
                 </div>
               </motion.div>
             </div>
@@ -627,7 +628,7 @@ export default function Home() {
                 Ellos ya cambiaron su vida con el inglés
               </h2>
               <p className="text-center text-slate-500">
-                Más de 200 profesionales y estudiantes en Guatemala y Latinoamérica confían en MEA International.
+                Más de {socialProof.studentCount} profesionales y estudiantes en Guatemala y Latinoamérica confían en MEA International.
               </p>
             </div>
           </FadeIn>
@@ -892,7 +893,7 @@ export default function Home() {
               <span className="text-[#00C4B4]">hoy</span>
             </h2>
             <p className="text-slate-300 text-xl mb-4 max-w-2xl mx-auto">
-              Únete a los más de 200 profesionales latinoamericanos que transformaron su carrera con MEA International.
+              Únete a los más de {socialProof.studentCount} profesionales latinoamericanos que transformaron su carrera con MEA International.
             </p>
             <div className="flex items-center justify-center gap-2 text-slate-400 text-sm mb-10">
               <div className="w-2 h-2 bg-[#00C4B4] rounded-full animate-pulse" />

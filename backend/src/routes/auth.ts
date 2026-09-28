@@ -71,14 +71,14 @@ router.post("/login", loginLimiter, async (req: Request, res: Response) => {
   );
 
   // El token viaja en cookie httpOnly — el JS del panel no puede leerlo,
-  // así que un XSS ya no puede exfiltrarlo.
+  // así que un XSS ya no puede exfiltrarlo. vuln_010 (ronda 1, cerrado en la
+  // ronda 2 tarea #508): el panel de admin (lib/api.ts) ya no lee ni necesita
+  // el token en el cuerpo desde hace tiempo — confirmado en el código del
+  // frontend y en un login real contra producción tras poner
+  // LEGACY_TOKEN_IN_BODY=false. La bandera y el campo ya no existen.
   res.cookie("mea_admin_token", token, cookieOptions());
 
   res.json({
-    // token en el body solo por compatibilidad mientras el frontend viejo
-    // (localStorage) siga desplegado — quitarlo cuando Vercel tenga la
-    // versión que usa la cookie.
-    token,
     admin: { id: admin.id, email: admin.email, nombre: admin.nombre, rol: admin.rol },
   });
 });

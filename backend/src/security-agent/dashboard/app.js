@@ -1,5 +1,6 @@
 /* ── Config ─────────────────────────────────────────────────────────────── */
-let SK = sessionStorage.getItem('sk') || new URLSearchParams(location.search).get('key') || '';
+// D1 (tarea 477): no hay clave en el cliente — la sesión vive en una cookie httpOnly
+// que este script nunca lee; el navegador la manda sola con cada fetch.
 let vulns = [], activeFilter = 'ALL', activeScanId = null, pollTimer = null, currentVulnId = null;
 
 /* ── Gauge constants ─────────────────────────────────────────────────────── */
@@ -76,23 +77,8 @@ function animateNum(el, from, to, ms) {
 /* ── Boot ───────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initGauge();
-
-  if (!SK) {
-    document.getElementById('keyGate').classList.remove('hidden');
-    document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitKey(); });
-    document.getElementById('keySubmit').addEventListener('click', submitKey);
-    return;
-  }
   boot();
 });
-
-function submitKey() {
-  SK = document.getElementById('keyInput').value.trim();
-  if (!SK) return;
-  sessionStorage.setItem('sk', SK);
-  document.getElementById('keyGate').classList.add('hidden');
-  boot();
-}
 
 function boot() {
   loadResults();
@@ -115,15 +101,28 @@ function bindEvents() {
   document.querySelectorAll('.f-btn').forEach(b => b.addEventListener('click', setFilter));
   document.querySelectorAll('.d-tab').forEach(b => b.addEventListener('click', switchDTab));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+  document.getElementById('vulnList').addEventListener('click', e => {
+    const card = e.target.closest('[data-vuln-id]');
+    if (card) openDrawer(card.dataset.vulnId);
+  });
+  document.getElementById('historyList').addEventListener('click', e => {
+    const row = e.target.closest('[data-hist-index]');
+    if (row) loadHistItem(Number(row.dataset.histIndex));
+  });
 }
 
 /* ── API ────────────────────────────────────────────────────────────────── */
 async function api(method, path, body) {
   const r = await fetch(path, {
     method,
-    headers: { 'X-Security-Key': SK, 'Content-Type': 'application/json' },
+    credentials: 'same-origin', // manda la cookie de sesión; no hay clave que leer en JS
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (r.status === 401 || r.status === 403) {
+    location.replace('/security/login');
+    throw new Error('Session expired');
+  }
   if (!r.ok) {
     const e = await r.json().catch(() => ({ error: r.statusText }));
     throw new Error(e.error || r.statusText);
@@ -224,7 +223,7 @@ async function loadResults() {
 }
 
 function applyResult(r) {
-  updateGauge(r.security_score);
+  updateGauge(safeScore(r.security_score));
   document.getElementById('summaryText').textContent = r.scan_summary;
   document.getElementById('lastScanTime').textContent = new Date(r.timestamp).toLocaleString();
 
@@ -257,7 +256,7 @@ function renderVulns() {
   }
 
   list.innerHTML = filtered.map(v => `
-    <div class="vuln-card ${v.resolved ? 'resolved' : ''}" onclick="openDrawer('${v.id}')">
+    <div class="vuln-card ${v.resolved ? 'resolved' : ''}" data-vuln-id="${esc(v.id)}">
       <div class="vuln-stripe stripe-${v.severity}"></div>
       <div class="vuln-inner">
         <div class="vuln-top">
@@ -286,15 +285,23 @@ async function loadHistory() {
   } catch (e) { console.warn(e.message); }
 }
 
+function safeScore(score) {
+  // vuln_055: el score viene de un JSON generado por IA; si alguna vez no fuera
+  // un número, no debe insertarse tal cual en el HTML.
+  const n = Number(score);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : 0;
+}
+
 function renderHistory(history) {
   const list = document.getElementById('historyList');
   if (!history.length) { list.innerHTML = ''; return; }
   list.innerHTML = history.map((h, i) => {
-    const c = scoreColor(h.security_score);
-    return `<div class="hist-row" onclick="loadHistItem(${i})">
-      <span class="hist-score" style="color:${c}">${h.security_score}</span>
-      <span class="hist-date">${new Date(h.timestamp).toLocaleDateString()}</span>
-      <span class="hist-vulns">${h.vulnerabilities.length}v</span>
+    const score = safeScore(h.security_score);
+    const c = scoreColor(score);
+    return `<div class="hist-row" data-hist-index="${i}">
+      <span class="hist-score" style="color:${c}">${score}</span>
+      <span class="hist-date">${esc(new Date(h.timestamp).toLocaleDateString())}</span>
+      <span class="hist-vulns">${esc(String(h.vulnerabilities.length))}v</span>
     </div>`;
   }).join('');
 }
@@ -372,16 +379,28 @@ async function loadBackupStatus() {
   }
 }
 
+const DRIVE_LINK_PREFIX = 'https://drive.google.com/';
+
 async function loadDriveHistory() {
   const list = document.getElementById('driveList');
   try {
     const files = await api('GET', '/api/backup/history');
     if (!files.length) { list.innerHTML = '<span class="loading-line">No backups in Drive yet.</span>'; return; }
-    list.innerHTML = files.map(f => `
+    list.innerHTML = files.map(f => {
+      // vuln_054: nombre y link vienen de la API de Drive — se escapan igual, y solo
+      // se enlaza si el link es realmente de Drive (nunca javascript: ni otro origen).
+      const name = esc(f.name);
+      const isDriveLink = typeof f.webViewLink === 'string' && f.webViewLink.startsWith(DRIVE_LINK_PREFIX);
+      const linkOpen = isDriveLink
+        ? `<a href="${esc(f.webViewLink)}" target="_blank" rel="noopener noreferrer" title="${name}">`
+        : '<span title="Link no disponible">';
+      const linkClose = isDriveLink ? '</a>' : '</span>';
+      return `
       <div class="drive-item">
-        <a href="${f.webViewLink}" target="_blank" title="${f.name}">${f.name}</a>
-        <span class="drive-size">${fmtBytes(f.size)}</span>
-      </div>`).join('');
+        ${linkOpen}${name}${linkClose}
+        <span class="drive-size">${esc(fmtBytes(f.size))}</span>
+      </div>`;
+    }).join('');
   } catch (_) {
     list.innerHTML = '<span class="loading-line">Drive not configured.</span>';
   }

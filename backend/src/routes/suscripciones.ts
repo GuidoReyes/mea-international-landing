@@ -1,14 +1,18 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
 import multer from "multer";
 import prisma from "../lib/prisma";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
 import { isRecurrenteConfigurado, crearCheckoutRecurrente } from "../lib/recurrente";
 import { subirComprobanteDeposito, isDriveConfigured } from "../lib/drive-comprobantes";
 import { log } from "../lib/logger";
+import { puedeSubirComprobante } from "../lib/pago-estado";
+import { checkoutLimiter as rateLimitCheckout, uploadLimiter } from "../middleware/rate-limit.middleware";
+import { validateUpload } from "../lib/upload-utils";
 
 const router = Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const COMPROBANTE_MIMES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 const CUENTA_DEPOSITO = {
   banco: "Banco Industrial",
@@ -20,36 +24,6 @@ const CUENTA_DEPOSITO = {
 function mesActual(): string {
   const ahora = new Date();
   return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}`;
-}
-
-const CHECKOUT_MAX_POR_MINUTO = 5;
-const CHECKOUT_WINDOW_MS = 60_000;
-const checkoutAttempts = new Map<number, { count: number; resetAt: number }>();
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of checkoutAttempts.entries()) {
-    if (entry.resetAt < now) checkoutAttempts.delete(key);
-  }
-}, 300_000);
-
-function rateLimitCheckout(req: Request, res: Response, next: NextFunction): void {
-  const alumnoId = req.alumno!.alumnoId;
-  const now = Date.now();
-  const entry = checkoutAttempts.get(alumnoId);
-
-  if (!entry || entry.resetAt < now) {
-    checkoutAttempts.set(alumnoId, { count: 1, resetAt: now + CHECKOUT_WINDOW_MS });
-    next();
-    return;
-  }
-
-  entry.count++;
-  if (entry.count > CHECKOUT_MAX_POR_MINUTO) {
-    res.status(429).json({ error: "Demasiados intentos de checkout. Esperá un minuto." });
-    return;
-  }
-  next();
 }
 
 // POST /api/suscripciones/checkout — crea suscripción PENDIENTE y devuelve link de pago
@@ -73,6 +47,11 @@ router.post("/checkout", verifyAlumnoJWT, rateLimitCheckout, async (req: Request
   });
   if (!planPrecio) {
     res.status(404).json({ error: "Precio de plan no encontrado" });
+    return;
+  }
+  // PlanPrecio no tiene campo activo/publico: un precio en 0 no debe llegar al cobro
+  if (planPrecio.precioTotalCentavos <= 0) {
+    res.status(400).json({ error: "Este plan no tiene un precio válido" });
     return;
   }
 
@@ -143,6 +122,11 @@ router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: 
     res.status(404).json({ error: "Precio de plan no encontrado" });
     return;
   }
+  // PlanPrecio no tiene campo activo/publico: un precio en 0 no debe llegar al cobro
+  if (planPrecio.precioTotalCentavos <= 0) {
+    res.status(400).json({ error: "Este plan no tiene un precio válido" });
+    return;
+  }
 
   const alumno = await prisma.alumno.findUnique({ where: { id: req.alumno!.alumnoId } });
   if (!alumno || !alumno.activo) {
@@ -189,6 +173,7 @@ router.post("/checkout-manual", verifyAlumnoJWT, rateLimitCheckout, async (req: 
 router.post(
   "/pagos/:pagoId/comprobante",
   verifyAlumnoJWT,
+  uploadLimiter,
   upload.single("file"),
   async (req: Request, res: Response) => {
     if (!isDriveConfigured()) {
@@ -219,10 +204,21 @@ router.post(
       return;
     }
 
+    if (!puedeSubirComprobante(pago.estado)) {
+      res.status(409).json({ error: "Este pago ya fue procesado y no admite más comprobantes" });
+      return;
+    }
+
+    const uploadCheck = validateUpload(req.file, COMPROBANTE_MIMES);
+    if (!uploadCheck.valid) {
+      res.status(400).json({ error: uploadCheck.error });
+      return;
+    }
+
     const { mesPagado } = req.body as { mesPagado?: string };
     const mes = mesPagado && /^\d{4}-\d{2}$/.test(mesPagado) ? mesPagado : mesActual();
     const alumno = pago.suscripcion.alumno;
-    const extension = req.file.originalname.split(".").pop() ?? "jpg";
+    const extension = uploadCheck.extension; // del MIME real, nunca del nombre del archivo
 
     try {
       const comprobante = await subirComprobanteDeposito({

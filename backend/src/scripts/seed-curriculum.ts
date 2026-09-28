@@ -755,7 +755,7 @@ async function main(): Promise<void> {
 
 main()
   .catch((err) => {
-    console.error(err);
+    console.error("seed-curriculum falló:", err instanceof Error ? err.message : String(err));
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());

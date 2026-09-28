@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { organizationJsonLd, websiteJsonLd, jsonLdScriptProps, OG_IMAGE } from "@/lib/structured-data";
+import { socialProof } from "@/lib/social-proof";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,8 +17,7 @@ const geistMono = Geist_Mono({
 
 const SITE_URL = "https://www.mea.edu.gt";
 const SITE_TITLE = "Clases de Inglés Online en Guatemala | MEA International";
-const SITE_DESCRIPTION =
-  "Aprende inglés online en Guatemala con clases personalizadas, cursos por nivel y rutas para trabajo, viajes y call center. Más de 200 estudiantes confían en MEA International.";
+const SITE_DESCRIPTION = `Aprende inglés online en Guatemala con clases personalizadas, cursos por nivel y rutas para trabajo, viajes y call center. Más de ${socialProof.studentCount} estudiantes confían en MEA International.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

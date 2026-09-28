@@ -94,6 +94,13 @@ export async function getLeccionContenidoPublico(leccionId: number): Promise<Lec
   }
 }
 
+// Una lección esGratis=true pero sin pasos reales (o con la API caída) no
+// debe indexarse igual que una lección de verdad — evita mostrarle a Google
+// una página de placeholder/vacía como si fuera contenido real.
+export function isLessonPublished(contenido: LeccionContenido | null): boolean {
+  return contenido !== null && contenido.pasos.length > 0;
+}
+
 // Extrae líneas de texto real (no inventado) desde los pasos interactivos,
 // para renderizar un resumen indexable server-side antes de que monte el
 // reproductor interactivo del lado del cliente.

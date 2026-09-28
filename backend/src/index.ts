@@ -29,6 +29,9 @@ import certificadosRouter from "./routes/certificados";
 import finanzasRouter from "./routes/finanzas";
 import marketingRouter from "./routes/marketing";
 import twilioWebhookRouter from "./routes/twilio.webhook";
+import { globalLimiter, securityAuthLimiter, webhookLimiter } from "./middleware/rate-limit.middleware";
+import { dashboardHeaders } from "./security-agent/headers";
+import { errorHandler } from "./middleware/error.middleware";
 import securityRouter from "./routes/security.routes";
 import backupRouter from "./routes/backup.routes";
 import jarvisBridgeRouter from "./routes/jarvis-bridge";
@@ -50,10 +53,14 @@ app.use(
     // Con credentials, cors echa el origin exacto (no se permite "*").
     // Se filtra el "" para que un FRONTEND_URL sin setear no habilite
     // requests sin header Origin.
+    // vuln_008: localhost:3000 solo tiene sentido en desarrollo — en
+    // producción, permitirlo habilitaría que una página servida desde
+    // localhost (ej. un dev server comprometido) haga requests con
+    // credenciales contra la API real.
     origin: [
       process.env.FRONTEND_URL,
       "https://www.mea.edu.gt",
-      "http://localhost:3000",
+      ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
     ].filter((o): o is string => Boolean(o)),
     credentials: true,
   })
@@ -61,7 +68,7 @@ app.use(
 app.use(cookieParser());
 
 // Twilio envía form-urlencoded — montar ANTES del json parser y del router Twilio
-app.use("/api/twilio/webhook", express.urlencoded({ extended: false }), twilioWebhookRouter);
+app.use("/api/twilio/webhook", webhookLimiter, express.urlencoded({ extended: false }), twilioWebhookRouter);
 
 // Capturar raw body para HMAC antes de parsear JSON
 app.use(
@@ -100,40 +107,46 @@ app.use("/api/inscripciones", inscripcionesRouter);
 app.use("/api/reportes", reportesRouter);
 app.use("/api/certificados", certificadosRouter);
 app.use("/api/finanzas", finanzasRouter);
-app.use("/api/marketing", marketingRouter);
+app.use("/api/marketing", globalLimiter, marketingRouter);
 // Bridge de solo lectura para JARVIS (token interno X-Jarvis-Token)
 app.use("/api/jarvis", jarvisBridgeRouter);
 
-// Security dashboard + backup (protected by X-Security-Key middleware)
+// Security dashboard + backup (protected by X-Security-Key middleware).
+// Solo cuentan los intentos fallidos con la clave, por IP (fuerza bruta).
+app.use(["/security", "/api/security", "/api/backup"], securityAuthLimiter, dashboardHeaders);
 app.use(securityRouter);
 app.use(backupRouter);
 
 // Endpoint temporal de prueba — remover antes de producción real.
 // Protegido con la key del security dashboard: envía WhatsApp REAL y gasta
-// tokens de Anthropic, así que aunque el flag quede activo por accidente
-// nadie sin la key puede usarlo.
-if (process.env.NODE_ENV !== "production" || process.env.ENABLE_TEST_ENDPOINT === "true") {
+// tokens de Anthropic. Sin bandera de reactivación (vuln_002): solo depende de
+// NODE_ENV, no hay forma de forzarlo en producción con una variable mal puesta.
+if (process.env.NODE_ENV !== "production") {
   const { responderMensaje } = require("./lib/claude");
   const { guardarMensajes } = require("./lib/persistence");
   const { sendWhatsAppMessage } = require("./lib/whatsapp-send");
   const { securityKeyMiddleware } = require("./security-agent/middleware");
+  const { testBotInputSchema } = require("./lib/test-bot-validation");
 
   app.post("/api/test-bot", securityKeyMiddleware, async (req: Request, res: Response) => {
-    const { telefono, mensaje } = req.body as { telefono?: string; mensaje?: string };
-    if (!telefono || !mensaje) {
-      res.status(400).json({ error: "Se requiere telefono y mensaje" });
+    const parsed = testBotInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
-    try {
-      const respuesta = await responderMensaje(telefono, mensaje);
-      await guardarMensajes(telefono, mensaje, respuesta);
-      const sent = await sendWhatsAppMessage(telefono, respuesta);
-      res.json({ respuesta, enviado: sent.success, messageId: sent.messageId, error: sent.error });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
+    const { telefono, mensaje } = parsed.data;
+    // Sin try/catch: Express 5 reenvía la promesa rechazada a errorHandler
+    // (vuln_004 — antes se devolvía String(err) crudo al cliente).
+    const respuesta = await responderMensaje(telefono, mensaje);
+    await guardarMensajes(telefono, mensaje, respuesta);
+    const sent = await sendWhatsAppMessage(telefono, respuesta);
+    res.json({ respuesta, enviado: sent.success, messageId: sent.messageId, error: sent.error });
   });
 }
+
+// Middleware de errores: SIEMPRE al final, después de todas las rutas. Express 5
+// reenvía aquí cualquier promesa rechazada de un handler async (vuln_024).
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   if (process.env.NODE_ENV !== "production") console.log(`MEA Backend corriendo en puerto ${PORT}`);

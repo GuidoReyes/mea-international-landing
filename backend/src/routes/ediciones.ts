@@ -28,7 +28,7 @@ const inscribirSchema = z.object({
 });
 
 // GET /api/ediciones
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", verifyJWT, async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
   const skip = (page - 1) * limit;
@@ -54,7 +54,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/ediciones/:id
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
   const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "ID inválido" });

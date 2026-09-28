@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { parseDateFilter } from "../lib/date-utils";
 
 const router = Router();
 
@@ -10,6 +11,14 @@ const patchSchema = z.object({
   estado: z.enum(["PENDIENTE", "COMPLETADO", "RECHAZADO", "REEMBOLSADO"]).optional(),
   referencia: z.string().optional(),
 });
+
+// vuln_034: filtros del GET, sin validar antes de esta tarea. VENCIDO se incluye
+// acá (a diferencia de patchSchema) porque es un estado legítimo para filtrar —
+// solo el scheduler lo asigna (scheduler.ts), no es algo que un PATCH deba poder
+// setear a mano.
+export const ESTADOS_PAGO = ["PENDIENTE", "COMPLETADO", "RECHAZADO", "REEMBOLSADO", "VENCIDO"] as const;
+export const MONEDAS = ["GTQ", "USD"] as const;
+export const METODOS_PAGO = ["EFECTIVO", "TRANSFERENCIA", "TARJETA", "DEPOSITO", "OTRO"] as const;
 
 // GET /api/pagos
 router.get("/", verifyJWT, async (req: Request, res: Response) => {
@@ -19,14 +28,33 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
 
   const { estado, moneda, metodo, fechaDesde, fechaHasta } = req.query as Record<string, string | undefined>;
 
+  const desde = parseDateFilter(fechaDesde);
+  const hasta = parseDateFilter(fechaHasta);
+  if (!desde.valid || !hasta.valid) {
+    res.status(400).json({ error: "fechaDesde/fechaHasta inválidas — usá formato ISO (YYYY-MM-DD)" });
+    return;
+  }
+  if (estado !== undefined && !(ESTADOS_PAGO as readonly string[]).includes(estado)) {
+    res.status(400).json({ error: `estado inválido. Valores: ${ESTADOS_PAGO.join(", ")}` });
+    return;
+  }
+  if (moneda !== undefined && !(MONEDAS as readonly string[]).includes(moneda)) {
+    res.status(400).json({ error: `moneda inválida. Valores: ${MONEDAS.join(", ")}` });
+    return;
+  }
+  if (metodo !== undefined && !(METODOS_PAGO as readonly string[]).includes(metodo)) {
+    res.status(400).json({ error: `metodo inválido. Valores: ${METODOS_PAGO.join(", ")}` });
+    return;
+  }
+
   const where: Record<string, unknown> = {};
   if (estado) where.estado = estado;
   if (moneda) where.moneda = moneda;
   if (metodo) where.metodo = metodo;
-  if (fechaDesde || fechaHasta) {
+  if (desde.date || hasta.date) {
     where.creadoEn = {
-      ...(fechaDesde ? { gte: new Date(fechaDesde) } : {}),
-      ...(fechaHasta ? { lte: new Date(fechaHasta) } : {}),
+      ...(desde.date ? { gte: desde.date } : {}),
+      ...(hasta.date ? { lte: hasta.date } : {}),
     };
   }
 

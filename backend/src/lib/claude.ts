@@ -8,12 +8,21 @@ import { estaModoHumano, activarModoHumano } from "./human-handoff";
 import { sendTemplateMessage } from "./whatsapp-send";
 import { sendTwilioWhatsApp } from "./twilio-send";
 import { detectIntent, notifyAdvisorIfNeeded } from "./advisor-notify";
+import { maskPhone } from "./log-sanitize";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
+// vuln_006 (riesgo aceptado, decisión del dueño del proyecto — ronda 2, tarea
+// #507): el historial se guarda en Redis sin cifrar, con TTL corto
+// (CHAT_HISTORY_TTL). Redis es un servicio interno de Railway, no expuesto
+// públicamente; cifrar/descifrar en cada turno de conversación agregaría
+// complejidad y costo de performance sin un atacante realista que no tuviera
+// ya acceso directo a Redis de por sí. Misma familia de decisión que vuln_031
+// (jarvis-bridge.ts): el contenido real es necesario para que el bot pueda
+// seguir la conversación.
 async function getHistory(telefono: string): Promise<Message[]> {
   try {
     const history = await getJSON<Message[]>(`chat:${telefono}`);
@@ -122,7 +131,8 @@ export async function responderMensaje(telefono: string, mensaje: string): Promi
         const asesorPhone  = process.env.MIRCE_PERSONAL_PHONE;
         const adminTwilio  = process.env.ADMIN_TWILIO_WHATSAPP;
         const motivo       = parsed.motivo ?? "sin motivo";
-        const mask         = `XXX-${telefono.slice(-4)}`;
+        // vuln_001: usa el helper compartido en vez de reimplementar el enmascarado acá.
+        const mask         = maskPhone(telefono);
 
         // Persistir escalación en BD
         prisma.escalacionLog.create({

@@ -17,6 +17,8 @@ import { isPiperConfigurado, sintetizarAudioPiper, limpiarTextoParaVoz } from ".
 import { subirArchivoR2 } from "../lib/storage";
 import { isGeminiConfigurado } from "../lib/gemini-image";
 import { resolverImagenVocabulario } from "../lib/imagen-vocabulario";
+import { validateAnthropicApiKey } from "../security-agent/analyzer";
+import { isTrustedR2Url } from "../lib/r2-url";
 
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 8192;
@@ -168,7 +170,7 @@ function extraerJSON(texto: string): string {
 const MAX_INTENTOS_GENERACION = 3;
 
 async function generarContenido(tema: string, contexto: ContextoCurso): Promise<LeccionContenido> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = new Anthropic({ apiKey: validateAnthropicApiKey(process.env.ANTHROPIC_API_KEY) });
 
   let ultimoErrorDetalle = "";
 
@@ -349,6 +351,17 @@ async function generarAudios(leccionId: number, contenido: LeccionContenido): Pr
 
       if (!url) {
         console.warn(`No se pudo subir el audio del paso ${paso.id} (R2 no configurado o falló) — continúa sin audio.`);
+        saltados += 1;
+        pasosActualizados.push(paso);
+        continue;
+      }
+
+      // subirArchivoR2 siempre arma esta URL desde CLOUDFLARE_R2_PUBLIC_URL, así que hoy
+      // no hay forma de que apunte a otro lado — este chequeo es una defensa extra por si
+      // esa función cambia en el futuro (vuln_043: nunca hacer fetch a un host distinto de R2).
+      const r2PublicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
+      if (!r2PublicUrl || !isTrustedR2Url(url, r2PublicUrl)) {
+        console.warn(`URL de audio fuera del bucket de R2 configurado, se omite el cotejo: ${url}`);
         saltados += 1;
         pasosActualizados.push(paso);
         continue;

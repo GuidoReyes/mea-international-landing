@@ -13,6 +13,9 @@ backups/
 roster*.json
 *.credenciales.csv
 
+# Token de OAuth de Drive escrito por scripts/get-drive-token.ts (setup local, único)
+*.local.txt
+
 # Modelos de voz Piper (~63 MB c/u). Descargar con:
 #   python3 -m piper.download_voices en_US-lessac-medium --data-dir voices
 voices/

@@ -1,5 +1,8 @@
 import { Router, Request, Response } from "express";
 import { verifyMetaHmac } from "../middleware/hmac.middleware";
+import { safeEqual } from "../lib/safe-equal";
+import { normalizePhone } from "../lib/phone-utils";
+import { requireRawBody } from "../middleware/raw-body.middleware";
 import { rateLimitWhatsApp } from "../middleware/rate-limit.middleware";
 import { responderMensaje } from "../lib/claude";
 import { guardarMensajes } from "../lib/persistence";
@@ -11,6 +14,7 @@ import { desactivarModoHumano } from "../lib/human-handoff";
 import { isAdvisorPhone, handleAdvisorMessage } from "../lib/advisor-commands";
 import { notifyAdvisorConversacion } from "../lib/advisor-notify";
 import { log } from "../lib/logger";
+import { maskPhone } from "../lib/log-sanitize";
 
 const router = Router();
 
@@ -43,10 +47,6 @@ interface MetaWebhookBody {
       value?: { messages?: MetaMessage[] };
     }>;
   }>;
-}
-
-function maskPhone(telefono: string) {
-  return `XXX-${telefono.slice(-4)}`;
 }
 
 // Imagen o documento (comprobante de pago, etc.): se descarga de Meta, se
@@ -134,7 +134,12 @@ router.get("/", (req: Request, res: Response) => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode === "subscribe" && token === process.env.META_WEBHOOK_VERIFY_TOKEN) {
+  // Both checks matter: without them an unset env var and a missing token are
+  // undefined === undefined, which would verify the webhook for anyone.
+  const expectedToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
+  const isValidToken = typeof token === "string" && !!expectedToken && safeEqual(token, expectedToken);
+
+  if (mode === "subscribe" && isValidToken) {
     log("info", "[WhatsApp] Webhook verificado por Meta");
     res.status(200).send(challenge);
     return;
@@ -144,7 +149,7 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 // POST — recibir y procesar mensajes de WhatsApp
-router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Response) => {
+router.post("/", rateLimitWhatsApp, requireRawBody, verifyMetaHmac, async (req: Request, res: Response) => {
   // Responder 200 a Meta inmediatamente (requerido en <20s)
   res.status(200).send("OK");
 
@@ -153,7 +158,7 @@ router.post("/", rateLimitWhatsApp, verifyMetaHmac, async (req: Request, res: Re
   if (!messages?.length) return;
 
   for (const msg of messages) {
-    const telefono = msg.from;
+    const telefono = normalizePhone(msg.from);
     const mask = maskPhone(telefono);
 
     // El asesor solo manda comandos de texto — un adjunto suyo no es un

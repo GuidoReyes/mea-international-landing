@@ -4,6 +4,8 @@ import { sendWhatsAppMessage } from "../lib/whatsapp-send";
 import { sendTwilioWhatsApp } from "../lib/twilio-send";
 import { activarModoHumano, desactivarModoHumano } from "../lib/human-handoff";
 import { log } from "../lib/logger";
+import { maskPhone } from "../lib/log-sanitize";
+import { isSamePhone, normalizePhone } from "../lib/phone-utils";
 import prisma from "../lib/prisma";
 
 const router = Router();
@@ -44,6 +46,15 @@ router.post("/", verifyTwilioSignature, async (req: Request, res: Response) => {
   if (!From || !Body) return;
 
   const adminPhone = process.env.ADMIN_TWILIO_WHATSAPP;
+
+  // La firma solo prueba que el mensaje viene de Twilio, no de quién: solo el admin
+  // puede dar comandos (responder a clientes o reactivar el bot). Ya respondimos 200
+  // arriba, así que Twilio no reintenta.
+  if (!isSamePhone(From, adminPhone)) {
+    log("warn", `[Twilio] Mensaje de remitente no autorizado ignorado (${maskPhone(normalizePhone(From))})`);
+    return;
+  }
+
   const mensaje    = Body.trim();
 
   log("info", `[Twilio] Admin msg: "${mensaje.slice(0, 80)}"`);

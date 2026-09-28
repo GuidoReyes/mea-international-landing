@@ -102,50 +102,60 @@ router.post("/campanas/:id/enviar", verifyJWT, auditLog("ENVIAR_CAMPANA", "marke
     });
 
     let i = 0;
+    // vuln_029: sin try/catch acá, un error inesperado dentro del callback de
+    // setInterval (ej. la rama chunk.length===0, que no tenía su propio
+    // try/catch) se vuelve una promesa rechazada sin manejar — no hay un
+    // handler global de unhandledRejection en este proceso, así que eso
+    // tumbaría el servidor entero por una sola campaña.
     const interval = setInterval(async () => {
-      const chunk = pending.slice(i, i + CHUNK);
-      i += CHUNK;
+      try {
+        const chunk = pending.slice(i, i + CHUNK);
+        i += CHUNK;
 
-      if (chunk.length === 0) {
-        clearInterval(interval);
-        const final = await prisma.campanaWhatsApp.findUnique({ where: { id: campanaId }, select: { enviados: true, errores: true } });
-        const estado = (final?.errores ?? 0) > 0 && (final?.enviados ?? 0) === 0 ? "COMPLETADA" : "COMPLETADA";
-        await prisma.campanaWhatsApp.update({ where: { id: campanaId }, data: { estado } });
-        log("info", `[Marketing] Campaña ${campanaId} completada — enviados: ${final?.enviados}, errores: ${final?.errores}`);
-        return;
-      }
+        if (chunk.length === 0) {
+          clearInterval(interval);
+          const final = await prisma.campanaWhatsApp.findUnique({ where: { id: campanaId }, select: { enviados: true, errores: true } });
+          const estado = (final?.errores ?? 0) > 0 && (final?.enviados ?? 0) === 0 ? "COMPLETADA" : "COMPLETADA";
+          await prisma.campanaWhatsApp.update({ where: { id: campanaId }, data: { estado } });
+          log("info", `[Marketing] Campaña ${campanaId} completada — enviados: ${final?.enviados}, errores: ${final?.errores}`);
+          return;
+        }
 
-      await Promise.all(
-        chunk.map(async (dest) => {
-          const lead = leadMap.get(dest.leadId);
-          if (!lead) return;
-          try {
-            const mensaje = renderTemplate(template, lead);
-            const result = await sendWhatsAppMessage(lead.telefono, mensaje);
-            if (result.success) {
+        await Promise.all(
+          chunk.map(async (dest) => {
+            const lead = leadMap.get(dest.leadId);
+            if (!lead) return;
+            try {
+              const mensaje = renderTemplate(template, lead);
+              const result = await sendWhatsAppMessage(lead.telefono, mensaje);
+              if (result.success) {
+                await prisma.campanaDestinatario.update({
+                  where: { id: dest.id },
+                  data: { estado: "ENVIADO", enviadoEn: new Date() },
+                });
+                await prisma.campanaWhatsApp.update({
+                  where: { id: campanaId },
+                  data: { enviados: { increment: 1 } },
+                });
+              } else {
+                throw new Error(result.error ?? "Error desconocido");
+              }
+            } catch (err) {
               await prisma.campanaDestinatario.update({
                 where: { id: dest.id },
-                data: { estado: "ENVIADO", enviadoEn: new Date() },
+                data: { estado: "ERROR", error: String(err).slice(0, 255) },
               });
               await prisma.campanaWhatsApp.update({
                 where: { id: campanaId },
-                data: { enviados: { increment: 1 } },
+                data: { errores: { increment: 1 } },
               });
-            } else {
-              throw new Error(result.error ?? "Error desconocido");
             }
-          } catch (err) {
-            await prisma.campanaDestinatario.update({
-              where: { id: dest.id },
-              data: { estado: "ERROR", error: String(err).slice(0, 255) },
-            });
-            await prisma.campanaWhatsApp.update({
-              where: { id: campanaId },
-              data: { errores: { increment: 1 } },
-            });
-          }
-        })
-      );
+          })
+        );
+      } catch (err) {
+        clearInterval(interval);
+        log("error", `[Marketing] Error inesperado en el envío en background de la campaña ${campanaId}, detenido:`, err);
+      }
     }, DELAY_MS);
   }
 

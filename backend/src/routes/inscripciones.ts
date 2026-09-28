@@ -4,11 +4,20 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
+import { validateUpload } from "../lib/upload-utils";
+import { createWithUniqueRetry } from "../lib/retry-on-conflict";
+import { parseCsvRows } from "../lib/csv-utils";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+const CSV_MIMES = ["text/csv", "application/vnd.ms-excel"];
 
 const ESTADOS_VALIDOS = ["ACTIVA", "COMPLETADA", "CANCELADA", "SUSPENDIDA"] as const;
+export const ESTADOS_INSCRIPCION_VALIDOS = ESTADOS_VALIDOS;
+
+export function isEstadoInscripcionValido(value: string | undefined): value is (typeof ESTADOS_VALIDOS)[number] {
+  return value !== undefined && (ESTADOS_VALIDOS as readonly string[]).includes(value);
+}
 
 const csvRowSchema = z.object({
   carnet_o_email: z.string().min(1),
@@ -24,6 +33,11 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   const skip = (page - 1) * limit;
 
   const { estado, alumnoId, edicionId } = req.query as Record<string, string | undefined>;
+
+  if (estado !== undefined && !isEstadoInscripcionValido(estado)) {
+    res.status(400).json({ error: `Estado inválido. Valores: ${ESTADOS_VALIDOS.join(", ")}` });
+    return;
+  }
 
   const where: Record<string, unknown> = {};
   if (estado) where.estado = estado;
@@ -107,15 +121,23 @@ router.post(
       return;
     }
 
-    const text = req.file.buffer.toString("utf-8");
-    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    const uploadCheck = validateUpload(req.file, CSV_MIMES);
+    if (!uploadCheck.valid) {
+      res.status(400).json({ error: uploadCheck.error });
+      return;
+    }
 
-    if (lines.length < 2) {
+    const text = req.file.buffer.toString("utf-8");
+    // vuln_025: parser real (RFC 4180) en vez de split(",") — un campo citado con
+    // coma (ej. "Pérez, Jr.") ya no desalinea las columnas siguientes.
+    const rows = parseCsvRows(text);
+
+    if (rows.length < 2) {
       res.status(400).json({ error: "CSV vacío o sin filas de datos" });
       return;
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers = rows[0].map((h) => h.trim().toLowerCase());
     const required = ["carnet_o_email", "edicion_id", "monto", "metodo"];
     const missing = required.filter((h) => !headers.includes(h));
     if (missing.length > 0) {
@@ -126,9 +148,9 @@ router.post(
     const exitosos: number[] = [];
     const errores: Array<{ row: number; error: string }> = [];
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = rows[i].map((v) => v.trim());
       const raw = Object.fromEntries(headers.map((h, idx) => [h, values[idx] ?? ""]));
 
       const parsed = csvRowSchema.safeParse(raw);
@@ -148,6 +170,13 @@ router.post(
 
           const edicion = await tx.edicion.findUnique({ where: { id: parseInt(edicion_id) } });
           if (!edicion) throw new Error(`Edición ${edicion_id} no encontrada`);
+
+          // Reimportar el mismo CSV no debe duplicar la inscripción (ni su pago) — el
+          // mismo chequeo que ya usa importar-historico (vuln_025).
+          const existente = await tx.inscripcion.findFirst({
+            where: { alumnoId: alumno.id, edicionId: edicion.id },
+          });
+          if (existente) throw new Error(`${carnet_o_email} ya tiene inscripción en edición ${edicion_id}`);
 
           const ins = await tx.inscripcion.create({
             data: { alumnoId: alumno.id, edicionId: edicion.id, estado: "ACTIVA" },
@@ -204,11 +233,15 @@ router.post(
   async (req: Request, res: Response) => {
     if (!req.file) { res.status(400).json({ error: "Se requiere un archivo CSV" }); return; }
 
-    const text    = req.file.buffer.toString("utf-8");
-    const lines   = text.split(/\r?\n/).filter((l) => l.trim());
-    if (lines.length < 2) { res.status(400).json({ error: "CSV vacío o sin filas de datos" }); return; }
+    const uploadCheck = validateUpload(req.file, CSV_MIMES);
+    if (!uploadCheck.valid) { res.status(400).json({ error: uploadCheck.error }); return; }
 
-    const headers  = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const text = req.file.buffer.toString("utf-8");
+    // vuln_025: mismo fix que importar-csv — parser real en vez de split(",").
+    const rows = parseCsvRows(text);
+    if (rows.length < 2) { res.status(400).json({ error: "CSV vacío o sin filas de datos" }); return; }
+
+    const headers  = rows[0].map((h) => h.trim().toLowerCase());
     const required = ["nombre","apellido","email","whatsapp","edicion_id","fecha_inicio_clases","monto_cuota","total_cuotas","cuotas_pagadas","metodo_pago"];
     const missing  = required.filter((h) => !headers.includes(h));
     if (missing.length) { res.status(400).json({ error: `Columnas faltantes: ${missing.join(", ")}` }); return; }
@@ -217,9 +250,9 @@ router.post(
     const errores:  Array<{ fila: number; error: string }> = [];
     const año = new Date().getFullYear();
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       const rowNum = i + 1;
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = rows[i].map((v) => v.trim());
       const raw    = Object.fromEntries(headers.map((h, idx) => [h, values[idx] ?? ""]));
 
       const parsed = csvHistoricoSchema.safeParse(raw);
@@ -244,9 +277,14 @@ router.post(
           // Buscar o crear alumno
           let alumno = await tx.alumno.findFirst({ where: { email } });
           if (!alumno) {
-            const count  = await tx.alumno.count({ where: { carnet: { startsWith: `MEA-${año}-` } } });
-            const carnet = `MEA-${año}-${String(count + 1).padStart(4, "0")}`;
-            alumno = await tx.alumno.create({ data: { carnet, nombre, apellido, email, whatsapp, activo: true } });
+            // count()+1 es racy entre filas de importaciones concurrentes; el índice
+            // UNIQUE de la BD ya rechaza el duplicado (P2002), createWithUniqueRetry solo
+            // recalcula el carnet y reintenta en vez de que la fila falle de una (vuln_027).
+            alumno = await createWithUniqueRetry(async () => {
+              const count  = await tx.alumno.count({ where: { carnet: { startsWith: `MEA-${año}-` } } });
+              const carnet = `MEA-${año}-${String(count + 1).padStart(4, "0")}`;
+              return tx.alumno.create({ data: { carnet, nombre, apellido, email, whatsapp, activo: true } });
+            }, "carnet");
           }
 
           // Verificar que la edición existe

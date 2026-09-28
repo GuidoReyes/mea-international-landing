@@ -3,7 +3,7 @@ import Link from "next/link";
 import LeccionClient from "@/components/cursos-online/LeccionClient";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 import { getRutaCurriculum, type CapituloCurriculum, type LeccionCurriculum, type RutaCurriculum } from "@/lib/rutas";
-import { getLeccionContenidoPublico, resumenLegiblePasos } from "@/lib/leccion-contenido";
+import { getLeccionContenidoPublico, isLessonPublished, resumenLegiblePasos } from "@/lib/leccion-contenido";
 import { breadcrumbListJsonLd, jsonLdScriptProps, learningResourceJsonLd, OG_IMAGE } from "@/lib/structured-data";
 
 const SITE_URL = "https://www.mea.edu.gt";
@@ -41,18 +41,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonical = `/cursos/${slug}/leccion/${leccionSlug}`;
 
   if (!leccion.esGratis) {
+    const descripcionPrivada = `Esta lección forma parte del curso ${ruta.titulo} y requiere una suscripción activa a MEA International.`;
+    const urlPrivada = `${SITE_URL}${canonical}`;
+    // Sin openGraph/twitter explícitos acá, Next.js hereda esos campos del
+    // root layout (title/description/url de la home) por el merge de
+    // metadata entre segmentos — rompe la vista previa al compartir esta
+    // lección por WhatsApp/redes aunque no sea indexable.
     return {
       title,
-      description: `Esta lección forma parte del curso ${ruta.titulo} y requiere una suscripción activa a MEA International.`,
+      description: descripcionPrivada,
       alternates: { canonical },
       robots: { index: false, follow: true },
+      openGraph: {
+        title,
+        description: descripcionPrivada,
+        url: urlPrivada,
+        siteName: "MEA International",
+        locale: "es_GT",
+        type: "article",
+        images: [OG_IMAGE],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description: descripcionPrivada,
+        images: [OG_IMAGE],
+      },
     };
   }
 
   const description = `Lección gratuita de inglés "${leccion.titulo}", parte del curso ${ruta.titulo} (nivel ${capitulo.nivel}). Aprendé gratis con MEA International.`;
   const url = `${SITE_URL}${canonical}`;
-
-  return {
+  const metadataComun: Metadata = {
     title,
     description,
     alternates: { canonical },
@@ -72,6 +92,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [OG_IMAGE],
     },
   };
+
+  // esGratis=true no alcanza para indexar: si la lección todavía no tiene
+  // pasos reales (contenido en preparación o API caída), se sirve noindex
+  // igual que una lección paga, para no mostrarle a Google una página vacía.
+  const contenido = await getLeccionContenidoPublico(leccion.id).catch(() => null);
+  if (!isLessonPublished(contenido)) {
+    return { ...metadataComun, robots: { index: false, follow: true } };
+  }
+
+  return metadataComun;
 }
 
 export default async function LeccionPage({ params }: Props) {

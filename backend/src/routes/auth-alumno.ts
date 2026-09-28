@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -6,52 +6,20 @@ import prisma from "../lib/prisma";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
 import { sendTemplateMessage } from "../lib/whatsapp-send";
 import { log } from "../lib/logger";
+import { maskPhone } from "../lib/log-sanitize";
+import { alumnoLoginLimiter as rateLimitLogin } from "../middleware/rate-limit.middleware";
+import { verifyOtpCode } from "../lib/otp-utils";
 
 const router = Router();
 
 const BCRYPT_ROUNDS = 12;
 const OTP_BCRYPT_ROUNDS = 10;
 const TOKEN_EXPIRY = "24h";
-const LOGIN_MAX_ATTEMPTS = 5;
-const LOGIN_WINDOW_MS = 60_000;
 const MIN_PASSWORD_LENGTH = 8;
 const OTP_EXPIRA_MINUTOS = 10;
 const OTP_MAX_POR_HORA = 3;
 const GT_PREFIJO = "502";
 const GT_DIGITOS_LOCALES = 8;
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const loginAttempts = new Map<string, RateLimitEntry>();
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of loginAttempts.entries()) {
-    if (entry.resetAt < now) loginAttempts.delete(key);
-  }
-}, 300_000);
-
-function rateLimitLogin(req: Request, res: Response, next: NextFunction): void {
-  const ip = req.ip ?? "unknown";
-  const now = Date.now();
-  const entry = loginAttempts.get(ip);
-
-  if (!entry || entry.resetAt < now) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
-    next();
-    return;
-  }
-
-  entry.count++;
-  if (entry.count > LOGIN_MAX_ATTEMPTS) {
-    res.status(429).json({ error: "Demasiados intentos. Esperá un minuto e intentá de nuevo." });
-    return;
-  }
-  next();
-}
 
 router.post("/login", rateLimitLogin, async (req: Request, res: Response) => {
   const { email, password } = req.body as { email?: string; password?: string };
@@ -276,7 +244,8 @@ router.post("/otp/solicitar", rateLimitLogin, async (req: Request, res: Response
   const envio = await sendTemplateMessage(numero, template, [codigo]);
 
   if (!envio.success) {
-    log("error", `[AuthAlumno] No se pudo enviar OTP a ${numero}: ${envio.error ?? "sin detalle"}`);
+    // vuln_017: antes logueaba el número completo en el log de fallo.
+    log("error", `[AuthAlumno] No se pudo enviar OTP a ${maskPhone(numero)}: ${envio.error ?? "sin detalle"}`);
     res.status(502).json({ error: "No pudimos enviarte el código por WhatsApp. Verificá el número e intentá de nuevo." });
     return;
   }
@@ -303,7 +272,10 @@ router.post("/otp/verificar", rateLimitLogin, async (req: Request, res: Response
     orderBy: { creadoEn: "desc" },
   });
 
-  const valido = otp ? await bcrypt.compare(codigo, otp.codigoHash) : false;
+  // Siempre corre bcrypt.compare, exista o no el registro (vuln_013): un `otp ? compare() : false`
+  // resuelve casi al instante cuando no hay OTP pendiente, y ese tiempo distinto es
+  // suficiente para que alguien enumere números de teléfono con un OTP activo.
+  const valido = await verifyOtpCode(codigo, otp?.codigoHash);
   if (!otp || !valido) {
     res.status(401).json({ error: "Código incorrecto o vencido. Pedí uno nuevo." });
     return;

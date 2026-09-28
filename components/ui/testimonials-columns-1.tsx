@@ -4,10 +4,18 @@ import { motion } from "motion/react";
 
 export type Testimonial = {
   text: string;
-  image: string;
   name: string;
   role: string;
 };
+
+function iniciales(nombre: string): string {
+  return nombre
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase())
+    .join("");
+}
 
 export const TestimonialsColumn = (props: {
   className?: string;
@@ -30,7 +38,7 @@ export const TestimonialsColumn = (props: {
       >
         {[...Array(2)].map((_, index) => (
           <React.Fragment key={index}>
-            {props.testimonials.map(({ text, image, name, role }, i) => (
+            {props.testimonials.map(({ text, name, role }, i) => (
               <div
                 className="p-8 rounded-3xl border border-slate-100 shadow-lg shadow-[#0A2540]/5 max-w-xs w-full bg-white"
                 key={i}
@@ -44,15 +52,12 @@ export const TestimonialsColumn = (props: {
                 </div>
                 <p className="text-slate-700 text-sm leading-relaxed">&ldquo;{text}&rdquo;</p>
                 <div className="flex items-center gap-3 mt-5">
-                  <img
-                    width={40}
-                    height={40}
-                    src={image}
-                    alt={name}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-[#00C4B4]/20"
-                  />
+                  <div
+                    aria-hidden="true"
+                    className="h-10 w-10 shrink-0 rounded-full ring-2 ring-[#00C4B4]/20 bg-[#0A2540] text-white flex items-center justify-center text-sm font-semibold"
+                  >
+                    {iniciales(name)}
+                  </div>
                   <div className="flex flex-col">
                     <div className="font-semibold tracking-tight leading-5 text-[#0A2540]">{name}</div>
                     <div className="text-xs leading-5 text-slate-500 tracking-tight">{role}</div>

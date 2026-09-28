@@ -1,4 +1,5 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { verifyAlumnoJWT } from "../middleware/alumno-auth.middleware";
@@ -12,38 +13,53 @@ import {
   puedeEntrarAhora,
   GrupoConHorarios,
 } from "../lib/horario-clases";
+import { joinLimiter as rateLimitJoin } from "../middleware/rate-limit.middleware";
 
 const router = Router();
 
-const JOIN_MAX_POR_MINUTO = 10;
-const JOIN_WINDOW_MS = 60_000;
-const joinAttempts = new Map<number, { count: number; resetAt: number }>();
+// El link se muestra a los alumnos que entran a la clase: debe ser https y de zoom.us,
+// nunca un dominio que solo contenga "zoom.us" en el path o la query (vuln_015).
+export const urlZoomSchema = z
+  .string()
+  .url()
+  .refine((url) => {
+    try {
+      const { protocol, hostname } = new URL(url);
+      return protocol === "https:" && (hostname === "zoom.us" || hostname.endsWith(".zoom.us"));
+    } catch {
+      return false;
+    }
+  }, "urlZoom debe ser una URL https de zoom.us");
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of joinAttempts.entries()) {
-    if (entry.resetAt < now) joinAttempts.delete(key);
-  }
-}, 300_000);
+const grupoBaseSchema = z.object({
+  nombre: z.string().min(1).optional(),
+  audiencia: z.string().min(1).optional(),
+  niveles: z.string().min(1).optional(),
+  descripcion: z.string().optional(),
+  profesor: z.string().optional(),
+  urlZoom: urlZoomSchema.optional(),
+  duracionMinutos: z.number().int().positive().optional(),
+});
 
-function rateLimitJoin(req: Request, res: Response, next: NextFunction): void {
-  const alumnoId = req.alumno!.alumnoId;
-  const now = Date.now();
-  const entry = joinAttempts.get(alumnoId);
+const createGrupoSchema = grupoBaseSchema.extend({
+  slug: z.string().min(1),
+  nombre: z.string().min(1),
+  audiencia: z.string().min(1),
+  niveles: z.string().min(1),
+  urlZoom: urlZoomSchema,
+});
 
-  if (!entry || entry.resetAt < now) {
-    joinAttempts.set(alumnoId, { count: 1, resetAt: now + JOIN_WINDOW_MS });
-    next();
-    return;
-  }
+const updateGrupoSchema = grupoBaseSchema.extend({
+  activo: z.boolean().optional(),
+});
 
-  entry.count++;
-  if (entry.count > JOIN_MAX_POR_MINUTO) {
-    res.status(429).json({ error: "Demasiados intentos. Esperá un minuto." });
-    return;
-  }
-  next();
-}
+// vuln_021: antes solo se chequeaba que diaSemana y horaInicio vinieran presentes,
+// sin validar formato/rango — Prisma los persistía tal cual (ej. diaSemana: -1 o 99,
+// horaInicio: "no-es-una-hora"). Mismo rango que documenta el modelo HorarioClase.
+export const horarioSchema = z.object({
+  diaSemana: z.number().int().min(0).max(6),
+  horaInicio: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "horaInicio debe ser HH:mm (24h)"),
+});
 
 // GET /api/clases-en-vivo/horario — público. NUNCA incluye urlZoom.
 router.get("/horario", async (_req: Request, res: Response) => {
@@ -149,25 +165,13 @@ router.post(
   verifyJWT,
   auditLog("CREAR_GRUPO_CLASE_EN_VIVO", "clases-en-vivo"),
   async (req: Request, res: Response) => {
-    const { slug, nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos } = req.body as {
-      slug?: string;
-      nombre?: string;
-      audiencia?: string;
-      niveles?: string;
-      descripcion?: string;
-      profesor?: string;
-      urlZoom?: string;
-      duracionMinutos?: number;
-    };
-
-    if (!slug || !nombre || !audiencia || !niveles || !urlZoom) {
-      res.status(400).json({ error: "Faltan campos requeridos: slug, nombre, audiencia, niveles, urlZoom" });
+    const parsed = createGrupoSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
 
-    const grupo = await prisma.grupoClaseEnVivo.create({
-      data: { slug, nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos },
-    });
+    const grupo = await prisma.grupoClaseEnVivo.create({ data: parsed.data });
     res.status(201).json(grupo);
   }
 );
@@ -183,20 +187,15 @@ router.patch(
       return;
     }
 
-    const { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo } = req.body as {
-      nombre?: string;
-      audiencia?: string;
-      niveles?: string;
-      descripcion?: string;
-      profesor?: string;
-      urlZoom?: string;
-      duracionMinutos?: number;
-      activo?: boolean;
-    };
+    const parsed = updateGrupoSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
+      return;
+    }
 
     const grupo = await prisma.grupoClaseEnVivo.update({
       where: { id },
-      data: { nombre, audiencia, niveles, descripcion, profesor, urlZoom, duracionMinutos, activo },
+      data: parsed.data,
     });
     res.json(grupo);
   }
@@ -213,14 +212,14 @@ router.post(
       return;
     }
 
-    const { diaSemana, horaInicio } = req.body as { diaSemana?: number; horaInicio?: string };
-    if (diaSemana === undefined || !horaInicio) {
-      res.status(400).json({ error: "diaSemana y horaInicio requeridos" });
+    const parsed = horarioSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0]?.message ?? "diaSemana y horaInicio inválidos" });
       return;
     }
 
     const horario = await prisma.horarioClase.create({
-      data: { grupoId, diaSemana, horaInicio },
+      data: { grupoId, diaSemana: parsed.data.diaSemana, horaInicio: parsed.data.horaInicio },
     });
     res.status(201).json(horario);
   }

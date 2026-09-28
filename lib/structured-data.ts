@@ -42,11 +42,19 @@ export function organizationJsonLd(): Record<string, unknown> {
     name: "MEA International",
     url: "https://www.mea.edu.gt",
     logo: "https://www.mea.edu.gt/mea%20logo.svg",
+    // Google Rich Results Test (2026-09-27) marcó "image" como campo opcional
+    // faltante — se usa la misma imagen social real (og-image.png, 1200x630).
+    image: "https://www.mea.edu.gt/og-image.png",
     telephone: "+502 5631-1728",
     email: "mea.learnandplay@gmail.com",
     address: {
       "@type": "PostalAddress",
       streetAddress: "2da calle 7-00 zona 11 de Mixco, alta villa el Naranjo D42",
+      // addressLocality agregado (2026-09-27, mismo hallazgo de Rich Results
+      // Test): "Mixco" ya está confirmado dentro de streetAddress, no es un
+      // dato nuevo. postalCode se deja afuera — no hay un código postal
+      // verificado para esta dirección, no se inventa.
+      addressLocality: "Mixco",
       addressCountry: "GT",
     },
     areaServed: "GT",
@@ -87,6 +95,32 @@ export function faqPageJsonLd(items: { title: string; content: string }[]): Reco
   };
 }
 
+export interface ItemListEntry {
+  name: string;
+  description: string;
+  url: string;
+}
+
+// Lista de las rutas/cursos reales mostradas en /cursos, en el mismo orden en
+// que aparecen en el catálogo (components/cursos-online/CatalogoRutas.tsx).
+export function itemListJsonLd(items: ItemListEntry[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: item.url,
+      item: {
+        "@type": "Course",
+        name: item.name,
+        description: item.description,
+        url: item.url,
+      },
+    })),
+  };
+}
+
 export interface CourseJsonLdInput {
   name: string;
   description: string;
@@ -104,6 +138,15 @@ export function courseJsonLd({ name, description, url }: CourseJsonLdInput): Rec
       "@type": "Organization",
       name: "MEA International",
       sameAs: "https://www.mea.edu.gt",
+    },
+    // Google exige hasCourseInstance u offers para que el Course sea elegible
+    // a rich results (si no, el JSON-LD es válido pero no elegible). Todos
+    // los cursos de MEA son 100% online (verificado en el modelo de negocio,
+    // sin sedes presenciales) — no se inventa horario, instructor ni precio
+    // por curso, ya que eso vive a nivel de plan/suscripción en /planes.
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "online",
     },
   };
 }

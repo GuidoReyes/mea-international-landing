@@ -28,6 +28,21 @@ async function buscarLeccion(slug: string, leccionSlug: string): Promise<Leccion
   return null;
 }
 
+const RUTA_CANONICA_COMPARTIDA = "general";
+
+// Varias rutas reutilizan la misma lección (mismo id en la API, no una
+// copia) para temas de gramática comunes — confirmado 2026-09-28 (fase5 R7)
+// comparando IDs entre general/oficina/tecnicos-pc para presente-perfecto y
+// presente-continuo: mismo id en las tres. Al ser literalmente el mismo
+// registro, no hace falta comparar contenido: si también existe en
+// "general", el canonical de las demás rutas apunta ahí.
+async function slugCanonico(rutaSlug: string, leccion: LeccionCurriculum): Promise<string> {
+  if (rutaSlug === RUTA_CANONICA_COMPARTIDA) return rutaSlug;
+  const general = await getRutaCurriculum(RUTA_CANONICA_COMPARTIDA).catch(() => null);
+  const compartida = general?.capitulos.some((c) => c.lecciones.some((l) => l.id === leccion.id));
+  return compartida ? RUTA_CANONICA_COMPARTIDA : rutaSlug;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, leccionSlug } = await params;
   const encontrada = await buscarLeccion(slug, leccionSlug);
@@ -38,7 +53,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { ruta, capitulo, leccion } = encontrada;
   const title = `${leccion.titulo} | ${ruta.titulo} | MEA International`;
-  const canonical = `/cursos/${slug}/leccion/${leccionSlug}`;
+  const rutaCanonica = await slugCanonico(slug, leccion);
+  const canonical = `/cursos/${rutaCanonica}/leccion/${leccionSlug}`;
 
   if (!leccion.esGratis) {
     const descripcionPrivada = `Esta lección forma parte del curso ${ruta.titulo} y requiere una suscripción activa a MEA International.`;

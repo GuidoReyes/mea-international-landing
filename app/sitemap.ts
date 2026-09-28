@@ -21,16 +21,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const candidatas: { rutaSlug: string; leccion: LeccionCurriculum }[] = [];
+  const todasLasCandidatas: { rutaSlug: string; leccion: LeccionCurriculum }[] = [];
   for (const r of rutas) {
     const curriculum = await getRutaCurriculum(r.slug).catch(() => null);
     if (!curriculum) continue;
     for (const capitulo of curriculum.capitulos) {
       for (const leccion of capitulo.lecciones) {
-        if (leccion.esGratis) candidatas.push({ rutaSlug: r.slug, leccion });
+        if (leccion.esGratis) todasLasCandidatas.push({ rutaSlug: r.slug, leccion });
       }
     }
   }
+
+  // Varias rutas reutilizan la misma lección (mismo leccion.id) para temas
+  // de gramática comunes — confirmado en fase5 R7. Sin dedupe, el sitemap
+  // listaría la misma URL de contenido bajo 2-3 rutas distintas aunque solo
+  // una sea canonical (ver la misma regla en generateMetadata de la página
+  // de lección: "general" gana si la lección también está ahí).
+  const porId = new Map<number, { rutaSlug: string; leccion: LeccionCurriculum }>();
+  for (const c of todasLasCandidatas) {
+    const existente = porId.get(c.leccion.id);
+    if (!existente || c.rutaSlug === "general") porId.set(c.leccion.id, c);
+  }
+  const candidatas = [...porId.values()];
 
   // esGratis no alcanza: una lección sin pasos reales (contenido en
   // preparación) no debe aparecer en el sitemap aunque sea gratuita.

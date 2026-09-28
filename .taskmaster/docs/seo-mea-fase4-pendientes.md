@@ -123,6 +123,52 @@ septiembre. Se descarta seguir reintentando por esta vía; queda confirmado
 que requiere una herramienta con presupuesto de tiempo mayor (Chrome local,
 o el sitio web de PageSpeed Insights directamente, que no tiene ese límite)._
 
+**Diagnóstico final de la home (2026-09-28), vía inspección real con Chrome
+DevTools del usuario:** con "Disable cache" activado (carga en frío real,
+sin caché — lo más parecido a lo que ve un visitante nuevo o Lighthouse) y
+sin throttling, la home carga sin problemas: `Load: 452 ms`, `DOMContentLoaded:
+447 ms`, todas las 38 requests terminan (`Finish: 4.08 s`, 2.665 MB
+transferidos de 8.074 MB de recursos sin comprimir). Se descartó
+específicamente la hipótesis de una conexión WebSocket persistente hacia
+Spline (`wss://*.spline.design` está permitido en la CSP, pero el filtro
+"Socket" de DevTools no mostró ninguna conexión activa — hipótesis
+descartada). `process.wasm` (el runtime 3D de Spline,
+`unpkg.com/@splinetool/modelling-wasm`) y `scene.splinecode` cargan y
+completan sin colgarse.
+
+**Conclusión:** no hay ningún hang real — un visitante con hardware normal
+carga la home en ~4 segundos, sin quedarse pegado. El motivo de
+`RPC::DEADLINE_EXCEEDED` en PageSpeed Insights es la combinación de: (1) el
+runtime 3D de Spline consume ~10s de CPU real (medición original citada en
+fase3 #21, Performance 39/100 antes del fix de fase4 #2), y (2) Lighthouse
+audita con **throttling de CPU simulado (4-6x más lento)** para representar
+un celular modesto — bajo esa simulación, esos ~10s de trabajo se convierten
+en 40-60+ segundos, lo cual agota el propio presupuesto de tiempo del
+backend de Google antes de poder terminar de generar el reporte completo.
+El fix de fase4 #2 (diferir el montaje de Spline 1.5s tras `load`) mejora la
+experiencia real (confirmado: `load` a los 452 ms) pero no resuelve la
+medición de Lighthouse, porque ese trabajo diferido igual cae dentro de la
+ventana de captura de métricas de la auditoría.
+
+**Veredicto:** este es un límite estructural del hero con Spline bajo
+condiciones simuladas de hardware lento, no un defecto de código corregible
+sin tocar la escena 3D en sí (aligerarla, reemplazarla por una versión más
+liviana, o quitarla del hero). Esa es una decisión de diseño/producto fuera
+del alcance de este backlog — queda documentada como riesgo conocido y
+aceptado, no como bloqueador pendiente de arreglo. Se da por cerrada la
+tarea #7 con el baseline parcial obtenido (3/4 páginas medidas, home
+diagnosticada aunque no medida numéricamente) y esta explicación.
+
+**Dato adicional (2026-09-28):** con throttling de red "Slow 4G" pero sin
+throttling de CPU, la home sí completa: `Load: 4.43 s`, `Finish: 20.02 s`
+(39/39 requests). Esto confirma que la red lenta por sí sola no explica un
+timeout total — se necesita la combinación de red lenta *y* CPU limitada
+(que Lighthouse aplica simultáneamente) para que el trabajo de Spline
+empuje el tiempo total más allá del presupuesto del backend de Google.
+Refuerza el veredicto: es el costo de CPU de Spline, amplificado por
+throttling combinado, lo que hace inviable medir la home con Lighthouse
+mientras la escena 3D actual siga en el hero.
+
 ## Validación de JSON-LD por especificación (TASK-007, fase4 #5)
 
 La validación interactiva con Google Rich Results Test sigue bloqueada (sin
@@ -152,6 +198,53 @@ entorno, igual que el baseline de la home.
 excelente estado (92-100 en laboratorio, sin problemas de CLS donde se pudo
 medir). El riesgo de rendimiento real del sitio se concentra en la home, que
 sigue sin baseline confirmado.
+
+## Re-crawl final post-cambios (TASK-010, cierra fase4 #9)
+
+Ejecutado 2026-09-28 contra `https://www.mea.edu.gt/` en producción.
+
+**HALLAZGO CRÍTICO, no relacionado con SEO en sí:** producción corre
+`main`, cuyo último commit es `0123b61` (2026-09-17, "feat(seo): implementar
+SEO técnico completo del sitio Fase 1+2"). La rama de trabajo
+`fix/security-remediation` — donde vive TODO este backlog (`seo-mea`,
+`seo-mea-fase2`, `seo-mea-fase3`, `seo-mea-fase4`, y además el plan
+completo de remediación de seguridad de sesiones anteriores) — está
+**39 commits adelante de `main` y nunca se fusionó**. Esto significa que:
+
+- Ninguno de los 6 fixes de código de `seo-mea-fase4` (commits `93c9d71`,
+  `f25af79`, `72e7d21`, `ecffb09`) está reflejado en producción todavía.
+- El re-crawl de abajo describe el estado de producción **tal como está
+  hoy** (equivalente a la línea base de fase 1+2, del 17/sep), no valida
+  los fixes de esta fase — eso solo se podrá confirmar después de mergear
+  y desplegar.
+
+**Resultado del crawl (producción, 2026-09-28):**
+
+- Sitemap: **133 URLs** (el número sigue moviéndose porque el catálogo de
+  lecciones gratis/pagas cambia con el tiempo — era 108 el 24/sep, 144 el
+  26/sep). Las 5 lecciones antes señaladas como "noindex en el sitemap"
+  siguen presentes y siguen siendo indexables (confirma otra vez que ese
+  hallazgo del PRD v1.1 ya estaba resuelto/desactualizado, independiente
+  de esta rama).
+- Contadores de la home: siguen mostrando **"0+"** en el HTML — consistente
+  con que el fix de fase4 #1 no está desplegado. No es una regresión del
+  fix; es que el fix nunca llegó a producción.
+- No se pudo verificar en este crawl (limitación de la herramienta de
+  fetch, no renderiza JS ni expone `<head>`): herencia de OG en lecciones
+  noindex, ItemList/FAQPage JSON-LD, ni el fallback del hero — todos
+  confirmados por lectura de código y por las pruebas del usuario con
+  DevTools/Rich Results Test contra el mismo dominio, que sí reflejaron
+  comportamiento post-fix en algunos casos (ver nota de fase4 #7 sobre el
+  timing de Spline, que si coincide con el fix desplegado en la practica
+  aunque el resto del bundle de main no lo tenga — posible desajuste entre
+  lo que Vercel sirve por edge cache vs. el build actual; no investigado
+  a fondo, ver siguiente punto).
+
+**Siguiente paso real:** para que cualquiera de los fixes de `seo-mea` /
+`seo-mea-fase2` / `seo-mea-fase3` / `seo-mea-fase4` (y el plan de seguridad
+de esta misma rama) lleguen a los usuarios reales, hace falta abrir un PR
+de `fix/security-remediation` hacia `main` y desplegarlo. Sin ese paso,
+todo este backlog queda completo en el código pero invisible en producción.
 
 ## Registro de cambios
 

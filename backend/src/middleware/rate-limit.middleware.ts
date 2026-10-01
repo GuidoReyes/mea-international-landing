@@ -76,6 +76,20 @@ function redisLimiter(config: LimiterConfig) {
 
 const byAlumno = (req: Request): string => `alumno:${req.alumno?.alumnoId ?? ipKey(req)}`;
 
+// En /login, /registro y /otp/* el alumno todavía no tiene sesión (no hay
+// req.alumno), así que no se puede usar byAlumno ahí. Antes de tener su
+// propia clave, este limitador contaba por IP sola — un cyber, un colegio o
+// cualquier red con NAT compartido agotaba las 5 solicitudes/minuto entre
+// TODOS los alumnos detrás de esa IP (bloqueando a unos por los intentos de
+// otros). Ahora identifica al alumno por el dato que cada endpoint ya recibe
+// en el body (email en /login y /registro, whatsapp en /otp/*), y solo cae a
+// IP si ninguno de los dos viene en la solicitud.
+export function porIdentificadorAlumno(req: Request): string {
+  const body = req.body as { email?: string; whatsapp?: string } | undefined;
+  const identificador = body?.email?.trim().toLowerCase() || body?.whatsapp?.trim();
+  return identificador ? `id:${identificador}` : ipKey(req);
+}
+
 /** Tope general por IP. Hoy se aplica a /api/marketing; no a todo /api para no estrangular al sitio público. */
 export const globalLimiter = redisLimiter({
   name: "global",
@@ -85,12 +99,13 @@ export const globalLimiter = redisLimiter({
   skip: (req) => WEBHOOK_PATH_PREFIXES.some((prefix) => req.path.startsWith(prefix)),
 });
 
-/** Login, registro y OTP de alumnos: un solo contador por IP (IPv6 normalizado). */
+/** Login, registro y OTP de alumnos: un contador por alumno (email o whatsapp), no por IP. */
 export const alumnoLoginLimiter = redisLimiter({
   name: "alumno-login",
   windowMs: MINUTE_MS,
   limit: max("RATE_LIMIT_ALUMNO_LOGIN_MAX", 5),
   message: "Demasiados intentos. Esperá un minuto e intentá de nuevo.",
+  keyGenerator: porIdentificadorAlumno,
 });
 
 /** Checkout de suscripciones (tarjeta y depósito): por alumno. */

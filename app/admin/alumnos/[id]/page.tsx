@@ -5,7 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import * as Tabs from "@radix-ui/react-tabs";
 import { api, type AlumnoDetalle, type Edicion, type Inscripcion, type Pago } from "@/lib/api";
-import { ArrowLeft, GraduationCap, Mail, Phone, X, Loader2, BookOpen, CreditCard, MessageSquare } from "lucide-react";
+import { ArrowLeft, GraduationCap, Mail, Phone, X, Loader2, BookOpen, CreditCard, MessageSquare, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
+
+const FORMATO_FECHA: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" };
+const FORMATO_FECHA_HORA: Intl.DateTimeFormatOptions = { ...FORMATO_FECHA, hour: "2-digit", minute: "2-digit" };
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-slate-200 rounded ${className}`} />;
@@ -461,6 +464,67 @@ export default function AlumnoDetallePage() {
             {reseteando ? "Generando..." : "Resetear contraseña"}
           </button>
         </div>
+      </div>
+
+      {/* Resumen de sesiones — datos reales de pago/asistencia para informar la decision
+          de acceso manual de arriba, que se mantiene sin cambios (PRD mea-logica-negocio R4) */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-6 mb-6">
+        <h2 className="text-sm font-semibold text-[#0A2540] mb-4">Resumen de sesiones</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+          <div>
+            <p className="text-xs text-slate-400 mb-1">Último pago</p>
+            {alumno.resumenSesiones.ultimoPago ? (
+              <p className="text-sm text-[#0A2540] font-medium">
+                {new Date(alumno.resumenSesiones.ultimoPago.fecha).toLocaleDateString("es-GT", FORMATO_FECHA)}
+                <span className="text-slate-400 font-normal">
+                  {" "}· Q{alumno.resumenSesiones.ultimoPago.monto.toFixed(2)} ·{" "}
+                  {alumno.resumenSesiones.ultimoPago.tipo === "online" ? "Online" : "Presencial"}
+                </span>
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">Sin pagos registrados</p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 mb-1">Sesiones recibidas</p>
+            <p className="text-sm text-[#0A2540] font-medium">
+              {alumno.resumenSesiones.sesionesRecibidas} de {alumno.resumenSesiones.bloqueTotal}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 mb-1">Próxima sesión</p>
+            {alumno.resumenSesiones.proximaSesion ? (
+              <p className="text-sm text-[#0A2540] font-medium flex items-center gap-1.5">
+                <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                {new Date(alumno.resumenSesiones.proximaSesion.fechaHora).toLocaleDateString("es-GT", FORMATO_FECHA_HORA)}
+                <span className="text-slate-400 font-normal">· {alumno.resumenSesiones.proximaSesion.grupoNombre}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">Sin sesión programada</p>
+            )}
+          </div>
+        </div>
+
+        {alumno.resumenSesiones.asistenciaReciente.length > 0 && (
+          <div>
+            <p className="text-xs text-slate-400 mb-2">Asistencia reciente</p>
+            <ul className="flex flex-col gap-1.5">
+              {alumno.resumenSesiones.asistenciaReciente.map((a) => (
+                <li key={a.sesionId} className="flex items-center gap-2 text-sm text-slate-600">
+                  {a.asistio ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  ) : (
+                    <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                  )}
+                  {new Date(a.fechaHora).toLocaleDateString("es-GT", FORMATO_FECHA_HORA)}
+                  <span className="text-xs text-slate-400">
+                    ({a.fuente === "zoom_webhook" ? "Zoom" : "manual"})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

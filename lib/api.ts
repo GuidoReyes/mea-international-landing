@@ -157,9 +157,18 @@ export interface SuscripcionOnline {
   planPrecio: { plan: { nombre: string } };
 }
 
+export interface ResumenSesiones {
+  ultimoPago: { fecha: string; monto: number; tipo: "online" | "presencial" } | null;
+  sesionesRecibidas: number;
+  bloqueTotal: number;
+  asistenciaReciente: { sesionId: number; fechaHora: string; asistio: boolean; fuente: string }[];
+  proximaSesion: { id: number; fechaHora: string; grupoNombre: string } | null;
+}
+
 export interface AlumnoDetalle extends Alumno {
   inscripciones: Inscripcion[];
   suscripciones: SuscripcionOnline[];
+  resumenSesiones: ResumenSesiones;
 }
 
 export interface Curso {

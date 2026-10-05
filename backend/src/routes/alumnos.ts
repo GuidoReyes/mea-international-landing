@@ -5,6 +5,7 @@ import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
+import { calcularResumenSesiones } from "../lib/resumen-sesiones";
 import { generateSecurePassword } from "../lib/crypto-utils";
 import { createWithUniqueRetry } from "../lib/retry-on-conflict";
 
@@ -89,7 +90,8 @@ router.get("/:id", verifyJWT, async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(alumno);
+  const resumenSesiones = await calcularResumenSesiones(id);
+  res.json({ ...alumno, resumenSesiones });
 });
 
 // POST /api/alumnos

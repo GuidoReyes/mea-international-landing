@@ -146,6 +146,58 @@ cron.schedule("0 9 * * *", async () => {
   }
 }, { timezone: TZ });
 
+// Cron 4 — generar las próximas SesionClase desde HorarioClase (00:30 GT)
+// PRD mea-logica-negocio, R1: HorarioClase es solo la plantilla semanal
+// recurrente ("todos los martes a las 18:00"); esto crea la ocurrencia
+// concreta con fecha real para que se le pueda marcar asistencia. Ventana de
+// 14 días hacia adelante, idempotente (no duplica si ya existe la sesión).
+const VENTANA_GENERACION_DIAS = 14;
+
+function proximasFechas(diaSemana: number, horaInicio: string, dias: number): Date[] {
+  const [horas, minutos] = horaInicio.split(":").map(Number);
+  const fechas: Date[] = [];
+  const hoy = startOfDay(new Date());
+
+  for (let i = 0; i <= dias; i += 1) {
+    const candidata = new Date(hoy.getTime() + i * 24 * 60 * 60 * 1000);
+    if (candidata.getDay() === diaSemana) {
+      candidata.setHours(horas ?? 0, minutos ?? 0, 0, 0);
+      fechas.push(candidata);
+    }
+  }
+  return fechas;
+}
+
+cron.schedule("30 0 * * *", async () => {
+  log("info", "[Scheduler] Generador de SesionClase — iniciando");
+  try {
+    const horarios = await prisma.horarioClase.findMany({
+      where: { grupo: { activo: true } },
+      select: { id: true, grupoId: true, diaSemana: true, horaInicio: true },
+    });
+
+    let creadas = 0;
+    for (const horario of horarios) {
+      for (const fechaHora of proximasFechas(horario.diaSemana, horario.horaInicio, VENTANA_GENERACION_DIAS)) {
+        const existente = await prisma.sesionClase.findFirst({
+          where: { grupoId: horario.grupoId, fechaHora },
+          select: { id: true },
+        });
+        if (existente) continue;
+
+        await prisma.sesionClase.create({
+          data: { grupoId: horario.grupoId, fechaHora },
+        });
+        creadas += 1;
+      }
+    }
+
+    log("info", `[Scheduler] Generador de SesionClase — ${creadas} sesión(es) nueva(s)`);
+  } catch (err) {
+    log("error", "[Scheduler] Error generando SesionClase:", err);
+  }
+}, { timezone: TZ });
+
 export function startScheduler(): void {
-  log("info", "[Scheduler] Iniciado — 3 cron jobs registrados (TZ: America/Guatemala)");
+  log("info", "[Scheduler] Iniciado — 4 cron jobs registrados (TZ: America/Guatemala)");
 }

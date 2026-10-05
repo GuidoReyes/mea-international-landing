@@ -118,6 +118,7 @@ model Alumno {
   suscripciones       Suscripcion[]
   certificadosOnline  CertificadoOnline[]
   reportesLeccion     ReporteLeccion[]
+  asistenciasSesion   AsistenciaSesion[]
 }
 
 model Curso {
@@ -520,6 +521,7 @@ model GrupoClaseEnVivo {
   duracionMinutos Int            @default(60)
   activo          Boolean        @default(true)
   horarios        HorarioClase[]
+  sesiones        SesionClase[]
 }
 
 model HorarioClase {
@@ -530,6 +532,47 @@ model HorarioClase {
   horaInicio String           // "HH:mm" 24h, hora de Guatemala
 
   @@unique([grupoId, diaSemana, horaInicio])
+}
+
+// Ocurrencia concreta de una clase (PRD mea-logica-negocio, R1) — HorarioClase es
+// solo la plantilla semanal recurrente; esto es "el martes 14 de octubre a las
+// 18:00 se dio/se va a dar la clase del grupo X". El negocio vende bloques de 8
+// sesiones, no un mes calendario: esta es la unidad real que hay que contar.
+enum SesionClaseEstado {
+  PROGRAMADA
+  REALIZADA
+  CANCELADA
+  REPROGRAMADA
+}
+
+model SesionClase {
+  id         Int               @id @default(autoincrement())
+  grupoId    Int
+  grupo      GrupoClaseEnVivo  @relation(fields: [grupoId], references: [id])
+  fechaHora  DateTime
+  estado     SesionClaseEstado @default(PROGRAMADA)
+  creadoEn   DateTime          @default(now())
+  asistencias AsistenciaSesion[]
+
+  @@index([grupoId, fechaHora])
+}
+
+// Quién asistió a cada SesionClase. fuente distingue si la marcó el profesor/admin
+// a mano (sin depender de la API de Zoom) o si llegó por el webhook de Zoom
+// (meeting.participant_joined/left, backend/src/routes/zoom.webhook.ts) — mismo
+// modelo para ambas, solo cambia quién lo llena.
+model AsistenciaSesion {
+  id        Int         @id @default(autoincrement())
+  alumnoId  Int
+  alumno    Alumno      @relation(fields: [alumnoId], references: [id])
+  sesionId  Int
+  sesion    SesionClase @relation(fields: [sesionId], references: [id])
+  asistio   Boolean
+  fuente    String      // "manual" | "zoom_webhook"
+  marcadoEn DateTime    @default(now())
+
+  @@unique([alumnoId, sesionId])
+  @@index([sesionId])
 }
 
 // ─── Admin ────────────────────────────────────────────────────────────────────

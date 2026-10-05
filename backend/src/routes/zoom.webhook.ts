@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import { log } from "../lib/logger";
 import { safeEqual } from "../lib/safe-equal";
 import { requireRawBody } from "../middleware/raw-body.middleware";
+import prisma from "../lib/prisma";
 
 const router = Router();
 
@@ -39,8 +40,78 @@ function firmaValida(rawBody: string, timestamp: string | undefined, firma: stri
   return safeEqual(firma, esperada);
 }
 
+// Extrae el ID numérico de reunión desde una urlZoom tipo
+// https://mea.zoom.us/j/123456789?pwd=abc. No se inventa el ID si el link no
+// sigue ese formato (ej. una Personal Meeting Room con nombre en vez de número).
+function idReunionDesdeUrl(urlZoom: string): string | null {
+  return urlZoom.match(/\/j\/(\d+)/)?.[1] ?? null;
+}
+
+function maskEmail(email: string): string {
+  const [local, dominio] = email.split("@");
+  return dominio ? `${local?.[0] ?? "?"}***@${dominio}` : "[email inválido]";
+}
+
+// Mismo grupo puede tener varias SesionClase cercanas en fechas distintas; se
+// toma la mas cercana al momento real del evento, no la primera que aparezca.
+const VENTANA_MATCH_SESION_MS = 3 * 60 * 60 * 1000; // 3 horas
+
+async function registrarAsistencia(evento: ZoomParticipantEvent): Promise<void> {
+  const { id: meetingId, participant } = evento.payload.object;
+  const email = participant.email?.trim().toLowerCase();
+
+  if (!email) {
+    log("warn", `[WebhookZoom] Participante sin email en meeting=${meetingId} — no se puede identificar al alumno, evento ignorado.`);
+    return;
+  }
+
+  const grupos = await prisma.grupoClaseEnVivo.findMany({
+    where: { activo: true },
+    select: { id: true, urlZoom: true },
+  });
+  const grupo = grupos.find((g) => idReunionDesdeUrl(g.urlZoom) === String(meetingId));
+  if (!grupo) {
+    log("warn", `[WebhookZoom] meeting=${meetingId} no coincide con ningún GrupoClaseEnVivo activo — evento ignorado.`);
+    return;
+  }
+
+  const ahora = new Date();
+  const candidatas = await prisma.sesionClase.findMany({
+    where: {
+      grupoId: grupo.id,
+      estado: { not: "CANCELADA" },
+      fechaHora: {
+        gte: new Date(ahora.getTime() - VENTANA_MATCH_SESION_MS),
+        lte: new Date(ahora.getTime() + VENTANA_MATCH_SESION_MS),
+      },
+    },
+  });
+  const sesion = candidatas.sort(
+    (a, b) => Math.abs(a.fechaHora.getTime() - ahora.getTime()) - Math.abs(b.fechaHora.getTime() - ahora.getTime())
+  )[0];
+
+  if (!sesion) {
+    log("warn", `[WebhookZoom] Sin SesionClase cercana para grupo=${grupo.id} (meeting=${meetingId}) — evento ignorado. Revisar que el cron de generación esté corriendo.`);
+    return;
+  }
+
+  const alumno = await prisma.alumno.findUnique({ where: { email }, select: { id: true } });
+  if (!alumno) {
+    log("warn", `[WebhookZoom] Email ${maskEmail(email)} no coincide con ningún Alumno — evento ignorado (puede ser el profesor u otro invitado).`);
+    return;
+  }
+
+  await prisma.asistenciaSesion.upsert({
+    where: { alumnoId_sesionId: { alumnoId: alumno.id, sesionId: sesion.id } },
+    create: { alumnoId: alumno.id, sesionId: sesion.id, asistio: true, fuente: "zoom_webhook" },
+    update: { asistio: true, fuente: "zoom_webhook", marcadoEn: new Date() },
+  });
+
+  log("info", `[WebhookZoom] Asistencia registrada: alumno=${alumno.id} sesion=${sesion.id}`);
+}
+
 // POST /api/webhooks/zoom
-router.post("/", requireRawBody, (req: Request, res: Response) => {
+router.post("/", requireRawBody, async (req: Request, res: Response) => {
   const secret = process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
   if (!secret) {
     log("error", "[WebhookZoom] ZOOM_WEBHOOK_SECRET_TOKEN no configurado");
@@ -67,15 +138,16 @@ router.post("/", requireRawBody, (req: Request, res: Response) => {
     return;
   }
 
-  // TODO(mea-logica-negocio R2a): una vez que existan SesionClase/AsistenciaSesion
-  // (tarea R1), identificar la SesionClase por el meeting id y al alumno por su
-  // email/nombre, y crear/actualizar AsistenciaSesion con fuente="zoom_webhook".
-  // Por ahora solo se confirma que la firma es valida y se deja constancia en el
-  // log (sin loguear el email completo del participante) para verificar que la
-  // integracion con Zoom funciona de punta a punta antes de construir R1.
-  if (body.event === "meeting.participant_joined" || body.event === "meeting.participant_left") {
+  // Solo "joined" escribe asistencia -- alcanza con que haya entrado una vez
+  // para contar la sesion como recibida; "left" se reconoce pero no hace
+  // falta para el dato que hoy pide el negocio (asistio si/no).
+  if (body.event === "meeting.participant_joined") {
+    await registrarAsistencia(body as ZoomParticipantEvent).catch((err) =>
+      log("error", "[WebhookZoom] Error registrando asistencia:", err)
+    );
+  } else if (body.event === "meeting.participant_left") {
     const p = (body as ZoomParticipantEvent).payload.object;
-    log("info", `[WebhookZoom] ${body.event} — meeting=${p.id} participante=${p.participant.user_name ?? "?"}`);
+    log("info", `[WebhookZoom] participant_left — meeting=${p.id}`);
   } else {
     log("info", `[WebhookZoom] Evento recibido: ${body.event}`);
   }

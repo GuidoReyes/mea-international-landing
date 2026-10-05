@@ -9132,10 +9132,11 @@
         "description": "El schema actual no tiene ninguna unidad de sesion -- PlanPrecio.duracionMeses (meses calendario) es lo unico que existe. El negocio vende bloques de 8 sesiones, no meses.",
         "details": "Agregar a backend/prisma/schema.prisma: model SesionClase (grupoId -> GrupoClaseEnVivo, fecha/hora real, estado PROGRAMADA/REALIZADA/CANCELADA/REPROGRAMADA). model AsistenciaSesion (alumnoId, sesionId, asistio boolean, fuente 'zoom_webhook'|'manual', marcadoEn). Generar las proximas SesionClase de cada HorarioClase activo (job o al confirmar un pago). Una sesion cancelada/reprogramada no cuenta contra el bloque de 8. Exponer un conteo 'sesiones consumidas del bloque vigente' por alumno. Migracion de Prisma -- validar contra el historial roto de migraciones ya documentado (ver docs/prisma, tarea 485 de master).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-05T04:51:56.864Z"
       },
       {
         "id": "2",
@@ -9154,15 +9155,15 @@
         "id": "3",
         "title": "R2a - Deteccion automatica de asistencia via Zoom Webhooks (BLOQUEADA)",
         "description": "Automatizar la deteccion de conexion usando Zoom Webhooks (meeting.participant_joined / meeting.participant_left) via una app Server-to-Server OAuth de Zoom.",
-        "details": "BLOQUEADA -- pregunta directa para el dueno: tiene cuenta Zoom con Marketplace habilitado para crear una app Server-to-Server OAuth? Se necesita Account ID, Client ID, Client Secret y Webhook Secret Token. Sin esto no se puede avanzar. Cuando se confirme: endpoint webhook que reciba los eventos de Zoom, valide la firma (Webhook Secret Token), identifique la SesionClase por el meeting ID y al alumno por su email/nombre en el payload del participante, y cree AsistenciaSesion con fuente='zoom_webhook'. Mismo modelo de datos que R2b -- no se duplica, solo cambia quien llena la fuente.",
+        "details": "BLOQUEADA -- pregunta directa para el dueno: tiene cuenta Zoom con Marketplace habilitado para crear una app Server-to-Server OAuth? Se necesita Account ID, Client ID, Client Secret y Webhook Secret Token. Sin esto no se puede avanzar. Cuando se confirme: endpoint webhook que reciba los eventos de Zoom, valide la firma (Webhook Secret Token), identifique la SesionClase por el meeting ID y al alumno por su email/nombre en el payload del participante, y cree AsistenciaSesion con fuente='zoom_webhook'. Mismo modelo de datos que R2b -- no se duplica, solo cambia quien llena la fuente.\n<info added on 2026-10-05T04:08:50.425Z>\nI'll analyze the codebase to understand the current implementation and provide a comprehensive update.Based on my analysis of the codebase, here's the update text to append to Task 3:\n\n---\n\n**DESBLOQUEADA 2026-10-05**: El dueño confirmó cuenta Zoom Pro con Marketplace habilitado. El problema de permisos inicial (Server-to-Server OAuth app no disponible en Advanced Features) fue resuelto por el owner de la cuenta activando la opción correspondiente.\n\n**Credenciales generadas y securizadas**: Las 4 credenciales requeridas (ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_WEBHOOK_SECRET_TOKEN) fueron generadas y almacenadas exclusivamente en Railway production como variables de entorno. CONFIRMADO: ninguna credencial existe en el repositorio ni en archivos de texto plano.\n\n**Implementación webhook completada** (commit 9bb88a1, PR #15 mergeado a main):\n- Archivo: `backend/src/routes/zoom.webhook.ts` (87 líneas)\n- Endpoint production: `https://api.mea.edu.gt/api/webhooks/zoom`\n- Validación CRC: responde correctamente a `endpoint.url_validation` de Zoom con el plainToken encriptado usando HMAC-SHA256\n- Validación de firma: verifica header `x-zm-signature` de cada evento usando HMAC-SHA256 con el patrón `v0:{timestamp}:{rawBody}` y comparación timing-safe (`safeEqual`)\n- Event Subscriptions configurados en Zoom App: `meeting.participant_joined` y `meeting.participant_left`\n\n**Estado actual del webhook**: El endpoint está operacional y validando eventos correctamente, pero actualmente SOLO loguea los eventos (meeting ID, nombre de participante sin PII completa) sin escribir registros de asistencia. Ver líneas 70-78 de `backend/src/routes/zoom.webhook.ts` donde existe el comentario `TODO(mea-logica-negocio R2a)` explicando que falta el modelo de datos (SesionClase/AsistenciaSesion de R1).\n\n**Bloqueo actual**: La tarea NO puede cerrarse hasta que R1 esté completada. Una vez que los modelos `SesionClase` y `AsistenciaSesion` existan en `backend/prisma/schema.prisma`, se debe implementar la lógica real en el webhook para:\n1. Identificar la SesionClase por el campo `payload.object.id` (meeting ID de Zoom)\n2. Identificar al alumno por `payload.object.participant.email` o `payload.object.participant.user_name`\n3. Crear/actualizar registro `AsistenciaSesion` con `fuente='zoom_webhook'`\n4. Registrar timestamp de `join_time` o `leave_time` del payload\n</info added on 2026-10-05T04:08:50.425Z>\n<info added on 2026-10-05T04:09:57.529Z>\n**Validación production webhook exitosa 2026-10-05**: El dueño confirmó que Zoom aceptó y guardó la URL del webhook sin error. La verificación CRC (backend/src/routes/zoom.webhook.ts) funcionó correctamente en producción al primer intento. La integración está técnicamente conectada de punta a punta: Zoom → https://api.mea.edu.gt/api/webhooks/zoom.\n\n**Próximos pasos de validación**: El próximo evento real de `meeting.participant_joined`/`meeting.participant_left` ya debería loguearse correctamente. Se debe verificar en logs de Railway durante la próxima clase en vivo para confirmar el formato del payload real y validar que el flujo completo de eventos funciona en escenario real.\n\n**Bloqueo sin cambios**: Sigue bloqueada para cerrar completamente. Falta R1 para que el evento escriba `AsistenciaSesion` en vez de solo loguearse. El webhook está operacional pero en modo observación hasta que los modelos de datos estén disponibles.\n</info added on 2026-10-05T04:09:57.529Z>",
         "testStrategy": "",
-        "status": "blocked",
+        "status": "in-progress",
         "dependencies": [
           "1"
         ],
         "priority": "medium",
         "subtasks": [],
-        "updatedAt": "2026-10-02T04:31:23.650Z"
+        "updatedAt": "2026-10-05T04:05:54.169Z"
       },
       {
         "id": "4",
@@ -9255,9 +9256,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-02T04:31:25.973Z",
+      "lastModified": "2026-10-05T04:51:56.865Z",
       "taskCount": 10,
-      "completedCount": 0,
+      "completedCount": 1,
       "tags": [
         "mea-logica-negocio"
       ]

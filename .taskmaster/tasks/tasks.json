@@ -9144,12 +9144,13 @@
         "description": "Pantalla para que el profesor/admin marque asistencia al cierre de cada SesionClase -- no requiere acceso a la API de Zoom, se puede construir ya mismo.",
         "details": "Nuevo endpoint backend para listar SesionClase de hoy/proximas con sus alumnos esperados (via Suscripcion/InscripcionOnline del grupo), y para marcar asistio=true/false por alumno (fuente='manual'). Pantalla simple en /admin (o dentro de Alumnos/CRM): lista de alumnos esperados por sesion, toggle presente/ausente. Alimenta el mismo modelo AsistenciaSesion de R1.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "1"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-06T02:28:08.381Z"
       },
       {
         "id": "3",
@@ -9258,9 +9259,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-06T01:18:09.115Z",
+      "lastModified": "2026-10-06T02:28:08.381Z",
       "taskCount": 10,
-      "completedCount": 5,
+      "completedCount": 6,
       "tags": [
         "mea-logica-negocio"
       ]

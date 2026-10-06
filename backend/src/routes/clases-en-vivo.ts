@@ -286,4 +286,53 @@ router.get("/:id/sesiones", verifyJWT, async (req: Request, res: Response) => {
   });
 });
 
+// POST /api/clases-en-vivo/sesiones/:sesionId/asistencia — marcado manual
+// (R2b). No existe un roster de "alumnos esperados" por sesion (ver nota en
+// GET /:id/sesiones), asi que el profesor/admin busca al alumno por nombre o
+// email (GET /api/alumnos?search=) y marca lo que observo en la clase, en vez
+// de tildar una lista generada por el sistema.
+const marcarAsistenciaSchema = z.object({
+  alumnoId: z.number().int().positive(),
+  asistio: z.boolean(),
+});
+
+router.post(
+  "/sesiones/:sesionId/asistencia",
+  verifyJWT,
+  auditLog("MARCAR_ASISTENCIA_MANUAL", "clases-en-vivo"),
+  async (req: Request, res: Response) => {
+    const sesionId = parseInt(req.params["sesionId"] as string);
+    if (isNaN(sesionId)) {
+      res.status(400).json({ error: "ID de sesión inválido" });
+      return;
+    }
+
+    const parsed = marcarAsistenciaSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0]?.message ?? "alumnoId y asistio son requeridos" });
+      return;
+    }
+
+    const sesion = await prisma.sesionClase.findUnique({ where: { id: sesionId } });
+    if (!sesion) {
+      res.status(404).json({ error: "Sesión no encontrada" });
+      return;
+    }
+
+    const alumno = await prisma.alumno.findUnique({ where: { id: parsed.data.alumnoId } });
+    if (!alumno) {
+      res.status(404).json({ error: "Alumno no encontrado" });
+      return;
+    }
+
+    const asistencia = await prisma.asistenciaSesion.upsert({
+      where: { alumnoId_sesionId: { alumnoId: parsed.data.alumnoId, sesionId } },
+      create: { alumnoId: parsed.data.alumnoId, sesionId, asistio: parsed.data.asistio, fuente: "manual" },
+      update: { asistio: parsed.data.asistio, fuente: "manual", marcadoEn: new Date() },
+    });
+
+    res.json(asistencia);
+  }
+);
+
 export default router;

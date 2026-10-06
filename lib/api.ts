@@ -516,4 +516,10 @@ export const api = {
     apiFetch<GrupoSesiones>(`/api/clases-en-vivo/${grupoId}/sesiones`),
 
   getAlumnosEnRiesgo: () => apiFetch<AlumnoEnRiesgo[]>("/api/alumnos/en-riesgo"),
+
+  marcarAsistenciaManual: (sesionId: number, alumnoId: number, asistio: boolean) =>
+    apiFetch<{ id: number; asistio: boolean }>(`/api/clases-en-vivo/sesiones/${sesionId}/asistencia`, {
+      method: "POST",
+      body: JSON.stringify({ alumnoId, asistio }),
+    }),
 };

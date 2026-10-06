@@ -9171,13 +9171,13 @@
         "description": "backend/src/routes/pagos-deposito.ts:79 fija fechaFin = hoy + duracionMeses al confirmar un deposito, sin importar sesiones realmente entregadas -- causa raiz confirmada del caso de esta semana (alumno con pago al dia bloqueado).",
         "details": "BLOQUEADA -- requiere decision directa del dueno, es la pieza mas sensible porque toca el corte de acceso real. Opcion A: acreditar 8 sesiones al bloque del alumno en vez de fecha fija; fechaFin pasa a ser informativo. Opcion B (mas conservadora): no tocar el calculo de fecha, el admin extiende a mano con los datos nuevos de R4 cuando una sesion se atraso. No implementar ninguna sin la respuesta del dueno.",
         "testStrategy": "",
-        "status": "blocked",
+        "status": "done",
         "dependencies": [
           "1"
         ],
         "priority": "high",
         "subtasks": [],
-        "updatedAt": "2026-10-02T04:31:25.972Z"
+        "updatedAt": "2026-10-06T01:18:09.114Z"
       },
       {
         "id": "5",
@@ -9258,9 +9258,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-05T16:40:44.727Z",
+      "lastModified": "2026-10-06T01:18:09.115Z",
       "taskCount": 10,
-      "completedCount": 4,
+      "completedCount": 5,
       "tags": [
         "mea-logica-negocio"
       ]

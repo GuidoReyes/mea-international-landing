@@ -119,3 +119,69 @@ export async function calcularResumenSesiones(alumnoId: number): Promise<Resumen
 
   return { ultimoPago, sesionesRecibidas, bloqueTotal: SESIONES_POR_BLOQUE, asistenciaReciente, proximaSesion };
 }
+
+// PRD mea-logica-negocio, R3 (opcion B, decision del dueno): fechaFin en
+// pagos-deposito.ts sigue siendo calendario fijo (hoy + duracionMeses), no
+// se liga a sesiones entregadas. La mitigacion es que el admin extienda a
+// mano (acceso-manual, ya existente) cuando una sesion se atraso -- pero
+// para eso necesita saber a quien mirar *antes* de que se quede sin acceso,
+// no despues de que el alumno reclame (asi se originó el incidente real que
+// dio pie a este PRD). Esta funcion es esa lista de alerta.
+const UMBRAL_RIESGO_DIAS = 5;
+
+export interface AlumnoEnRiesgo {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string | null;
+  fechaFin: Date;
+  sesionesRecibidas: number;
+  bloqueTotal: number;
+}
+
+export async function alumnosEnRiesgo(): Promise<AlumnoEnRiesgo[]> {
+  const limite = new Date(Date.now() + UMBRAL_RIESGO_DIAS * 24 * 60 * 60 * 1000);
+
+  const candidatas = await prisma.suscripcion.findMany({
+    where: {
+      estado: "ACTIVA",
+      proveedor: { not: "manual_admin" },
+      fechaFin: { not: null, lte: limite },
+    },
+    select: {
+      alumnoId: true,
+      fechaFin: true,
+      alumno: { select: { id: true, nombre: true, apellido: true, email: true } },
+    },
+  });
+
+  // Un alumno puede tener mas de una suscripcion candidata; se queda con la
+  // de vencimiento mas proximo para no repetirlo en la lista.
+  const porAlumno = new Map<number, (typeof candidatas)[number]>();
+  for (const c of candidatas) {
+    if (!c.fechaFin) continue;
+    const existente = porAlumno.get(c.alumnoId);
+    if (!existente || !existente.fechaFin || c.fechaFin < existente.fechaFin) {
+      porAlumno.set(c.alumnoId, c);
+    }
+  }
+
+  const resultados: AlumnoEnRiesgo[] = [];
+  for (const c of porAlumno.values()) {
+    if (!c.fechaFin) continue;
+    const resumen = await calcularResumenSesiones(c.alumnoId);
+    if (resumen.sesionesRecibidas < resumen.bloqueTotal) {
+      resultados.push({
+        id: c.alumno.id,
+        nombre: c.alumno.nombre,
+        apellido: c.alumno.apellido,
+        email: c.alumno.email,
+        fechaFin: c.fechaFin,
+        sesionesRecibidas: resumen.sesionesRecibidas,
+        bloqueTotal: resumen.bloqueTotal,
+      });
+    }
+  }
+
+  return resultados.sort((a, b) => a.fechaFin.getTime() - b.fechaFin.getTime());
+}

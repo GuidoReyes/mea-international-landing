@@ -5,7 +5,7 @@ import prisma from "../lib/prisma";
 import { verifyJWT } from "../middleware/auth.middleware";
 import { auditLog } from "../middleware/audit.middleware";
 import { inscribirEnCursosPublicados } from "../lib/suscripciones";
-import { calcularResumenSesiones } from "../lib/resumen-sesiones";
+import { calcularResumenSesiones, alumnosEnRiesgo } from "../lib/resumen-sesiones";
 import { generateSecurePassword } from "../lib/crypto-utils";
 import { createWithUniqueRetry } from "../lib/retry-on-conflict";
 
@@ -62,6 +62,15 @@ router.get("/", verifyJWT, async (req: Request, res: Response) => {
   ]);
 
   res.json({ data: alumnos, meta: { total, page, limit } });
+});
+
+// GET /api/alumnos/en-riesgo — alumnos con suscripcion online por vencer (o ya
+// vencida) que no completaron su bloque de 8 sesiones (PRD mea-logica-negocio
+// R3, opcion B). Registrada antes de "/:id" para que "en-riesgo" no se trate
+// como un id numerico.
+router.get("/en-riesgo", verifyJWT, async (_req: Request, res: Response) => {
+  const alumnos = await alumnosEnRiesgo();
+  res.json(alumnos);
 });
 
 // GET /api/alumnos/:id

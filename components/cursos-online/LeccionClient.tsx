@@ -112,10 +112,22 @@ export default function LeccionClient({ rutaSlug, leccionSlug, rutaInicial }: Pr
     alumnoApi
       .getLeccionJugar(leccion.id)
       .then((resultado) => {
-        if (!cancelado) setContenidoJugable(resultado.contenido);
+        if (cancelado) return;
+        setContenidoJugable(resultado.contenido);
+        setError(null);
       })
-      .catch(() => {
-        if (!cancelado) setContenidoJugable(null);
+      .catch((err) => {
+        if (cancelado) return;
+        setContenidoJugable(null);
+        // La mayoría de lecciones son video/audio/markdown sin contenido
+        // interactivo -- eso lo cubre el fallback a ContenidoLeccion de abajo,
+        // no es un error. Solo los errores reales de acceso/sesión (401/403,
+        // ej. suscripción vencida) se muestran; antes el catch los descartaba
+        // y el alumno veía una pantalla vacía sin saber por qué.
+        const mensaje = err instanceof Error ? err.message : null;
+        if (mensaje && mensaje !== "Esta lección no tiene contenido interactivo") {
+          setError(mensaje);
+        }
       });
     return () => {
       cancelado = true;

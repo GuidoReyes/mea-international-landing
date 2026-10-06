@@ -9216,10 +9216,11 @@
         "description": "Hallazgo del mapa del alumno, independiente del modelo de pago. components/cursos-online/LeccionClient.tsx:117-119 -- el catch de getLeccionJugar() descarta el mensaje real del backend y no avisa nada al alumno; se ve una pantalla vacia.",
         "details": "El catch debe llamar a setError() con el mensaje real (ej. 'Esta leccion requiere una suscripcion activa', 'Inicia sesion') en vez de solo vaciar el estado. Mostrar el error ya existente (linea 257-259 del mismo componente).",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-06T02:43:43.968Z"
       },
       {
         "id": "8",
@@ -9259,9 +9260,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-06T02:28:08.381Z",
+      "lastModified": "2026-10-06T02:43:43.969Z",
       "taskCount": 10,
-      "completedCount": 6,
+      "completedCount": 7,
       "tags": [
         "mea-logica-negocio"
       ]

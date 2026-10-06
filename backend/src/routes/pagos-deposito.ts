@@ -75,6 +75,12 @@ router.patch(
       return;
     }
 
+    // PRD mea-logica-negocio R3: el negocio vende bloques de 8 sesiones, no
+    // meses calendario, pero el dueno decidio (opcion B) no ligar fechaFin a
+    // sesiones entregadas aqui -- queda como vencimiento de calendario fijo.
+    // Si una sesion se atrasa y el bloque no se completa antes de esta fecha,
+    // el admin lo ve en GET /api/alumnos/en-riesgo (lib/resumen-sesiones.ts)
+    // y extiende a mano con el acceso manual existente (acceso-manual).
     const ahora = new Date();
     const fechaFin = agregarMeses(ahora, pago.suscripcion.planPrecio.duracionMeses);
 

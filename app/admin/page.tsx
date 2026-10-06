@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { api, type ReportesResumen, type ReportesLeads } from "@/lib/api";
-import { Users, GraduationCap, TrendingUp, DollarSign, KanbanSquare, BarChart2, ArrowRight } from "lucide-react";
+import { api, type ReportesResumen, type ReportesLeads, type AlumnoEnRiesgo } from "@/lib/api";
+import { Users, GraduationCap, TrendingUp, DollarSign, KanbanSquare, BarChart2, ArrowRight, AlertTriangle } from "lucide-react";
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-slate-200 rounded ${className}`} />;
@@ -50,7 +50,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const [resumen, setResumen] = useState<ReportesResumen | null>(null);
   const [leads, setLeads] = useState<ReportesLeads | null>(null);
+  const [enRiesgo, setEnRiesgo] = useState<AlumnoEnRiesgo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRiesgo, setLoadingRiesgo] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -59,6 +61,11 @@ export default function DashboardPage() {
     ]).then(([r, l]) => { setResumen(r); setLeads(l); })
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    api.getAlumnosEnRiesgo()
+      .then(setEnRiesgo)
+      .catch(console.error)
+      .finally(() => setLoadingRiesgo(false));
   }, [router]);
 
   const today = new Date().toLocaleDateString("es-GT", { weekday: "long", day: "numeric", month: "long" });
@@ -71,6 +78,46 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-[#0A2540] tracking-tight mt-1">Bienvenido al panel</h1>
         <p className="text-slate-400 text-sm mt-1">Resumen general de MEA International</p>
       </div>
+
+      {/* Alumnos en riesgo — pagaron pero su bloque de 8 sesiones no se completó
+          antes de que venza el calendario (PRD mea-logica-negocio R3, opción B:
+          el vencimiento sigue siendo por calendario, esto es la alerta para que
+          el admin extienda el acceso a mano antes de que el alumno se quede sin acceso) */}
+      {!loadingRiesgo && enRiesgo.length > 0 && (
+        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <h2 className="text-sm font-semibold text-amber-700">
+              {enRiesgo.length} alumno{enRiesgo.length !== 1 ? "s" : ""} en riesgo de perder acceso
+            </h2>
+          </div>
+          <p className="text-xs text-amber-600/80 mb-4">
+            Pagaron, pero no completaron sus 8 sesiones antes de que venza su fecha de acceso.
+          </p>
+          <div className="space-y-2">
+            {enRiesgo.map((a) => (
+              <Link
+                key={a.id}
+                href={`/admin/alumnos/${a.id}`}
+                className="flex items-center justify-between bg-white border border-amber-100/60 rounded-xl px-4 py-2.5 hover:border-amber-200 transition-colors"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[#0A2540]">{a.nombre} {a.apellido}</p>
+                  <p className="text-xs text-slate-400">{a.email ?? "sin email"}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-semibold text-amber-600">
+                    {a.sesionesRecibidas} de {a.bloqueTotal} sesiones
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    vence {new Date(a.fechaFin).toLocaleDateString("es-GT", { day: "2-digit", month: "short" })}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

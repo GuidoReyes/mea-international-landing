@@ -319,6 +319,16 @@ export interface GrupoSesiones {
   sesiones: SesionConAsistencia[];
 }
 
+export interface AlumnoEnRiesgo {
+  id: number;
+  nombre: string;
+  apellido: string;
+  email: string | null;
+  fechaFin: string;
+  sesionesRecibidas: number;
+  bloqueTotal: number;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ admin: Admin }>("/api/auth/login", {
@@ -504,4 +514,6 @@ export const api = {
 
   getSesionesGrupo: (grupoId: number) =>
     apiFetch<GrupoSesiones>(`/api/clases-en-vivo/${grupoId}/sesiones`),
+
+  getAlumnosEnRiesgo: () => apiFetch<AlumnoEnRiesgo[]>("/api/alumnos/en-riesgo"),
 };

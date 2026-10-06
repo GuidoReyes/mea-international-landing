@@ -298,6 +298,27 @@ export interface PagoDeposito {
   suscripcionId: number;
 }
 
+export interface GrupoClaseEnVivo {
+  id: number;
+  nombre: string;
+  audiencia: string;
+  niveles: string;
+  profesor: string | null;
+  activo: boolean;
+}
+
+export interface SesionConAsistencia {
+  id: number;
+  fechaHora: string;
+  estado: "PROGRAMADA" | "REALIZADA" | "CANCELADA" | "REPROGRAMADA";
+  asistentes: { alumnoId: number; nombre: string; apellido: string; email: string; fuente: string }[];
+}
+
+export interface GrupoSesiones {
+  grupo: { id: number; nombre: string };
+  sesiones: SesionConAsistencia[];
+}
+
 export const api = {
   login: (email: string, password: string) =>
     apiFetch<{ admin: Admin }>("/api/auth/login", {
@@ -478,4 +499,9 @@ export const api = {
 
   rechazarPagoDeposito: (id: number) =>
     apiFetch<{ ok: boolean }>(`/api/pagos-deposito/${id}/rechazar`, { method: "PATCH" }),
+
+  getGruposClaseEnVivo: () => apiFetch<GrupoClaseEnVivo[]>("/api/clases-en-vivo/admin/grupos"),
+
+  getSesionesGrupo: (grupoId: number) =>
+    apiFetch<GrupoSesiones>(`/api/clases-en-vivo/${grupoId}/sesiones`),
 };

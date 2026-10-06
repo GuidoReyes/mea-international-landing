@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { api, clearToken } from "@/lib/api";
-import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library, Banknote, Flag } from "lucide-react";
+import { Users, LogOut, LayoutDashboard, BarChart2, KanbanSquare, GraduationCap, BookOpen, Wallet, LineChart, Send, Library, Banknote, Flag, Video } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -37,6 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/alumnos", icon: GraduationCap, label: "Alumnos" },
     { href: "/admin/cursos", icon: Library, label: "Cursos" },
     { href: "/admin/ediciones", icon: BookOpen, label: "Ediciones" },
+    { href: "/admin/clases-en-vivo", icon: Video, label: "Clases en vivo" },
     { href: "/admin/metricas", icon: BarChart2, label: "Métricas" },
     { href: "/admin/finanzas", icon: Wallet, label: "Finanzas" },
     { href: "/admin/pagos-deposito", icon: Banknote, label: "Pagos con depósito" },

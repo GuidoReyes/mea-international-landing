@@ -9185,13 +9185,14 @@
         "description": "app/admin/alumnos/[id]/page.tsx (y la lista /admin/alumnos) hoy solo muestra un badge roto (estado==ACTIVA sin fecha). El admin necesita ultima fecha de pago, sesiones recibidas del bloque vigente, y proxima sesion programada para decidir bien con el boton de acceso manual que ya existe.",
         "details": "Mostrar en la ficha del alumno: ultima fecha de pago confirmada (PagoSuscripcion.pagadoEn o equivalente presencial), sesiones recibidas del bloque vigente (X de 8) con desglose de asistencia reciente (presente/ausente/reprogramada, de AsistenciaSesion), proxima SesionClase programada. El boton de acceso manual (ya correcto, proveedor manual_admin, fechaFin null) NO se toca en su logica -- solo se le agrega esta informacion al lado. Ningun dato inventado: si falta un registro, mostrar 'sin datos', no un valor supuesto.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "1",
           "2"
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-05T16:03:29.038Z"
       },
       {
         "id": "6",
@@ -9199,13 +9200,14 @@
         "description": "Pantalla para que el profesor/admin vea, por cada SesionClase, quien estaba esperado y quien asistio -- util para detectar sesiones con baja asistencia y decidir reprogramar (lo que corre el calendario de pago segun R3).",
         "details": "Lista de SesionClase (pasadas y proximas) por grupo, con el desglose de AsistenciaSesion de cada una. Reusa los mismos datos que alimenta R2b, solo en una vista agregada por sesion en vez de por alumno.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "1",
           "2"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-05T16:40:44.726Z"
       },
       {
         "id": "7",
@@ -9256,9 +9258,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-05T13:03:21.370Z",
+      "lastModified": "2026-10-05T16:40:44.727Z",
       "taskCount": 10,
-      "completedCount": 2,
+      "completedCount": 4,
       "tags": [
         "mea-logica-negocio"
       ]

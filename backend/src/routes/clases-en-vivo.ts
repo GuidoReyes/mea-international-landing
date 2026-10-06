@@ -225,4 +225,65 @@ router.post(
   }
 );
 
+// GET /api/clases-en-vivo/admin/grupos — selector de grupos para la vista de
+// asistencia (PRD mea-logica-negocio R5). A diferencia de /horario (público),
+// incluye grupos inactivos para poder revisar historial.
+router.get("/admin/grupos", verifyJWT, async (_req: Request, res: Response) => {
+  const grupos = await prisma.grupoClaseEnVivo.findMany({
+    orderBy: { id: "asc" },
+    select: { id: true, nombre: true, audiencia: true, niveles: true, profesor: true, activo: true },
+  });
+  res.json(grupos);
+});
+
+// GET /api/clases-en-vivo/:id/sesiones — asistencia real por sesion de un grupo
+// (R5). No existe hoy una relacion explicita alumno-grupo (un alumno no se
+// inscribe formalmente a un GrupoClaseEnVivo), asi que esta vista no muestra
+// "quien estaba esperado" -- solo quien asistio de verdad, para no inventar un
+// roster que no existe en la base de datos.
+router.get("/:id/sesiones", verifyJWT, async (req: Request, res: Response) => {
+  const grupoId = parseInt(req.params["id"] as string);
+  if (isNaN(grupoId)) {
+    res.status(400).json({ error: "ID de grupo inválido" });
+    return;
+  }
+
+  const grupo = await prisma.grupoClaseEnVivo.findUnique({
+    where: { id: grupoId },
+    select: { id: true, nombre: true },
+  });
+  if (!grupo) {
+    res.status(404).json({ error: "Grupo no encontrado" });
+    return;
+  }
+
+  const sesiones = await prisma.sesionClase.findMany({
+    where: { grupoId },
+    orderBy: { fechaHora: "desc" },
+    take: 60,
+    include: {
+      asistencias: {
+        where: { asistio: true },
+        include: { alumno: { select: { id: true, nombre: true, apellido: true, email: true } } },
+      },
+    },
+  });
+
+  res.json({
+    grupo,
+    sesiones: sesiones.map((s) => ({
+      id: s.id,
+      fechaHora: s.fechaHora,
+      estado: s.estado,
+      asistentes: s.asistencias.map((a) => ({
+        alumnoId: a.alumno.id,
+        nombre: a.alumno.nombre,
+        apellido: a.alumno.apellido,
+        email: a.alumno.email,
+        fuente: a.fuente,
+      })),
+    })),
+  });
+});
+
 export default router;

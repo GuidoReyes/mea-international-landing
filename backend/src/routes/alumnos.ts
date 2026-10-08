@@ -8,6 +8,8 @@ import { inscribirEnCursosPublicados } from "../lib/suscripciones";
 import { calcularResumenSesiones, alumnosEnRiesgo } from "../lib/resumen-sesiones";
 import { generateSecurePassword } from "../lib/crypto-utils";
 import { createWithUniqueRetry } from "../lib/retry-on-conflict";
+import { vincularLeadConAlumnoNuevo } from "../lib/lead-alumno";
+import { log } from "../lib/logger";
 
 const router = Router();
 
@@ -136,6 +138,10 @@ router.post("/", verifyJWT, auditLog("CREAR_ALUMNO", "alumnos"), async (req: Req
       });
     },
     "carnet"
+  );
+
+  vincularLeadConAlumnoNuevo(alumno).catch((err) =>
+    log("error", "[Alumnos] Error enlazando lead en alta manual:", err)
   );
 
   res.status(201).json({ ...alumno, tempPassword });

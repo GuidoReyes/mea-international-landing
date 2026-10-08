@@ -9240,10 +9240,11 @@
         "description": "Hallazgo del mapa admin. model Lead en el schema no tiene ningun campo que lo conecte con el Alumno en el que eventualmente se convierte -- CRM/Marketing miden el embudo de ventas por su cuenta, sin forma de saber cuantos leads de una campana terminaron pagando.",
         "details": "Agregar un campo alumnoId opcional (o tabla de enlace) en Lead, completado cuando un lead se registra/paga como alumno (match por telefono/email en el flujo de registro o checkout). Reporte simple de conversion lead -> alumno por campana/etapa.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-08T03:16:46.732Z"
       },
       {
         "id": "10",
@@ -9261,9 +9262,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-08T03:06:19.827Z",
+      "lastModified": "2026-10-08T03:16:46.733Z",
       "taskCount": 10,
-      "completedCount": 8,
+      "completedCount": 9,
       "tags": [
         "mea-logica-negocio"
       ]

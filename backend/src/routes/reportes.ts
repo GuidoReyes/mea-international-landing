@@ -16,7 +16,7 @@ router.get("/leads", verifyJWT, async (req: Request, res: Response) => {
   const dias = getPeriodoDays(req.query.periodo as string);
   const desde = startOfDay(subDays(new Date(), dias));
 
-  const [allLeads, leadsEnPeriodo, etapas] = await Promise.all([
+  const [allLeads, leadsEnPeriodo, etapas, campanas] = await Promise.all([
     prisma.lead.findMany({
       include: { etapa: { select: { nombre: true } } },
     }),
@@ -26,6 +26,16 @@ router.get("/leads", verifyJWT, async (req: Request, res: Response) => {
       orderBy: { creadoEn: "asc" },
     }),
     prisma.cRMEtapa.findMany({ orderBy: { orden: "asc" } }),
+    // PRD mea-logica-negocio R9: antes no habia forma de saber cuantos leads
+    // de una campana realmente terminaron convirtiendo (Lead.alumnoId). Se
+    // reporta junto al resto del embudo en vez de como pantalla aparte.
+    prisma.campanaWhatsApp.findMany({
+      select: {
+        id: true,
+        nombre: true,
+        destinatarios: { select: { lead: { select: { alumnoId: true } } } },
+      },
+    }),
   ]);
 
   // Por estado (todos los leads)
@@ -34,21 +44,31 @@ router.get("/leads", verifyJWT, async (req: Request, res: Response) => {
     porEstado[lead.estado] = (porEstado[lead.estado] ?? 0) + 1;
   }
 
-  // Por etapa con valor total
-  const etapaMap: Record<number, { nombre: string; count: number; valorTotal: number }> = {};
+  // Por etapa, con valor total y cuantos de esa etapa ya convirtieron a alumno
+  const etapaMap: Record<number, { nombre: string; count: number; valorTotal: number; convertidos: number }> = {};
   for (const etapa of etapas) {
-    etapaMap[etapa.id] = { nombre: etapa.nombre, count: 0, valorTotal: 0 };
+    etapaMap[etapa.id] = { nombre: etapa.nombre, count: 0, valorTotal: 0, convertidos: 0 };
   }
   for (const lead of allLeads) {
     if (lead.etapaId && etapaMap[lead.etapaId]) {
       etapaMap[lead.etapaId].count += 1;
       etapaMap[lead.etapaId].valorTotal += Number(lead.valorEstimado ?? 0);
+      if (lead.alumnoId !== null) etapaMap[lead.etapaId].convertidos += 1;
     }
   }
   const porEtapa = Object.entries(etapaMap).map(([etapaId, data]) => ({
     etapaId: Number(etapaId),
     ...data,
     valorTotal: Math.round(data.valorTotal * 100) / 100,
+  }));
+
+  const convertidos = allLeads.filter((l) => l.alumnoId !== null).length;
+
+  const porCampana = campanas.map((c) => ({
+    campanaId: c.id,
+    nombre: c.nombre,
+    totalDestinatarios: c.destinatarios.length,
+    convertidos: c.destinatarios.filter((d) => d.lead.alumnoId !== null).length,
   }));
 
   // Evolución diaria en el período
@@ -88,6 +108,8 @@ router.get("/leads", verifyJWT, async (req: Request, res: Response) => {
     evolucion,
     tasaConversion,
     tiempoPromedioCierre,
+    convertidos,
+    porCampana,
   });
 });
 

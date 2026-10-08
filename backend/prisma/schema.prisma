@@ -89,10 +89,18 @@ model Lead {
   notasCRM            String?                @db.Text
   asignadoAdminId     Int?
   asignadoAdmin       Admin?                 @relation(fields: [asignadoAdminId], references: [id])
+  // PRD mea-logica-negocio R9: se completa cuando el alumno que se registra o
+  // paga matchea este lead por telefono/email (ver lib/lead-alumno.ts) --
+  // antes no habia forma de saber cuantos leads de una campana terminaron
+  // convirtiendo, mas alla de marcar estado="inscrito" a mano.
+  alumnoId            Int?
+  alumno              Alumno?                @relation(fields: [alumnoId], references: [id])
   creadoEn            DateTime               @default(now())
   actualizadoEn       DateTime               @updatedAt
   conversaciones      ConversacionWhatsApp[]
   campanasDestinatario CampanaDestinatario[]
+
+  @@index([alumnoId])
 }
 
 model Alumno {
@@ -119,6 +127,7 @@ model Alumno {
   certificadosOnline  CertificadoOnline[]
   reportesLeccion     ReporteLeccion[]
   asistenciasSesion   AsistenciaSesion[]
+  leads               Lead[]
 }
 
 model Curso {

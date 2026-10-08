@@ -220,11 +220,15 @@ export interface ReportesResumen {
   nuevosUltimos7dias: number;
   inscripcionesActivas: number;
   ingresosMes: number;
+  ingresosMesPresencial: number;
+  ingresosMesOnline: number;
 }
 
 export interface PLMes {
   mes: string;
   ingresos: number;
+  ingresosPresencial: number;
+  ingresosOnline: number;
   egresos: number;
   utilidad: number;
 }

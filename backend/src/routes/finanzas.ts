@@ -96,6 +96,16 @@ router.delete("/egresos/:id", verifyJWT, auditLog("ELIMINAR_EGRESO", "finanzas")
   res.status(204).send();
 });
 
+// PRD mea-logica-negocio R8: PagoSuscripcion (pagos online -- tarjeta via
+// Recurrente o deposito confirmado) nunca se consultaba aca, asi que la
+// reconciliacion ignoraba todo el ingreso online. Se agrega como filas
+// adicionales con su propio label (nunca se mezcla con los metodos
+// presenciales EFECTIVO/TRANSFERENCIA/etc.) para no ocultar de donde viene la plata.
+const PROVEEDOR_ONLINE_LABEL: Record<string, string> = {
+  recurrente: "ONLINE_TARJETA",
+  deposito_bi: "ONLINE_DEPOSITO",
+};
+
 // GET /api/finanzas/reconciliacion?mes=YYYY-MM
 router.get("/reconciliacion", verifyJWT, async (req: Request, res: Response) => {
   const mes = req.query.mes as string | undefined;
@@ -106,16 +116,29 @@ router.get("/reconciliacion", verifyJWT, async (req: Request, res: Response) => 
     fechaWhere = { gte: startOfMonth(ref), lte: endOfMonth(ref) };
   }
 
-  const pagos = await prisma.pago.findMany({
-    where: { estado: "COMPLETADO", ...(mes ? { creadoEn: fechaWhere } : {}) },
-    select: { metodo: true, monto: true, moneda: true },
-  });
+  const [pagos, pagosOnline] = await Promise.all([
+    prisma.pago.findMany({
+      where: { estado: "COMPLETADO", ...(mes ? { creadoEn: fechaWhere } : {}) },
+      select: { metodo: true, monto: true, moneda: true },
+    }),
+    prisma.pagoSuscripcion.findMany({
+      where: { estado: "COMPLETADO", pagadoEn: { not: null }, ...(mes ? { pagadoEn: fechaWhere } : {}) },
+      select: { proveedor: true, montoCentavos: true, moneda: true },
+    }),
+  ]);
 
   const metodos: Record<string, { metodo: string; totalGTQ: number; totalUSD: number }> = {};
   for (const p of pagos) {
     if (!metodos[p.metodo]) metodos[p.metodo] = { metodo: p.metodo, totalGTQ: 0, totalUSD: 0 };
     if (p.moneda === "GTQ") metodos[p.metodo].totalGTQ += Number(p.monto);
     else metodos[p.metodo].totalUSD += Number(p.monto);
+  }
+  for (const p of pagosOnline) {
+    const label = PROVEEDOR_ONLINE_LABEL[p.proveedor] ?? "ONLINE_OTRO";
+    if (!metodos[label]) metodos[label] = { metodo: label, totalGTQ: 0, totalUSD: 0 };
+    const monto = p.montoCentavos / 100;
+    if (p.moneda === "GTQ") metodos[label].totalGTQ += monto;
+    else metodos[label].totalUSD += monto;
   }
 
   const result = Object.values(metodos).map((m) => ({

@@ -66,6 +66,8 @@ export default function CEOPage() {
   const lastMonth = pl[pl.length - 1];
   const prevMonth = pl[pl.length - 2];
   const totalIngresos12 = pl.reduce((s, m) => s + m.ingresos, 0);
+  const totalIngresosPresencial12 = pl.reduce((s, m) => s + m.ingresosPresencial, 0);
+  const totalIngresosOnline12 = pl.reduce((s, m) => s + m.ingresosOnline, 0);
   const totalEgresos12 = pl.reduce((s, m) => s + m.egresos, 0);
   const totalUtilidad12 = totalIngresos12 - totalEgresos12;
 
@@ -85,6 +87,7 @@ export default function CEOPage() {
         <KPICard
           label="Ingresos últimos 12 meses"
           value={`Q${fmt(totalIngresos12)}`}
+          sub={`Q${fmt(totalIngresosPresencial12)} presencial + Q${fmt(totalIngresosOnline12)} online`}
         />
         <KPICard
           label="Egresos últimos 12 meses"
@@ -200,6 +203,8 @@ export default function CEOPage() {
               <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Mes</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Ingresos</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Presencial</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Online</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Egresos</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Utilidad</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Margen</th>
@@ -212,6 +217,8 @@ export default function CEOPage() {
                   <tr key={m.mes} className="border-b border-slate-50 hover:bg-slate-50/50">
                     <td className="px-6 py-3 font-medium text-slate-700">{m.mes}</td>
                     <td className="px-6 py-3 text-right text-emerald-600 font-medium">Q{fmt(m.ingresos)}</td>
+                    <td className="px-6 py-3 text-right text-slate-500">Q{fmt(m.ingresosPresencial)}</td>
+                    <td className="px-6 py-3 text-right text-slate-500">Q{fmt(m.ingresosOnline)}</td>
                     <td className="px-6 py-3 text-right text-red-500 font-medium">Q{fmt(m.egresos)}</td>
                     <td className={`px-6 py-3 text-right font-bold ${m.utilidad >= 0 ? "text-slate-800" : "text-red-600"}`}>
                       Q{fmt(m.utilidad)}

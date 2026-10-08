@@ -96,7 +96,7 @@ router.get("/resumen", verifyJWT, async (req: Request, res: Response) => {
   const hace30 = startOfDay(subDays(hoy, 30));
   const hace7 = startOfDay(subDays(hoy, 7));
 
-  const [totalLeads, nuevosEste_mes, nuevosEsta_semana, inscripciones, pagos] = await Promise.all([
+  const [totalLeads, nuevosEste_mes, nuevosEsta_semana, inscripciones, pagos, pagosOnline] = await Promise.all([
     prisma.lead.count(),
     prisma.lead.count({ where: { creadoEn: { gte: hace30 } } }),
     prisma.lead.count({ where: { creadoEn: { gte: hace7 } } }),
@@ -105,14 +105,26 @@ router.get("/resumen", verifyJWT, async (req: Request, res: Response) => {
       where: { estado: "COMPLETADO", creadoEn: { gte: hace30 } },
       _sum: { monto: true },
     }),
+    // PRD mea-logica-negocio R8: PagoSuscripcion (tarjeta Recurrente + depositos
+    // online confirmados) nunca se sumaba al ingreso del mes -- se separa en su
+    // propio campo en vez de mezclarlo sin etiqueta dentro de ingresosMes.
+    prisma.pagoSuscripcion.aggregate({
+      where: { estado: "COMPLETADO", pagadoEn: { gte: hace30 } },
+      _sum: { montoCentavos: true },
+    }),
   ]);
+
+  const ingresosMesPresencial = Number(pagos._sum.monto ?? 0);
+  const ingresosMesOnline = (pagosOnline._sum.montoCentavos ?? 0) / 100;
 
   res.json({
     totalLeads,
     nuevosUltimos30dias: nuevosEste_mes,
     nuevosUltimos7dias: nuevosEsta_semana,
     inscripcionesActivas: inscripciones,
-    ingresosMes: Number(pagos._sum.monto ?? 0),
+    ingresosMes: ingresosMesPresencial + ingresosMesOnline,
+    ingresosMesPresencial,
+    ingresosMesOnline,
   });
 });
 
@@ -121,10 +133,16 @@ router.get("/pl", verifyJWT, requireRole("SUPER_ADMIN"), financialReportsLimiter
   const now = new Date();
   const meses = Array.from({ length: 12 }, (_, i) => subMonths(now, 11 - i));
 
-  const [pagos, egresos] = await Promise.all([
+  const [pagos, pagosOnline, egresos] = await Promise.all([
     prisma.pago.findMany({
       where: { estado: "COMPLETADO", creadoEn: { gte: startOfMonth(meses[0]) } },
       select: { monto: true, creadoEn: true },
+    }),
+    // PRD mea-logica-negocio R8: el P&L solo contaba Pago (presencial) --
+    // PagoSuscripcion (online) quedaba totalmente afuera de ingresos y utilidad.
+    prisma.pagoSuscripcion.findMany({
+      where: { estado: "COMPLETADO", pagadoEn: { gte: startOfMonth(meses[0]) } },
+      select: { montoCentavos: true, pagadoEn: true },
     }),
     prisma.egreso.findMany({
       where: { fecha: { gte: startOfMonth(meses[0]) } },
@@ -134,15 +152,21 @@ router.get("/pl", verifyJWT, requireRole("SUPER_ADMIN"), financialReportsLimiter
 
   const pl = meses.map((mes) => {
     const mesKey = format(mes, "yyyy-MM");
-    const ingresos = pagos
+    const ingresosPresencial = pagos
       .filter((p) => format(p.creadoEn, "yyyy-MM") === mesKey)
       .reduce((s, p) => s + Number(p.monto), 0);
+    const ingresosOnline = pagosOnline
+      .filter((p) => p.pagadoEn && format(p.pagadoEn, "yyyy-MM") === mesKey)
+      .reduce((s, p) => s + p.montoCentavos / 100, 0);
+    const ingresos = ingresosPresencial + ingresosOnline;
     const egresosTotal = egresos
       .filter((e) => format(e.fecha, "yyyy-MM") === mesKey)
       .reduce((s, e) => s + Number(e.monto), 0);
     return {
       mes: mesKey,
       ingresos: Math.round(ingresos * 100) / 100,
+      ingresosPresencial: Math.round(ingresosPresencial * 100) / 100,
+      ingresosOnline: Math.round(ingresosOnline * 100) / 100,
       egresos: Math.round(egresosTotal * 100) / 100,
       utilidad: Math.round((ingresos - egresosTotal) * 100) / 100,
     };
@@ -179,8 +203,14 @@ router.get("/flujo-caja", verifyJWT, requireRole("SUPER_ADMIN"), financialReport
   const en30dias = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   const hace90 = startOfMonth(subMonths(now, 3));
 
-  const [totalIngresos, totalEgresos, cuotasPendientes30, egresosUltimos3] = await Promise.all([
+  const [totalIngresos, totalIngresosOnline, totalEgresos, cuotasPendientes30, egresosUltimos3] = await Promise.all([
     prisma.pago.aggregate({ where: { estado: "COMPLETADO" }, _sum: { monto: true } }),
+    // PRD mea-logica-negocio R8: el saldo actual (caja ya cobrada) ignoraba
+    // todo el ingreso online. La proyeccion a 30 dias sigue siendo solo
+    // presencial (CuotaPago) a proposito: el modelo online (tarjeta recurrente
+    // o deposito por bloque) no tiene cuotas pendientes programadas que
+    // proyectar sin inventar un numero.
+    prisma.pagoSuscripcion.aggregate({ where: { estado: "COMPLETADO" }, _sum: { montoCentavos: true } }),
     prisma.egreso.aggregate({ _sum: { monto: true } }),
     prisma.cuotaPago.aggregate({
       where: { estado: "PENDIENTE", fechaVence: { lte: en30dias } },
@@ -192,7 +222,10 @@ router.get("/flujo-caja", verifyJWT, requireRole("SUPER_ADMIN"), financialReport
     }),
   ]);
 
-  const saldoActual = Number(totalIngresos._sum.monto ?? 0) - Number(totalEgresos._sum.monto ?? 0);
+  const saldoActual =
+    Number(totalIngresos._sum.monto ?? 0) +
+    (totalIngresosOnline._sum.montoCentavos ?? 0) / 100 -
+    Number(totalEgresos._sum.monto ?? 0);
   const ingresoProyectado30 = Number(cuotasPendientes30._sum.monto ?? 0);
   const egresoPromMensual = Number(egresosUltimos3._sum.monto ?? 0) / 3;
   const egresoProyectado30 = Math.round((egresoPromMensual / 30) * 30 * 100) / 100;

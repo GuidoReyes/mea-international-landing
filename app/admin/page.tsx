@@ -157,7 +157,11 @@ export default function DashboardPage() {
             <KPICard
               label="Ingresos mes"
               value={resumen ? `Q${resumen.ingresosMes.toLocaleString()}` : "—"}
-              sub="pagos completados"
+              sub={
+                resumen
+                  ? `Q${resumen.ingresosMesPresencial.toLocaleString()} presencial + Q${resumen.ingresosMesOnline.toLocaleString()} online`
+                  : "pagos completados"
+              }
               icon={DollarSign}
               color="bg-amber-50 text-amber-600"
               href="/admin/metricas"

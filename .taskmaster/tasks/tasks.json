@@ -9228,10 +9228,11 @@
         "description": "Hallazgo del mapa admin, independiente del modelo de pago. pagoSuscripcion (pagos online: tarjeta Recurrente + depositos confirmados) nunca se consulta desde backend/src/routes/finanzas.ts ni reportes.ts -- esos reportes solo agregan CuotaPago (presencial). Con sesiones como unidad real de ingreso (R1-R4) esto se vuelve mas importante todavia.",
         "details": "Sumar las consultas de PagoSuscripcion (filtrando estado=COMPLETADO) a los calculos de ingresos de finanzas.ts y al P&L/flujo de caja de CEO, distinguiendolo claramente de los ingresos presenciales (CuotaPago) en vez de mezclarlos sin etiqueta.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-08T03:06:19.827Z"
       },
       {
         "id": "9",
@@ -9260,9 +9261,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-06T02:43:43.969Z",
+      "lastModified": "2026-10-08T03:06:19.827Z",
       "taskCount": 10,
-      "completedCount": 7,
+      "completedCount": 8,
       "tags": [
         "mea-logica-negocio"
       ]

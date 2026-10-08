@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, Area, AreaChart, CartesianGrid,
 } from "recharts";
-import { TrendingUp, Users, Clock, DollarSign } from "lucide-react";
+import { TrendingUp, Users, Clock, DollarSign, GraduationCap } from "lucide-react";
 
 type Periodo = "7d" | "30d" | "90d";
 
@@ -93,7 +93,7 @@ export default function MetricasPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard
           label="Total leads"
           value={data?.totalLeads ?? "—"}
@@ -107,6 +107,13 @@ export default function MetricasPage() {
           icon={TrendingUp}
           sub="leads inscritos / total"
           color="bg-emerald-50 text-emerald-600"
+        />
+        <KPICard
+          label="Convertidos a alumno"
+          value={data?.convertidos ?? "—"}
+          icon={GraduationCap}
+          sub="match real por teléfono/email"
+          color="bg-teal-50 text-teal-600"
         />
         <KPICard
           label="Tiempo cierre"
@@ -194,6 +201,11 @@ export default function MetricasPage() {
                       <span className="text-white text-xs font-semibold">{etapa.count}</span>
                     </div>
                   </div>
+                  {etapa.convertidos > 0 && (
+                    <span className="text-xs text-teal-600 font-semibold w-20 text-right shrink-0">
+                      {etapa.convertidos} alumno{etapa.convertidos !== 1 ? "s" : ""}
+                    </span>
+                  )}
                   {etapa.valorTotal > 0 && (
                     <span className="text-xs text-slate-400 w-24 text-right shrink-0">
                       Q{etapa.valorTotal.toLocaleString()}
@@ -201,6 +213,37 @@ export default function MetricasPage() {
                   )}
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {/* Conversión real por campaña (PRD mea-logica-negocio R9) */}
+      {data && data.porCampana.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">Conversión por campaña</h2>
+          <p className="text-xs text-slate-400 mb-4">
+            Cuántos destinatarios de cada campaña terminaron convirtiendo a alumno (match real por teléfono/email).
+          </p>
+          <div className="space-y-2.5">
+            {data.porCampana.map((c) => {
+              const pct = c.totalDestinatarios > 0 ? Math.round((c.convertidos / c.totalDestinatarios) * 100) : 0;
+              return (
+                <div key={c.campanaId} className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500 w-32 shrink-0 truncate">{c.nombre}</span>
+                  <div className="flex-1 bg-slate-50 rounded-full h-6 overflow-hidden">
+                    <div
+                      className="h-full rounded-full flex items-center px-2 bg-teal-600 transition-all duration-500"
+                      style={{ width: `${Math.max(c.convertidos > 0 ? 8 : 0, pct)}%` }}
+                    >
+                      {c.convertidos > 0 && <span className="text-white text-xs font-semibold">{c.convertidos}</span>}
+                    </div>
+                  </div>
+                  <span className="text-xs text-slate-400 w-28 text-right shrink-0">
+                    {c.convertidos} de {c.totalDestinatarios} ({pct}%)
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

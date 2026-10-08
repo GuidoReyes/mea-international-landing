@@ -9,6 +9,7 @@ import { log } from "../lib/logger";
 import { maskPhone } from "../lib/log-sanitize";
 import { alumnoLoginLimiter as rateLimitLogin } from "../middleware/rate-limit.middleware";
 import { verifyOtpCode } from "../lib/otp-utils";
+import { vincularLeadConAlumnoNuevo } from "../lib/lead-alumno";
 
 const router = Router();
 
@@ -190,6 +191,10 @@ router.post("/registro", rateLimitLogin, async (req: Request, res: Response) => 
     },
   });
 
+  vincularLeadConAlumnoNuevo(alumno).catch((err) =>
+    log("error", "[AuthAlumno] Error enlazando lead en registro:", err)
+  );
+
   const token = firmarSesion(alumno, res);
   if (!token) return;
 
@@ -297,6 +302,9 @@ router.post("/otp/verificar", rateLimitLogin, async (req: Request, res: Response
       },
     });
     esNuevo = true;
+    vincularLeadConAlumnoNuevo(alumno).catch((err) =>
+      log("error", "[AuthAlumno] Error enlazando lead en registro OTP:", err)
+    );
   }
 
   if (!alumno.activo) {

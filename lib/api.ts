@@ -208,10 +208,12 @@ export interface ReportesLeads {
   periodo: string;
   totalLeads: number;
   porEstado: Record<string, number>;
-  porEtapa: { etapaId: number; nombre: string; count: number; valorTotal: number }[];
+  porEtapa: { etapaId: number; nombre: string; count: number; valorTotal: number; convertidos: number }[];
   evolucion: { fecha: string; total: number }[];
   tasaConversion: number;
   tiempoPromedioCierre: number | null;
+  convertidos: number;
+  porCampana: { campanaId: number; nombre: string; totalDestinatarios: number; convertidos: number }[];
 }
 
 export interface ReportesResumen {

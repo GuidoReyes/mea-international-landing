@@ -9252,19 +9252,20 @@
         "description": "Hallazgo del mapa del alumno, ahora reformulado con el modelo real: /mis-cursos nunca muestra nada sobre el estado del plan. Bajo el modelo de sesiones, lo util para el alumno no es una fecha de vencimiento sino cuantas de sus 8 sesiones ya recibio y cuando fue su ultimo pago.",
         "details": "Agregar a app/mis-cursos/page.tsx una seccion con: sesiones recibidas del bloque vigente (X de 8), ultima fecha de pago, proxima sesion programada. Mismos datos que R4 pero expuestos al alumno, no al admin -- requiere R1 (modelo de sesiones) y un endpoint alumno-facing equivalente a R4.",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "1"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-10-08T03:34:27.603Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-10-08T03:16:46.733Z",
+      "lastModified": "2026-10-08T03:34:27.603Z",
       "taskCount": 10,
-      "completedCount": 9,
+      "completedCount": 10,
       "tags": [
         "mea-logica-negocio"
       ]

@@ -10,6 +10,7 @@ import { maskPhone } from "../lib/log-sanitize";
 import { alumnoLoginLimiter as rateLimitLogin } from "../middleware/rate-limit.middleware";
 import { verifyOtpCode } from "../lib/otp-utils";
 import { vincularLeadConAlumnoNuevo } from "../lib/lead-alumno";
+import { calcularResumenSesiones } from "../lib/resumen-sesiones";
 
 const router = Router();
 
@@ -121,6 +122,16 @@ router.get("/me", verifyAlumnoJWT, async (req: Request, res: Response) => {
     return;
   }
   res.json(alumno);
+});
+
+// GET /api/auth/alumno/resumen-sesiones — mismos datos que R4 (admin) pero
+// expuestos al propio alumno: ultimo pago, sesiones recibidas del bloque de
+// 8, asistencia reciente, proxima sesion. /mis-cursos nunca mostraba nada
+// sobre el estado del plan; bajo el modelo de sesiones una fecha de
+// vencimiento no es lo util, sino cuanto del bloque ya se uso.
+router.get("/resumen-sesiones", verifyAlumnoJWT, async (req: Request, res: Response) => {
+  const resumen = await calcularResumenSesiones(req.alumno!.alumnoId);
+  res.json(resumen);
 });
 
 // ─── Registro self-service (email o WhatsApp+OTP) ───────────────────────────

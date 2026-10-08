@@ -65,6 +65,14 @@ export interface MiCursoProgreso {
   certificado: { codigo: string; urlPdf: string | null } | null;
 }
 
+export interface ResumenSesionesAlumno {
+  ultimoPago: { fecha: string; monto: number; tipo: "online" | "presencial" } | null;
+  sesionesRecibidas: number;
+  bloqueTotal: number;
+  asistenciaReciente: { sesionId: number; fechaHora: string; asistio: boolean; fuente: string }[];
+  proximaSesion: { id: number; fechaHora: string; grupoNombre: string } | null;
+}
+
 export interface SuscripcionMe {
   suscripcion: {
     id: number;
@@ -153,6 +161,8 @@ export const alumnoApi = {
   getMisCursos: () => alumnoFetch<MiCursoProgreso[]>("/api/cursos-online/mis/progreso"),
 
   getSuscripcion: () => alumnoFetch<SuscripcionMe>("/api/suscripciones/me"),
+
+  getResumenSesiones: () => alumnoFetch<ResumenSesionesAlumno>("/api/auth/alumno/resumen-sesiones"),
 
   entrarClaseEnVivo: (grupoId: number) =>
     alumnoFetch<{ zoomUrl: string }>(`/api/clases-en-vivo/${grupoId}/entrar`),

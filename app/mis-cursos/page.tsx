@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Award, BookOpen, ChevronRight, LogOut } from "lucide-react";
-import { alumnoApi, clearAlumnoToken, getAlumnoToken, MiCursoProgreso } from "@/lib/alumno-api";
+import { Award, BookOpen, ChevronRight, LogOut, CalendarClock, CheckCircle2, XCircle } from "lucide-react";
+import { alumnoApi, clearAlumnoToken, getAlumnoToken, MiCursoProgreso, ResumenSesionesAlumno } from "@/lib/alumno-api";
 import SesionAlumnoBadge from "@/components/alumno/SesionAlumnoBadge";
 
 export default function MisCursosPage() {
   const router = useRouter();
   const [cursos, setCursos] = useState<MiCursoProgreso[] | null>(null);
+  const [resumenSesiones, setResumenSesiones] = useState<ResumenSesionesAlumno | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,10 @@ export default function MisCursosPage() {
         }
         setError(err instanceof Error ? err.message : "Error cargando tus cursos");
       });
+
+    // Resumen de sesiones en vivo (R10) -- secundario: si falla, no bloquea
+    // la vista de cursos, simplemente no se muestra el panel.
+    alumnoApi.getResumenSesiones().then(setResumenSesiones).catch(() => {});
   }, [router]);
 
   function handleLogout() {
@@ -61,6 +66,59 @@ export default function MisCursosPage() {
 
         {cursos === null && !error && (
           <p className="text-slate-400 text-center py-12">Cargando...</p>
+        )}
+
+        {resumenSesiones && (resumenSesiones.ultimoPago || resumenSesiones.sesionesRecibidas > 0 || resumenSesiones.proximaSesion) && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+            <h2 className="text-sm font-semibold text-[#0A2540] mb-4">Tus clases en vivo</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Último pago</p>
+                {resumenSesiones.ultimoPago ? (
+                  <p className="text-sm text-[#0A2540] font-medium">
+                    {new Date(resumenSesiones.ultimoPago.fecha).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-400">Sin pagos registrados</p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Sesiones recibidas</p>
+                <p className="text-sm text-[#0A2540] font-medium">
+                  {resumenSesiones.sesionesRecibidas} de {resumenSesiones.bloqueTotal}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Próxima sesión</p>
+                {resumenSesiones.proximaSesion ? (
+                  <p className="text-sm text-[#0A2540] font-medium flex items-center gap-1.5">
+                    <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                    {new Date(resumenSesiones.proximaSesion.fechaHora).toLocaleString("es-GT", { dateStyle: "short", timeStyle: "short" })}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-400">Sin sesión programada</p>
+                )}
+              </div>
+            </div>
+
+            {resumenSesiones.asistenciaReciente.length > 0 && (
+              <div>
+                <p className="text-xs text-slate-400 mb-2">Asistencia reciente</p>
+                <ul className="flex flex-col gap-1.5">
+                  {resumenSesiones.asistenciaReciente.map((a) => (
+                    <li key={a.sesionId} className="flex items-center gap-2 text-sm text-slate-600">
+                      {a.asistio ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      ) : (
+                        <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      )}
+                      {new Date(a.fechaHora).toLocaleDateString("es-GT", { day: "2-digit", month: "short" })}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
 
         {cursos !== null && cursos.length === 0 && (

@@ -1,11 +1,12 @@
 /**
- * One-time script to obtain a Google OAuth2 refresh token for Drive backups.
+ * One-time script to obtain a Google OAuth2 refresh token for Drive backups, or (with the
+ * `gmail` argument) for sending the security report through Gmail.
  *
  * Usage:
- *   GOOGLE_OAUTH_CLIENT_ID=xxx GOOGLE_OAUTH_CLIENT_SECRET=yyy npx ts-node src/scripts/get-drive-token.ts
+ *   GOOGLE_OAUTH_CLIENT_ID=xxx GOOGLE_OAUTH_CLIENT_SECRET=yyy npx ts-node src/scripts/get-drive-token.ts [gmail]
  *
- * Opens a consent URL; after authorizing, the refresh token is printed.
- * Set it in Railway as GOOGLE_OAUTH_REFRESH_TOKEN.
+ * Opens a consent URL; after authorizing, the refresh token is written to a local file.
+ * Set it in Railway as GOOGLE_OAUTH_REFRESH_TOKEN (Drive) or GMAIL_REFRESH_TOKEN (gmail).
  */
 import * as fs from "fs";
 import * as http from "http";
@@ -19,6 +20,19 @@ if (!clientId || !clientSecret) {
   console.error("Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET env vars first.");
   process.exit(1);
 }
+
+// Tokens separados: el de Drive se queda con drive.file y el de Gmail solo puede enviar
+const TOKEN_TARGETS = {
+  drive: { scope: "https://www.googleapis.com/auth/drive.file", envVar: "GOOGLE_OAUTH_REFRESH_TOKEN" },
+  gmail: { scope: "https://www.googleapis.com/auth/gmail.send", envVar: "GMAIL_REFRESH_TOKEN" },
+} as const;
+
+const targetArg = process.argv[2] ?? "drive";
+if (targetArg !== "drive" && targetArg !== "gmail") {
+  console.error(`Unknown target "${targetArg}" — use "drive" (default) or "gmail".`);
+  process.exit(1);
+}
+const target = TOKEN_TARGETS[targetArg];
 
 const PORT = 53682;
 const REDIRECT_URI = `http://localhost:${PORT}`;
@@ -34,7 +48,7 @@ const expectedState = generateOAuthState();
 const authUrl = oauth2.generateAuthUrl({
   access_type: "offline",
   prompt: "consent", // force refresh_token issuance even if previously granted
-  scope: ["https://www.googleapis.com/auth/drive.file"],
+  scope: [target.scope],
   state: expectedState,
 });
 
@@ -57,7 +71,7 @@ const server = http.createServer(async (req, res) => {
     const refreshToken = tokens.refresh_token ?? "";
     // vuln_045: nunca el token completo por consola (queda en el historial de la
     // terminal); se escribe en un archivo local 0600 y en pantalla solo se enmascara.
-    fs.writeFileSync(TOKEN_OUTPUT_FILE, `GOOGLE_OAUTH_REFRESH_TOKEN=${refreshToken}\n`, { mode: 0o600 });
+    fs.writeFileSync(TOKEN_OUTPUT_FILE, `${target.envVar}=${refreshToken}\n`, { mode: 0o600 });
     const mascara = refreshToken.length > 6 ? `${refreshToken.slice(0, 6)}…(${refreshToken.length} chars)` : "(vacío)";
     console.log(`\n✅ Refresh token obtenido: ${mascara}`);
     console.log(`Valor completo escrito en: ${TOKEN_OUTPUT_FILE} (permisos 0600 — borralo tras copiarlo a Railway).`);

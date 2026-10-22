@@ -1,5 +1,6 @@
 import { log } from "../lib/logger";
 import { sendTransactionalEmail } from "../services/notifications";
+import { isGmailConfigured, sendViaGmail } from "./gmail-sender";
 import { escHtml } from "../lib/html-escape";
 import type { ScanResult } from "./types";
 
@@ -87,7 +88,7 @@ export function buildHtml(result: ScanResult): string {
 export async function sendSecurityEmail(
   result: ScanResult
 ): Promise<{ success: boolean; error?: string }> {
-  // Sent via MS Graph (HTTP) — Railway blocks outbound SMTP ports
+  // Sent over HTTP (Gmail API or MS Graph) — Railway blocks outbound SMTP ports
   const emailTo = process.env.SECURITY_EMAIL_TO;
 
   if (!emailTo) {
@@ -96,11 +97,16 @@ export async function sendSecurityEmail(
   }
 
   const subject = `[Security Scan] Score: ${result.security_score} · ${result.vulnerabilities.filter((v) => v.severity === "CRITICAL").length} critical`;
-  const ok = await sendTransactionalEmail(emailTo, subject, buildHtml(result));
+  // Gmail primero (tarea #83): Railway no tiene MS Graph configurado. Solo este reporte;
+  // el resto de emails transaccionales sigue por MS Graph.
+  const viaGmail = isGmailConfigured();
+  const ok = viaGmail
+    ? await sendViaGmail(emailTo, subject, buildHtml(result))
+    : await sendTransactionalEmail(emailTo, subject, buildHtml(result));
 
   if (ok) {
     log("info", `[Emailer] Report sent to ${emailTo}`);
     return { success: true };
   }
-  return { success: false, error: "MS Graph send failed — see logs" };
+  return { success: false, error: `${viaGmail ? "Gmail" : "MS Graph"} send failed — see logs` };
 }
